@@ -1576,8 +1576,8 @@
     <div class="sidebar-subtitle">SAME<br>CONTRIBUTION<br>DIFFERENT<br>OUTCOMES</div>
     <div class="sidebar-divider"></div>
     <div style="font-size:11px;color:rgba(255,255,255,.3);line-height:1.7;margin-top:auto">
-      <div style="margin-bottom:10px"><span style="color:var(--gold)">$100,000/yr</span><br>for 5 years</div>
-      <div style="margin-bottom:10px"><span style="color:var(--gold)">Income Ages</span><br>65 – 100</div>
+      <div style="margin-bottom:10px"><span style="color:var(--gold)" id="doc-sidebar-contrib">$100,000/yr</span><br><span id="doc-sidebar-pay-years">for 5 years</span></div>
+      <div style="margin-bottom:10px"><span style="color:var(--gold)">Income Ages</span><br><span id="doc-sidebar-income-ages">65 – 100</span></div>
       <div style="margin-bottom:10px"><span style="color:var(--gold)">6.75% Gross</span><br>Life Insurance Return</div>
       <div><span style="color:var(--gold)">6.75% Net</span><br>Investment Return</div>
     </div>
@@ -1602,14 +1602,14 @@
             </div>
             <!-- Investment Account -->
             <div class="bar-group">
-              <div class="bar-value">$4.4M</div>
+              <div class="bar-value" id="doc-bar-inv">$4.4M</div>
               <div class="bar-fill" style="height:180px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)">
                 <div class="bar-label">Taxable<br>Investment</div>
               </div>
             </div>
             <!-- Self-Funded LIRP -->
             <div class="bar-group">
-              <div class="bar-value">$5.5M</div>
+              <div class="bar-value" id="doc-bar-lirp">$5.5M</div>
               <div class="bar-fill" style="height:216px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)">
                 <div class="bar-label">Self-Funded LIRP<br>LIRP</div>
               </div>
@@ -1751,7 +1751,23 @@
     el = document.getElementById('doc-annual-income');
     if (el) el.textContent = fa(r.defAnnualIncome);
     // Rate sub
-    el = document.getElementById('doc-income-ages');
+    // Sidebar contribution details
+    el = document.getElementById('doc-sidebar-contrib');
+    if (el) el.textContent = '$' + Math.round(r.annualContrib).toLocaleString() + '/yr';
+    el = document.getElementById('doc-sidebar-pay-years');
+    if (el) el.textContent = 'for ' + r.payYears + ' years';
+    // Sidebar income ages
+    el = document.getElementById('doc-sidebar-income-ages');
+    if (el) el.textContent = r.incomeStartAge + ' – ' + r.incomeEndAge;
+    // Bar chart values
+    var fm = function(n) { return n >= 1000000 ? '$' + (n/1000000).toFixed(1) + 'M' : '$' + Math.round(n/1000) + 'K'; };
+    el = document.getElementById('doc-bar-inv');
+    if (el) el.textContent = fm(r.invTotalNet);
+    el = document.getElementById('doc-bar-lirp');
+    if (el && r.hasLIRP) el.textContent = fm(r.lirpTotalIncome);
+    el = document.getElementById('doc-bar-def');
+    if (el) el.textContent = fm(r.defTotalIncome);
+        el = document.getElementById('doc-income-ages');
     if (el) el.textContent = 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge;
     el = document.getElementById('doc-rate-sub');
     if (el) el.textContent = 'Per year · Tax-free · ' + r.rate1Label + ' Gross Return';
