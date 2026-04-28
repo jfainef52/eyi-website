@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advisor Login — EFS Life</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --navy: #0B1220;
+      --navy-2: #152640;
+      --navy-3: #1e3558;
+      --gold: #C8A96E;
+      --gold-lt: #dfc278;
+      --white: #ffffff;
+      --off: #f5f3ee;
+      --red: #c0392b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 15% 85%, rgba(200,169,110,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 70% at 85% 15%, rgba(21,38,64,0.7) 0%, transparent 65%),
+        var(--navy);
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(200,169,110,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200,169,110,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* Split layout */
+    .layout {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* Left panel - brand */
+    .brand-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 64px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards 0.2s;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 80px;
+    }
+
+    .brand-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    .brand-headline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 3.5vw, 52px);
+      font-weight: 400;
+      line-height: 1.2;
+      margin-bottom: 24px;
+    }
+
+    .brand-headline em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .brand-body {
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.5);
+      max-width: 440px;
+    }
+
+    .brand-features {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .brand-feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .brand-feature::before {
+      content: '';
+      width: 20px;
+      height: 1px;
+      background: var(--gold);
+      flex-shrink: 0;
+    }
+
+    /* Right panel - login card */
+    .login-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 40px;
+      border-left: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      animation: fadeIn 0.8s ease forwards 0.4s;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .login-header {
+      margin-bottom: 40px;
+    }
+
+    .login-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      font-weight: 300;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 8px;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 13px 16px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: rgba(200,169,110,0.5);
+      background: rgba(255,255,255,0.07);
+    }
+
+    input::placeholder {
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* Error message */
+    .error-msg {
+      display: none;
+      background: rgba(192,57,43,0.15);
+      border: 1px solid rgba(192,57,43,0.3);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #e74c3c;
+      margin-bottom: 20px;
+    }
+
+    .error-msg.visible { display: block; }
+
+    /* Submit button */
+    .btn-login {
+      width: 100%;
+      background: var(--gold);
+      color: var(--navy);
+      border: none;
+      border-radius: 4px;
+      padding: 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .btn-login:hover:not(:disabled) {
+      background: var(--gold-lt);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(200,169,110,0.25);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-login.loading::after {
+      content: '...';
+      animation: dots 1s steps(3, end) infinite;
+    }
+
+    @keyframes dots {
+      0% { content: '.'; }
+      33% { content: '..'; }
+      66% { content: '...'; }
+    }
+
+    /* Back link */
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 28px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.25);
+      text-decoration: none;
+      transition: color 0.2s;
+      letter-spacing: 0.3px;
+    }
+
+    .back-link:hover { color: rgba(255,255,255,0.5); }
+
+    .divider-line {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin: 32px 0;
+    }
+
+    .access-note {
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .access-note a {
+      color: rgba(200,169,110,0.5);
+      text-decoration: none;
+    }
+
+    .access-note a:hover { color: var(--gold); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      .brand-panel { display: none; }
+      .login-panel { border-left: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-canvas"></div>
+  <div class="bg-grid"></div>
+
+  <div class="layout">
+    <!-- Left brand panel -->
+    <div class="brand-panel">
+      <div class="brand-logo">
+        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iMTEzM3B4IiBoZWlnaHQ9Ijg3OHB4IiB2aWV3Qm94PSIwIDAgMTEzMyA4NzgiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDExMzMgODc4IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik04ODcuMzU2LDk4LjczM0gyNDQuNzY4djY0Mi41ODhoMzIwLjk4Yy04LjAwNCwxNi4xMDYtMjIuNzExLDM3LjQ3My0yNy4wNzcsNDYuNzk2bC0wLjY4NywxLjU1OA0KCQlsLTM0MS41NjktMC4wMDFWNTAuMzhoNzM5LjI5NGwtMC4wMDEsMTY3LjAyNGMtMTAuNDE2LDcuODU4LTIyLjExNCwxNS4xODctMzUuMjc3LDIyLjIxM2MtNC4yNjMsMi4yNzUtOC42NjYsNC4yNDYtMTMuMDc0LDYuMDg2DQoJCVY5OC43MzN6IE02MzAuMTg4LDc0MS4zMjFoNTcuNjc2Yy0zNi4yMDMsMi4wOTgtNTUuOTcxLDE4LjcyOC02Mi42NDgsMzYuNDM4Yy0wLjI3LTE0LjEzLTAuOTU0LTI2LjgxLDIuODY5LTMzLjAyNg0KCQlMNjMwLjE4OCw3NDEuMzIxeiBNNzg1LjM2MSw3NDEuMzIxaDEwMS45OTVWNTI0LjU4NGMxMy4zNjUtMTUuMzY5LDIyLjQ1NC0yNy42ODcsMjMuMzczLTI3LjQ4Nw0KCQljOC40NzksMS44MzcsMTYuNzUsMy43MTIsMjQuOTc5LDUuMDZsMC4wMDEsMjg3LjUxOGwtMjAxLjM0NCwwLjAwMWM5LjI5OS01LjA2NSwxNy4zNi05LjM4OSwyMy4xMjUtMTEuNzMyDQoJCUM3NzEuNDc5LDc3Mi4yNTMsNzgxLjYxOSw3NTMuMTI0LDc4NS4zNjEsNzQxLjMyMXoiLz4NCgk8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZmlsbD0iI0ZGRkZGRiIgZD0iTTQzNy4yOTQsODAxLjc2M2M5LjU1NSw5LjE1MSwxNS40NDgsMTYuMzEsOS44NDgsMTYuNjIxDQoJCWMtMTQuMjQ5LDAuNzkxLTM2LjM4OSw0LjMxOC00NS4wOTcsMS45NDRjLTguNzA4LTIuMzc1LTE1LjA1LTE3LjYyLTE1LjA1LTE3LjYyTDQzNy4yOTQsODAxLjc2M3ogTTE4NC4zMjcsNzc2LjQ0NQ0KCQljLTIwLjc5Niw0LjM3LTY5LjkwNCwxNC45NzUtNzcuMDU5LDI0LjA4MWMtOC43MDgsMTEuMDgzLTI5LjY3NCw3LjY4Ny0zMS42NjUtMC43OTFjLTMuMTItMTMuMjksNC41NzYtMzguMzk0LDIyLjE2NS00OC4yODcNCgkJYzIxLjI5OS0xMS45NzksNjIuOTIzLTcuNzYyLDY5LjI1Ni0xMC45MjhjMi4yMDEtMS4xMDEsOS4wODctOC4wMzMsMTcuMzAzLTE3LjA0NFY3NzYuNDQ1eiBNMTg0LjMyNyw1MzAuNjI4DQoJCWMtMzAuNTQxLDAuMzgtNjEuNTE2LTEuOTc2LTYxLjUxNi0xLjk3NnMtOS4yNTUsMzIuMDA3LTMwLjQ2NSwzMi43NzhjLTIxLjIxLDAuNzcxLTYyLjg1OC0xNy43MzktNjIuODU4LTE3LjczOQ0KCQlzMjkuNjk0LDExLjk1NSw0Mi44MDYsMS45MjljMTMuMTExLTEwLjAyNiwxMi4zNC0yMC44MjMsMjMuMTM4LTI0LjY4YzEwLjc5OC0zLjg1NiwyOS4zMDgtMS4xNTcsMjkuMzA4LTEuMTU3DQoJCXMzMS4zNDQsMC41NzMsNTkuNTg4LTEuMzc0VjUzMC42Mjh6IE0zMTYuNjM4LDcxMi44MTVjLTIzLjc2NSw1LjA5OC00NC4wOTMsNy40NTgtNTkuNzgzLDE2LjExNFY2MjAuNzc1DQoJCWMxMS4xNjYtMTAuODI5LDI0LjU3Ny0yMy4wMzcsMzMuNjYtNDEuNzM3YzEzLjE0NC0yNy4wNjIsMjMuMjY3LTYwLjE2NCwzMC4zNy03NC45NjZjLTIxLjU1NC0xMC4zNjMtNDcuMzk1LTIwLjgxNS02NC4wMy0yMC44NjYNCgkJdi0xNi41MTVjMjUuMzI1LDEuNjcxLDU2LjQ2OSwxMS41MjIsNzkuNDc5LDIwLjEwMmMxNC4xODktMTEuOTgyLDMzLjA0OC0yMy44NDMsMzUuNzE3LTI0LjkxDQoJCWMzLjk1OC0xLjU4MywzMy4yNDctMy4xNjYsNDIuNzQ2LTcuOTE1YzkuNDk5LTQuNzUsMzQuNjMzLTM1LjAyOCw1Mi42NDMtNDMuMzM5YzE4LjAwOS04LjMxMiwzMC42NzUtMTIuNDY3LDQyLjc0Ny0xMi40NjcNCgkJYzYuODA2LDAsMzYuODg5LDEuMDA2LDY0Ljc0NywzLjhjMzEuODAzLTEyLjEwNCw2MS44NzUtMjMuMTYzLDcxLjE4NS0yOS4yMDJjMjEuNDk2LTEzLjk0NCw1MS4wNzItMjYuNzgsNjguNzA5LTM3LjQyDQoJCWMxNy42MzgtMTAuNjQsMjUuOTEtMjQuNDA4LDYwLjA3Ni0zNC40ODdjMTguMzY2LTUuNDE3LDQzLjUyMi02LjIxNCw2Mi44NjEtNS43OTJjNC40MDMsMTAuMTc2LDkuNjU1LDE5LjY0NiwxNS4yMzcsMjQuMDg3DQoJCWMxNS4wOTksMTIuMDE2LDUyLjEyMiwyMC41NjMsNTIuMTIyLDIwLjU2M3MtMjkuMDQzLTEzLjIwNC00NC40NjgtMjcuMzI2Yy01LjQzMS00Ljk3Mi03Ljg3Ni0xMS45NzMtOC43NjQtMTguOTU4DQoJCWMtMC43NjQtOS40MDQsMi4wMjEtMTguNjUyLDguNzg0LTIyLjAyOWMxMi40OTMtNi4yMzYsNzEuNzA4LTI2LjU3LDExMC45NTktNzAuNDk1YzQxLjc0LTQ2LjcxLDQyLjk2NC04OC4xNzUsNDUuNTMxLTg5LjA2OQ0KCQljNS4xNjItMS43OTctNC41MjIsNjEuMzA2LTMxLjk1NywxMDQuMjQ1Yy0xNS40OTYsMjQuMjU0LTMyLjg4Miw0MS4wNTQtNDkuNjAyLDUyLjI0NWMtNi45ODcsNC42NzctMTEuNzkyLDguMjY1LTE1LjAxOSwxMC44NTcNCgkJYzUuNDExLTAuMjgsMTEuMDU5LTAuMTE2LDE2Ljg1NywwLjY1N2MxNS45NjMsMi4xMjksNjguOTU3LDQ4LjQ2NSw3OC4zMjEsNjUuNzI3YzE4LjQwMy00LjU2OSw0MS4wNTUtMTIuNTIyLDU4LjMxNS0zMi45NDUNCgkJYzMzLjE2OS0zOS4yNDMsMTcuMjk5LTg4LjMyNywyMi4wNjktODEuNzEzYzQuNzcxLDYuNjE0LDE2LjEyNiw1Ni4yMjUtMTAuNDY4LDk3LjUwNGMtMTUuOTkyLDI0LjgyNS0zOC41MjcsNDEuODc1LTU3LjIyOSw0OS45MTYNCgkJYzUuMTU0LDEyLjAyMSwxMS4wNTUsMjQuNjAyLDE2LjE1OCwzMy45ODhjMTAuMDksMTguNTU0LDI5LjE4NiwyMy4xNTcsMjcuNzA1LDQyLjI1NmMtMS40ODIsMTkuMDk4LTIuMjMsNDEuMTM1LTIzLjE2Nyw0MS42NzMNCgkJYy0yMC45MzcsMC41MzctNTIuMzkyLTEyLjcwOC02OS43OTItNy40MTJjLTIwLjYwOCw2LjI3Mi0zNC4wNCwzLjE2Ny02OS45NS00LjM4bC02LjA1Ni0yLjY5OQ0KCQljLTE3LjQxNS03LjkxNi00OS44NzEtMjguMTAyLTQ5Ljg3MS0yOC4xMDJzMjQuMTQ1LDI3LjcwNSw0Mi4zNTIsMzkuOTc1bDEuNzM1LDEuMTZjLTcuNCwxMC44NDYtMTkuMDU3LDI2Ljg4Ny0zMC40MzksMzguMjU0DQoJCWMtMTguNzQzLDE4LjcyMS0zOC45NDgsMjIuMTk2LTQyLjQ1Miw0NS43MDFjLTMuNTA1LDIzLjUwNC0wLjk0MSwzNi45MTItMTAuNjgsNDQuODAzcy0yMC4yMTMsMTUuOTY0LTIwLjIxMywxNS45NjQNCgkJczEuNjMxLDM0LjcxLTMuMTUzLDQ5Ljk0OXMtMTMuNzk2LDM1LjQzNS0xNi4wMDcsNDUuMzUxYy0yLjIxLDkuOTE1LTExLjc3MSwyNy45MDYtMjEuNjkxLDMxLjk0DQoJCWMtOS45MTksNC4wMzMtMzguNTc5LDIwLjU0My01My4wOTIsMjguMDYzYy0xNC41MTQsNy41Mi00Mi40MzUsMTcuNjA0LTUxLjYxNiwxNS4yMWMtOS4xODEtMi4zOTQtMjIuMzk0LTE3LjgyOC01LjY2OS0zOC4zODYNCgkJYzE2LjcyNi0yMC41NTgsNDcuOTQ0LTE3LjQxNiw1My44MjItMTguODgxYzUuODc4LTEuNDY2LDI4LjY1OC0xMy4zODksMzYuNTU5LTE5LjI2YzcuOTAxLTUuODcxLTMuMTAyLTMxLjIyMi0zLjEwMi0zMS4yMjINCgkJcy0yMy42ODYtMTAuNDgyLTMwLjExMi0xMS4yMjJjLTEuODE0LDEuMzUxLTMuMjIyLDIuNTc2LTQuNjk2LDMuNTZjLTQuODY3LDMuMjQ0LTE5LjE0Ni0xLjE4MS0zNi41MDQtOC4yMjcNCgkJYzEuMjg1LTguMTQ1LDIuNjAxLTE3LjU0NywzLjM5OS0yNi4xNzVjMS45NzktMjEuMzczLDEzLjg1NC0yMi4xNjQsMTcuODEyLTM3Ljk5NnMzLjU2My00Ni43MDMsMy41NjMtNDYuNzAzDQoJCXMtNC43NSwyOC44OTMtOC4zMTMsMzYuNDEzYy0zLjU2Myw3LjUyLTcuNTIxLDE3LjAxOS0xNC42NDUsMjQuOTM1Yy03LjEyNSw3LjkxNi0xMC42ODgsMzMuMjQ3LTEzLjA2Myw0MC43NjdsLTUuMjMsMTYuMzMNCgkJYy00LjExMSwxMC4wOTgtMTAuMjM0LDI0LjQ3OS0xMy43ODMsMjkuNzRjLTUuNjk5LDguNDQ0LTE2LjkwOSwxOS44MjMtMTYsMzIuODYyYzAuOTEsMTMuMDM5LDEwLjA1OCw2OC41MDYtMjUuMjA1LDcxLjA1NQ0KCQljLTM1LjI2MiwyLjU0OS00NC4wNjMtMjAuMjI5LTM3LjQ0My0zNC4zNjVjNi42MjEtMTQuMTM3LDMyLjM1My00OC42NDYsMzMuNDY3LTY2LjA5MWMwLjgyMS0xMi44NzktNi41NDgtNTAuMDgyLTEyLjMwNy03NC44MTENCgkJYy0xLjQ4LTUuNjAyLTIuNzgzLTExLjIzMi0zLjQ1MS0xMy45MDRjLTEuNTgzLTYuMzMyLTUuMTQ2LTE2LjIyOC02LjMzMy0yNy43MDVjLTEuMTg4LTExLjQ3OS0wLjc5Mi0zMi40NTUsMS45NzktMzkuMTg0DQoJCWMyLjc3MS02LjcyOSwxLjk3OS00Mi43NDUsMS45NzktNDIuNzQ1cy0yLjM2NCwyNS41NDktOC4xMjgsMzkuMzg0Yy00LjUwOCwxMC44MTktOS42ODMsMzcuMDA0LTguMSw0Ni44OTgNCgkJYzEuNDIxLDguODg0LDYuMzUzLDMwLjIxMiw3LjM0NSw0MC40OTJjLTE5LjY5NSw0LjAzLTU0LjQyNSwxMC4yMDQtNzkuODQzLDE0LjYzM2wtNDMuMjEsNC45OTdsMjkuNjcsMy4xNjQNCgkJYy0xNC45MjgsMTQuNTQ0LTQ0LjI0Nyw0Mi43ODItNTUuMDQyLDUwLjg2MWgtNDQuNDY4YzMuMTU1LTUuNzQsNS45MTMtMTEuNTM4LDYuMzg4LTE1LjM0YzAuMzM1LTIuNjgxLTEuMDMyLTExLjYwMS0yLjcyLTIwLjk5Nw0KCQljOC40OTUtOS4zNTIsOS40NDctMTQuODk0LDIzLjE2OS0yNS4wMTdjMTYuMTE4LTExLjg4OSwyNi44ODMtMTQuNTMxLDM1LjYxNS0zMC41OTJjLTguMzEyLDguNzA3LTM1LjYyMSwxNi45ODEtNDguNjgzLDI4Ljg1NQ0KCQljLTEzLjA2MiwxMS44NzMtMjcuNzA3LDI0LjE0My0yNy43MDcsMjQuMTQzQzMzNy4wMTcsNzAwLjQwMiwzMjIuMTk0LDcxMS42MjQsMzE2LjYzOCw3MTIuODE1eiBNOTE5LjIwNSwzMzUuNjA0DQoJCWMwLDAtMi43NzEsMTguNjAyLDEwLjQ4OSwyOS40ODZjMTMuMjYsMTAuODg0LDMzLjQ0NSw3LjkxNiwzMy40NDUsNy45MTZMOTE5LjIwNSwzMzUuNjA0eiIvPg0KPC9nPg0KPC9zdmc+DQo=" style="height:40px;width:auto;flex-shrink:0;opacity:.95" alt="EFS Life">
+        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNi4wLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4Ig0KCSB3aWR0aD0iMTQ3NHB4IiBoZWlnaHQ9IjM2OHB4IiB2aWV3Qm94PSIwIDAgMTQ3NCAzNjgiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDE0NzQgMzY4IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxwb2x5Z29uIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBmaWxsPSIjRkZGRkZGIiBwb2ludHM9IjI0MS4wNDIsMTIyLjEwOCAyNDEuMDQyLDU5LjQyNiA0MC41NzksNTkuNDI2IA0KCQk0MC41NzksMzA4LjQ3NiAyNDEuMDQyLDMwOC40NzYgMjQxLjA0MiwyNDUuNzk0IDExMC44NzUsMjQ1Ljc5NCAxMTAuODc1LDIxMi43NTQgMjI5LjQzOSwyMTIuNzU0IDIyOS40MzksMTUwLjA3MiANCgkJMTEwLjg3NSwxNTAuMDcyIDExMC44NzUsMTIyLjEwOCAJIi8+DQoJPHBvbHlnb24gZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9IiNGRkZGRkYiIHBvaW50cz0iNDg1LjM2MSwxMjIuMTA4IDQ4NS4zNjEsNTkuNDI2IDI4NC44OTcsNTkuNDI2IA0KCQkyODQuODk3LDMwOC40NzYgMzU1LjE5MywzMDguNDc2IDM1NS4xOTMsMjIwLjAwNSA0NzMuNzU4LDIyMC4wMDUgNDczLjc1OCwxNTcuMzI0IDM1NS4xOTMsMTU3LjMyNCAzNTUuMTkzLDEyMi4xMDggCSIvPg0KCTxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBmaWxsPSIjRkZGRkZGIiBkPSJNNjIxLjEzMywzMTIuODI2YzMxLjU2LTAuMTg4LDU2LjQ1My03LjUxMSw3NC42ODEtMjEuOTY4DQoJCXMyNy41MjktMzQuOTIsMjcuOTA2LTYxLjM4OWMtMC4zMDItMjMuMTYtOC43NTgtNDAuMTMxLTI1LjM2OS01MC45MTRjLTE2LjYxMS0xMC43ODMtMzkuNTY5LTE4Ljk1OC02OC44NzQtMjQuNTI3DQoJCWMtMTcuNC0zLjU1MS0yOS4yMjMtNi45NjctMzUuNDY2LTEwLjI0NmMtNi4yNDQtMy4yOC05LjE3Ni03Ljk2NC04Ljc5OC0xNC4wNTVjLTAuMDA4LTQuODA2LDIuMDk0LTguNzA1LDYuMzA0LTExLjY5Nw0KCQljNC4yMS0yLjk5MiwxMC41NzUtNC41MzQsMTkuMDk0LTQuNjI1YzExLjM1NCwwLDIzLjExMywyLjA4NSwzNS4yNzcsNi4yNTdjMTIuMTY1LDQuMTcxLDI0LjA5OCwxMC40MjcsMzUuNzk5LDE4Ljc3bDM1LjE0OC00OS42NjMNCgkJYy0xMy43LTExLjA3My0yOS4xNDgtMTkuNDUxLTQ2LjM0My0yNS4xMzVjLTE3LjE5NC01LjY4NC0zNi41NS04LjUzNy01OC4wNjctOC41NmMtMjkuOTQ5LDAuMzA5LTUzLjcwOCw3Ljc1Mi03MS4yNzksMjIuMzMNCgkJYy0xNy41NywxNC41NzgtMjYuNTU1LDM0LjQzNy0yNi45NTQsNTkuNTc2YzAuMTgxLDE3LjA2Nyw0LjQ0OSwzMC42MDgsMTIuODA0LDQwLjYyMmM4LjM1NSwxMC4wMTUsMTkuNzEyLDE3LjgzMywzNC4wNjksMjMuNDU1DQoJCWMxNC4zNTcsNS42MjEsMzAuNjMxLDEwLjM3Nyw0OC44MTksMTQuMjY2YzE2Ljg3OSwzLjY1LDI4LjM4NCw2Ljc3OCwzNC41MTQsOS4zODVjNi4xMywyLjYwNyw5LjAxOCw2LjczMiw4LjY2MywxMi4zNzcNCgkJYy0wLjAyMyw1LjQ4Ni0yLjUxNyw5Ljc0OC03LjQ4MywxMi43ODVjLTQuOTY2LDMuMDM4LTEyLjI2OSw0LjU3OS0yMS45MDYsNC42MjVjLTE0LjcwMi0wLjAyMy0yOC45MjItMi42MDctNDIuNjYyLTcuNzUzDQoJCWMtMTMuNzM5LTUuMTQ2LTI2Ljk1My0xMi43MTctMzkuNjQzLTIyLjcxNEw1MDIuMjI3LDI3MC44YzE1LjkzOCwxMy45NTYsMzQuMDc1LDI0LjQ0Nyw1NC40MSwzMS40NzUNCgkJQzU3Ni45NzIsMzA5LjMwMiw1OTguNDcxLDMxMi44MTgsNjIxLjEzMywzMTIuODI2eiIvPg0KCTxwb2x5Z29uIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBmaWxsPSIjRkZGRkZGIiBwb2ludHM9IjgyOS4xMjUsMjg4LjgwNiA5NjkuOTgyLDI4OC44MDYgOTY5Ljk4MiwzMDguNDk4IA0KCQk4MDkuMDY5LDMwOC40OTggODA5LjA2OSw1Ny4yNDUgODI5LjEyNSw1Ny4yNDUgCSIvPg0KCTxyZWN0IHg9IjEwMDIuNzE1IiB5PSI1Ny4yNDUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBmaWxsPSIjRkZGRkZGIiB3aWR0aD0iMjAuMDU1IiBoZWlnaHQ9IjI1MS4yNTMiLz4NCgk8cG9seWdvbiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZmlsbD0iI0ZGRkZGRiIgcG9pbnRzPSIxMjM3Ljg0OCw3Ni45NDMgMTA4My4xMjEsNzYuOTQzIDEwODMuMTIxLDE3MC43MTEgDQoJCTEyMjMuMjY2LDE3MC43MTEgMTIyMy4yNjYsMTkwLjQwOSAxMDgzLjEyMSwxOTAuNDA5IDEwODMuMTIxLDMwOC40OTggMTA2My4wNjYsMzA4LjQ5OCAxMDYzLjA2Niw1Ny4yNDUgMTIzNy44NDgsNTcuMjQ1IAkiLz4NCgk8cG9seWdvbiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZmlsbD0iI0ZGRkZGRiIgcG9pbnRzPSIxNDMyLjI0Niw3Ni45NDMgMTI4NC42MzUsNzYuOTQzIDEyODQuNjM1LDE3MC43MTEgDQoJCTE0MjEuMjIxLDE3MC43MTEgMTQyMS4yMjEsMTkwLjQwOSAxMjg0LjYzNSwxOTAuNDA5IDEyODQuNjM1LDI4OC44MDYgMTQzMi4yNDYsMjg4LjgwNiAxNDMyLjI0NiwzMDguNDk4IDEyNjQuNTgsMzA4LjQ5OCANCgkJMTI2NC41OCw1Ny4yNDUgMTQzMi4yNDYsNTcuMjQ1IAkiLz4NCjwvZz4NCjwvc3ZnPg0K" style="height:22px;width:auto;flex-shrink:0;opacity:.95" alt="EFS Life">
+        
+        
+      </div>
+
+      <div class="brand-eyebrow">Advisor Platform</div>
+      <h1 class="brand-headline">
+        Institutional tools.<br>
+        <em>Built for advisors</em><br>
+        who go deeper.
+      </h1>
+      <p class="brand-body">
+        Access pre-illustration modeling, income ledger generation, and client-ready presentation tools — engineered for the enhanced funding strategy.
+      </p>
+
+      <div class="brand-features">
+        <div class="brand-feature">DEF Pre-Illustration Modeler</div>
+        <div class="brand-feature">Income Ledger with CSV Import</div>
+        <div class="brand-feature">Client Discussion Document</div>
+        <div class="brand-feature">SOFR Rate Integration</div>
+      </div>
+    </div>
+
+    <!-- Right login panel -->
+    <div class="login-panel">
+      <div class="login-card">
+        <div class="login-header">
+          <h2 class="login-title">Advisor Sign In</h2>
+          <p class="login-subtitle">Enter your credentials to access the platform</p>
+        </div>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <button class="btn-login" id="loginBtn" onclick="handleLogin()">Sign In</button>
+
+        <div class="divider-line"></div>
+
+        <p class="access-note">
+          Access is by invitation only.<br>
+          Contact <a href="mailto:jeff@enhancedfunding.com">jeff@enhancedfunding.com</a> to request access.
+        </p>
+
+        <a href="/" class="back-link">← Back to enhanceyourincome.com</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Check if already logged in
+    (async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        window.location.href = '/efs-def-pre-illus.html';
+      }
+    })();
+
+    // Allow Enter key to submit
+    document.getElementById('password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+    document.getElementById('email').addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('password').focus();
+    });
+
+    async function handleLogin() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const errorMsg = document.getElementById('errorMsg');
+
+      errorMsg.classList.remove('visible');
+
+      if (!email || !password) {
+        showError('Please enter your email and password.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Signing in';
+      btn.classList.add('loading');
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+        btn.classList.remove('loading');
+        showError('Invalid email or password. Please try again.');
+        return;
+      }
+
+      // Success — redirect to modeler
+      window.location.href = '/efs-def-pre-illus.html';
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+  </script>
+</body>
+</html>
