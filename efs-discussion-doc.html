@@ -1591,7 +1591,7 @@
       </div>
       <div class="solution-body">
         <div class="chart-area">
-          <div class="chart-title">Total Lifetime Income Ages 65–100</div>
+          <div class="chart-title">Total Lifetime Income <span id="doc-income-ages">Ages 65–95</span></div>
           <div class="bar-chart">
             <!-- Client Total Contribution reference bar -->
             <div class="bar-group" style="max-width:90px">
@@ -1638,7 +1638,7 @@
           <div class="fact-block">
             <div class="fact-label">DEF Total Lifetime Income</div>
             <div class="fact-value" id="doc-total-income">$9,155,502</div>
-            <div class="fact-sub">Ages 65–100 · Tax-free</div>
+            <div class="fact-sub"><span id="doc-income-ages">Ages 65–95</span> · Tax-free</div>
             <div class="fact-delta">▲ +$4.8M vs Taxable Account</div>
           </div>
           <div class="fact-block">
@@ -1749,8 +1749,10 @@
     if (el) el.textContent = fa(r.defTotalIncome);
     // Annual income
     el = document.getElementById('doc-annual-income');
-    if (el) el.textContent = fa(r.annualIncome);
+    if (el) el.textContent = fa(r.defAnnualIncome);
     // Rate sub
+    el = document.getElementById('doc-income-ages');
+    if (el) el.textContent = 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge;
     el = document.getElementById('doc-rate-sub');
     if (el) el.textContent = 'Per year · Tax-free · ' + r.rate1Label + ' Gross Return';
   } catch(e) {}
