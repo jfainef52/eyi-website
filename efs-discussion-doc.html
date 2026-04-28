@@ -1585,7 +1585,7 @@
   <div class="main-content">
     <div class="solution-main">
       <div class="solution-header">
-        <div class="eyebrow">Comparative Analysis · M45 D5 100k Sample</div>
+        <div class="eyebrow">Comparative Analysis · <span id="doc-client-eyebrow">M45 D5 100k Sample</span></div>
         <h2>What is the best way to maximize a retirement income plan?</h2>
         <p>Three strategies. Same annual contribution. Dramatically different lifetime outcomes.</p>
       </div>
@@ -1632,19 +1632,19 @@
         <div class="solution-facts">
           <div class="fact-block">
             <div class="fact-label">Total Client Investment</div>
-            <div class="fact-value">$500,000</div>
-            <div class="fact-sub">$100k/yr · 5 years · Ages 45–49</div>
+            <div class="fact-value" id="doc-total-outlay">$500,000</div>
+            <div class="fact-sub" id="doc-contrib-desc">$100k/yr · 5 years · Ages 45–49</div>
           </div>
           <div class="fact-block">
             <div class="fact-label">DEF Total Lifetime Income</div>
-            <div class="fact-value">$9,155,502</div>
+            <div class="fact-value" id="doc-total-income">$9,155,502</div>
             <div class="fact-sub">Ages 65–100 · Tax-free</div>
             <div class="fact-delta">▲ +$4.8M vs Taxable Account</div>
           </div>
           <div class="fact-block">
             <div class="fact-label">Annual Income</div>
-            <div class="fact-value">$254,320</div>
-            <div class="fact-sub">Per year · Tax-free · 6.75% Gross Return</div>
+            <div class="fact-value" id="doc-annual-income">$254,320</div>
+            <div class="fact-sub" id="doc-rate-sub">Per year · Tax-free · 6.75% Gross Return</div>
           </div>
           <div class="fact-block">
             <div class="fact-label">The Core Insight</div>
@@ -1723,6 +1723,39 @@
     </div>
   </div>
 </div>
+
+
+<script>
+(function() {
+  try {
+    var raw = localStorage.getItem('efs_ledger_data');
+    if (!raw) return;
+    var r = JSON.parse(raw);
+    var fm = function(n) { return n >= 1000000 ? '$' + (n/1000000).toFixed(1) + 'M' : '$' + Math.round(n).toLocaleString(); };
+    var fa = function(n) { return '$' + Math.round(n).toLocaleString(); };
+    // Client name
+    var el = document.getElementById('cover-client');
+    if (el) el.textContent = r.clientName || el.textContent;
+    el = document.getElementById('doc-client-eyebrow');
+    if (el) el.textContent = r.clientName || el.textContent;
+    // Total outlay
+    el = document.getElementById('doc-total-outlay');
+    if (el) el.textContent = fa(r.totalClientOutlay);
+    // Contribution description
+    el = document.getElementById('doc-contrib-desc');
+    if (el) el.textContent = fa(r.annualContrib) + '/yr · ' + r.payYears + ' years · Ages ' + r.issueAge + '–' + (r.issueAge + r.payYears - 1);
+    // Total income
+    el = document.getElementById('doc-total-income');
+    if (el) el.textContent = fa(r.defTotalIncome);
+    // Annual income
+    el = document.getElementById('doc-annual-income');
+    if (el) el.textContent = fa(r.annualIncome);
+    // Rate sub
+    el = document.getElementById('doc-rate-sub');
+    if (el) el.textContent = 'Per year · Tax-free · ' + r.rate1Label + ' Gross Return';
+  } catch(e) {}
+})();
+</script>
 
 </body>
 </html>
