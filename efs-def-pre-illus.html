@@ -2035,9 +2035,8 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 </div>
 </body></html>`;
 
-  const win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
+  localStorage.setItem('efs_ledger_data', JSON.stringify(r));
+  window.open('efs-discussion-doc.html', '_blank');
 }
 
 
