@@ -141,8 +141,8 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
 <body>
 
 <div class="hdr">
-  <img src="https://www.enhanceyourincome.com/V3c%20EFS%20Life%20Icon_White_RGB.png" style="height:40px;opacity:.85;flex-shrink:0" alt="EFS Life">
-  <img src="https://www.enhanceyourincome.com/V4c%20EFS%20Life%20Letter%20Horizontal_White_RGB.png" style="height:26px;mix-blend-mode:screen;opacity:.88;flex-shrink:0" alt="EFS Life">
+  
+  
   <div class="sofr-live" id="sofr-badge">
     <span class="sofr-dot"></span>
     <span id="sofr-display">Fetching SOFR…</span>
@@ -999,7 +999,7 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
       <button onclick="backToCalc()" class="lab-btn">← Back to Modeler</button>
     </div>
     <h2>Income Ledger</h2>
-    <div class="sub">Upload carrier illustration CSVs to generate the full year-by-year ledger — to change program parameters, return to the Modeler</div><img src="https://www.enhanceyourincome.com/V3c%20EFS%20Life%20Icon_White_RGB.png" style="height:40px;opacity:.85;flex-shrink:0" alt="EFS Life">
+    <div class="sub">Upload carrier illustration CSVs to generate the full year-by-year ledger — to change program parameters, return to the Modeler</div>
 
     <!-- Read-only program summary — locked from Modeler -->
     <div style="background:var(--navy);border-radius:5px;padding:16px 22px;margin-bottom:28px;display:flex;gap:32px;flex-wrap:wrap;align-items:center">
@@ -1388,7 +1388,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
   const html = `
     <div class="ledger-banner">
       <div class="banner-client">
-        <img src="https://www.enhanceyourincome.com/V3c%20EFS%20Life%20Icon_White_RGB.png" style="height:40px;opacity:.85;flex-shrink:0" alt="EFS Life">
+        
         <div class="name">${clientName}</div>
         <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);font-weight:600;letter-spacing:1px;margin-top:3px">Deferred Enhanced Funding</div>
         <div style="font-family:'Playfair Display',serif;font-size:13px;color:rgba(255,255,255,.5);font-weight:400;letter-spacing:1px;margin-top:2px">Enhanced Roth Alternative</div>
@@ -1516,7 +1516,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
 
     <div class="ldg-disc" style="display:flex;align-items:center;gap:14px;"><div style="flex:1">
       <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''} · ${dateStr}
-    </div><img src="https://www.enhanceyourincome.com/V3c%20EFS%20Life%20Icon_White_RGB.png" style="height:40px;opacity:.85;flex-shrink:0" alt="EFS Life"></div>
+    </div></div>
   `;
 
   document.getElementById('ledger-rendered').innerHTML = html;
