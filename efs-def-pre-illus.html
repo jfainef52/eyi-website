@@ -810,6 +810,7 @@ document.getElementById('issueAge').addEventListener('input', buildPayoffDropdow
 // ── PROCEED TO LEDGER (defined here so button addEventListener can reach it) ──
 function proceedToLedger() {
   const d = window._defData;
+  if (!d) return;
   if (!d) { alert('Please run the Modeler first.'); return; }
 
   // Populate hidden inputs (still read by generateLedger)
@@ -1200,6 +1201,7 @@ async function generateLedger() {
   errEl.style.display = 'none';
 
   const d = window._defData;
+  if (!d) return;
 
   const rate1Label = document.getElementById('l-rate1').value.trim() || '6.75%';
   const rate2Label = document.getElementById('l-rate2').value.trim() || '6.50%';
