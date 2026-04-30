@@ -518,10 +518,9 @@ function calculate() {
     if (r.phase === 'lender') phaseClass = 'phase-lender';
     if (r.isPayoff) phaseClass = 'payoff-yr';
 
-    if (yr > 50 && age % 5 !== 0) { /* 5yr tranche */ } else
     tableRows += `<tr class="${phaseClass}">
-      <td style="${yr > 50 ? 'background:#0B1220;color:#fff;font-weight:700' : ''}">${r.yr}</td>
-      <td style="${yr > 50 ? 'background:#0B1220;color:#fff;font-weight:700' : ''}">${r.age}</td>
+      <td>${r.yr}</td>
+      <td>${r.age}</td>
       <td>${r.clientOutlay > 0 ? $f(r.clientOutlay) : '—'}</td>
       <td>${r.equityPrem > 0 ? $f(r.equityPrem) : '—'}</td>
       <td>${r.lenderThisYr > 0 ? $f(r.lenderThisYr) : '—'}</td>
