@@ -2032,6 +2032,40 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     </div>
   </div>
 </div>
+
+<script>
+// 5-year tranche: after ledger renders, hide rows after row 50 where age % 5 !== 0
+// and highlight age/yr cells on visible tranche rows
+function applyTranche() {
+  const tbody = document.querySelector('table.sched tbody');
+  if (!tbody) return;
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  if (rows.length <= 50) return; // no compression needed
+  rows.forEach(function(tr, idx) {
+    const rowNum = idx + 1;
+    if (rowNum <= 50) return; // annual rows stay as-is
+    // Get age from second td (index 1)
+    const tds = tr.querySelectorAll('td');
+    if (!tds || tds.length < 2) return;
+    const age = parseInt(tds[1].textContent);
+    if (isNaN(age) || age % 5 !== 0) {
+      tr.style.display = 'none'; // hide non-5-year rows
+    } else {
+      // Highlight yr and age cells
+      tds[0].style.cssText += ';background:#0B1220;color:#fff;font-weight:700';
+      tds[1].style.cssText += ';background:#0B1220;color:#fff;font-weight:700';
+    }
+  });
+}
+// Patch proceedToLedger to call applyTranche after it runs
+(function() {
+  const _orig = window.proceedToLedger;
+  if (_orig) window.proceedToLedger = function() {
+    _orig.apply(this, arguments);
+    setTimeout(applyTranche, 100);
+  };
+})();
+</script>
 </body></html>`;
 
   localStorage.setItem('efs_ledger_data', JSON.stringify(r));
