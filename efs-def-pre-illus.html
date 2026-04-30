@@ -2040,5 +2040,8 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 
 
 </script>
+<script>
+(function(){var obs=new MutationObserver(function(){var tbody=document.querySelector("table.sched tbody");if(!tbody)return;var rows=tbody.querySelectorAll("tr");if(rows.length<=50)return;obs.disconnect();for(var i=0;i<rows.length;i++){if(i<50)continue;var tds=rows[i].querySelectorAll("td");if(!tds||tds.length<2)continue;var age=parseInt(tds[1].textContent);if(isNaN(age)||age%5!==0){rows[i].style.display="none";}else{tds[0].style.background="#0B1220";tds[0].style.color="#fff";tds[0].style.fontWeight="700";tds[1].style.background="#0B1220";tds[1].style.color="#fff";tds[1].style.fontWeight="700";}}});obs.observe(document.body,{childList:true,subtree:true});})();
+</script>
 </body>
 </html>
