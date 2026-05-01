@@ -191,6 +191,9 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
                 <option value="P">Preferred</option>
                 <option value="PS" selected>Preferred Std</option>
                 <option value="S">Standard</option>
+          <option value="R">Rated</option>
+          <option value="PT">Preferred Tobacco</option>
+          <option value="ST">Standard Tobacco</option>
               </select>
             </div>
           </div>
@@ -384,6 +387,7 @@ function isLeapYear(y) {
 
 // ── YEAR-BY-YEAR SCHEDULE ──
 function buildSchedule(clientContrib, payYears, payoffYear, sofrBase, issueAge) {
+    const _compEl = document.getElementById('companionApp'); const feeSplit = (_compEl && _compEl.checked) ? 0.5 : 1.0;
   const totalPremYears = payYears + 2;
   const lenderPrem = calcLenderPrem(clientContrib);
   const rows = [];
@@ -478,7 +482,6 @@ const pf = n => (n * 100).toFixed(2) + '%';
 
 // ── CALCULATE ──
 function calculate() {
-    const _compEl = document.getElementById('companionApp'); const feeSplit = (_compEl && _compEl.checked) ? 0.5 : 1.0;
   const clientName = document.getElementById('clientName').value.trim() || 'Sample Client';
   const issueAge = parseInt(document.getElementById('issueAge').value);
   const gender = document.getElementById('gender').value;
