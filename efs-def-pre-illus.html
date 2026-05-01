@@ -219,7 +219,16 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
               </select>
             </div>
           </div>
-          <div class="sofr-status" id="pay-hint">Total premium years = client pay + 2</div>
+          <div class="field" style="margin-top:10px;padding:10px 12px;background:#0d1826;border:1px solid #1e2f45;border-radius:6px;">
+          <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;margin:0;">
+            <input type="checkbox" id="companionApp" style="margin-top:2px;accent-color:#C8973A;flex-shrink:0;">
+            <span style="font-size:12px;color:#c8d8e8;line-height:1.4;">
+              <strong style="color:#e0e8f0;">Companion Application</strong><br>
+              <span style="color:#8a9bb0;">Split loan fees 50/50 between two policies</span>
+            </span>
+          </label>
+        </div>
+        <div class="sofr-status" id="pay-hint">Total premium years = client pay + 2</div>
         </div>
 
         <div class="field-group">
@@ -401,14 +410,14 @@ function buildSchedule(clientContrib, payYears, payoffYear, sofrBase, issueAge) 
     let isPayoff = false;
 
     if (yr === 1) {
-      equityPrem = clientContrib - Y1_FEE;
+      equityPrem = clientContrib - Y1_FEE * feeSplit;
       clientOutlay = clientContrib;
       lenderThisYr = 0;
       totalPrem = equityPrem;
       cumBalance = 0;
       interestAccrued = 0;
     } else if (yr === 2) {
-      equityPrem = clientContrib - Y2_FEE;
+      equityPrem = clientContrib - Y2_FEE * feeSplit;
       clientOutlay = clientContrib;
       lenderThisYr = 0;
       totalPrem = equityPrem;
@@ -438,7 +447,7 @@ function buildSchedule(clientContrib, payYears, payoffYear, sofrBase, issueAge) 
       clientOutlay = 0;
       lenderThisYr = 0;
       totalPrem = 0;
-      const boyBalance = cumBalance + ONGOING_FEE;
+      const boyBalance = cumBalance + ONGOING_FEE * feeSplit;
       interestAccrued = boyBalance * effectiveRate;
       cumBalance = boyBalance + interestAccrued;
     } else {
@@ -469,6 +478,7 @@ const pf = n => (n * 100).toFixed(2) + '%';
 
 // ── CALCULATE ──
 function calculate() {
+    const feeSplit = document.getElementById('companionApp')?.checked ? 0.5 : 1.0;
   const clientName = document.getElementById('clientName').value.trim() || 'Sample Client';
   const issueAge = parseInt(document.getElementById('issueAge').value);
   const gender = document.getElementById('gender').value;
