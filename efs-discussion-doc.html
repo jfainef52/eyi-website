@@ -606,7 +606,7 @@
   }
 
   .solution-header {
-    padding: 0.3in 0.5in 0.2in;
+    padding: 0.18in 0.4in 0.12in;
     background: var(--navy);
   }
 
@@ -640,10 +640,11 @@
   }
 
   .chart-area {
-    padding: 0.3in 0.4in 0.2in;
+    padding: 0.18in 0.3in 0.12in;
     display: flex;
     flex-direction: column;
     background: var(--off);
+    overflow: hidden;
   }
 
   .chart-title {
@@ -659,7 +660,7 @@
     display: flex;
     align-items: flex-end;
     gap: 28px;
-    padding-bottom: 32px;
+    padding-bottom: 16px;
     border-bottom: 2px solid var(--border);
     position: relative;
   }
@@ -740,15 +741,16 @@
 
   .solution-facts {
     background: var(--navy);
-    padding: 0.3in 0.35in;
+    padding: 0.18in 0.28in;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 8px;
+    overflow: hidden;
   }
 
   .fact-block {
     border-bottom: 1px solid rgba(255,255,255,.06);
-    padding-bottom: 14px;
+    padding-bottom: 8px;
   }
 
   .fact-block:last-child { border-bottom: none; padding-bottom: 0; }
@@ -1596,28 +1598,28 @@
             <!-- Client Total Contribution reference bar -->
             <div class="bar-group" style="max-width:90px">
               <div class="bar-value" style="color:var(--muted);font-size:13px">$500K</div>
-              <div class="bar-fill" style="height:55px;background:#4a5568;opacity:.5">
+              <div class="bar-fill" style="height:39px;background:#4a5568;opacity:.5">
                 <div class="bar-label">Client<br>Contribution</div>
               </div>
             </div>
             <!-- Investment Account -->
             <div class="bar-group">
               <div class="bar-value" id="doc-bar-inv">$4.4M</div>
-              <div class="bar-fill" style="height:180px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)">
+              <div class="bar-fill" style="height:127px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)">
                 <div class="bar-label">Taxable<br>Investment</div>
               </div>
             </div>
             <!-- Self-Funded LIRP -->
             <div class="bar-group">
               <div class="bar-value" id="doc-bar-lirp">$5.5M</div>
-              <div class="bar-fill" style="height:216px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)">
+              <div class="bar-fill" style="height:152px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)">
                 <div class="bar-label">Self-Funded LIRP<br>LIRP</div>
               </div>
             </div>
             <!-- DEF -->
             <div class="bar-group">
               <div class="bar-value" style="color:var(--gold)">$9.2M</div>
-              <div class="bar-fill" style="height:340px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)">
+              <div class="bar-fill" style="height:240px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)">
                 <div class="bar-label" style="color:var(--navy);font-weight:700">Deferred<br>Enhanced<br>Funding</div>
               </div>
             </div>

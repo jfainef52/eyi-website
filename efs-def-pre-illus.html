@@ -1568,10 +1568,10 @@ function openDiscussionDoc() {
 
   // Bar heights — scale relative to DEF total income
   const maxVal = r.defTotalIncome;
-  const contribH = Math.round((r.totalClientOutlay / maxVal) * 320);
-  const invH     = Math.round((r.invTotalNet       / maxVal) * 320);
-  const lirpH    = r.hasLIRP ? Math.round((r.lirpTotalIncome / maxVal) * 320) : 0;
-  const defH     = 320;
+  const contribH = Math.round((r.totalClientOutlay / maxVal) * 240);
+  const invH     = Math.round((r.invTotalNet       / maxVal) * 240);
+  const lirpH    = r.hasLIRP ? Math.round((r.lirpTotalIncome / maxVal) * 240) : 0;
+  const defH     = 240;
 
   const lirpBar = r.hasLIRP ? `
     <div class="bar-group">
