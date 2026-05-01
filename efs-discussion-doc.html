@@ -1578,8 +1578,8 @@
     <div style="font-size:11px;color:rgba(255,255,255,.3);line-height:1.7;margin-top:auto">
       <div style="margin-bottom:10px"><span style="color:var(--gold)" id="doc-sidebar-contrib">$100,000/yr</span><br><span id="doc-sidebar-pay-years">for 5 years</span></div>
       <div style="margin-bottom:10px"><span style="color:var(--gold)">Income Ages</span><br><span id="doc-sidebar-income-ages">65 – 100</span></div>
-      <div style="margin-bottom:10px"><span style="color:var(--gold)">6.75% Gross</span><br>Life Insurance Return</div>
-      <div><span style="color:var(--gold)">6.75% Net</span><br>Investment Return</div>
+      <div style="margin-bottom:10px"><span style="color:var(--gold)" id="doc-life-ins-return">6.75% Gross</span><br>Life Insurance Return</div>
+      <div><span style="color:var(--gold)" id="doc-inv-return">6.75% Net</span><br>Investment Return</div>
     </div>
   </div>
   <div class="main-content">
@@ -1639,10 +1639,10 @@
             <div class="fact-label">DEF Total Lifetime Income</div>
             <div class="fact-value" id="doc-total-income">$9,155,502</div>
             <div class="fact-sub"><span id="doc-income-ages">Ages 65–95</span> · Tax-free</div>
-            <div class="fact-delta">▲ +$4.8M vs Taxable Account</div>
+            <div class="fact-delta">▲ +$4.8M vs Taxable Account
           </div>
           <div class="fact-block">
-            <div class="fact-label">Annual Income</div>
+            <div class="fact-label">DEF Annual Income</div>
             <div class="fact-value" id="doc-annual-income">$254,320</div>
             <div class="fact-sub" id="doc-rate-sub">Per year · Tax-free · 6.75% Gross Return</div>
           </div>
@@ -1767,10 +1767,17 @@
     if (el && r.hasLIRP) el.textContent = fm(r.lirpTotalIncome);
     el = document.getElementById('doc-bar-def');
     if (el) el.textContent = fm(r.defTotalIncome);
-        el = document.getElementById('doc-income-ages');
+    var pct = function(lbl) { var s = String(lbl||''); return s.includes('%') ? s : s + '%'; };
+    el = document.getElementById('doc-income-ages');
     if (el) el.textContent = 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge;
+    el = document.getElementById('doc-vs-taxable');
+    if (el) { var dv=r.defTotalIncome-r.invTotalNet; var av=Math.abs(dv); var sv=av>=1000000?(av/1000000).toFixed(1)+'M':Math.round(av/1000)+'K'; el.textContent=(dv>=0?'▲ +$':'▼ -$')+sv+' vs Taxable Account'; }
     el = document.getElementById('doc-rate-sub');
-    if (el) el.textContent = 'Per year · Tax-free · ' + r.rate1Label + ' Gross Return';
+    if (el) el.textContent = 'Per year · Tax-free · ' + pct(r.rate1Label) + ' Gross Return';
+    el = document.getElementById('doc-life-ins-return');
+    if (el) el.textContent = pct(r.rate1Label) + ' Gross';
+    el = document.getElementById('doc-inv-return');
+    if (el) el.textContent = pct(r.rate2Label) + ' Net';
   } catch(e) {}
 })();
 </script>
