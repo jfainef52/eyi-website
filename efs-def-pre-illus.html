@@ -478,7 +478,7 @@ const pf = n => (n * 100).toFixed(2) + '%';
 
 // ── CALCULATE ──
 function calculate() {
-    const feeSplit = document.getElementById('companionApp')?.checked ? 0.5 : 1.0;
+    const _compEl = document.getElementById('companionApp'); const feeSplit = (_compEl && _compEl.checked) ? 0.5 : 1.0;
   const clientName = document.getElementById('clientName').value.trim() || 'Sample Client';
   const issueAge = parseInt(document.getElementById('issueAge').value);
   const gender = document.getElementById('gender').value;
