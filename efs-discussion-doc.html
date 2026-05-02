@@ -1596,28 +1596,28 @@
             <!-- Client Total Contribution reference bar -->
             <div class="bar-group" style="max-width:90px">
               <div class="bar-value" style="color:var(--muted);font-size:13px" id="doc-bar-contrib">$500K</div>
-              <div class="bar-fill" style="height:55px;background:#4a5568;opacity:.5">
+              <div class="bar-fill" id="doc-barfill-contrib" style="height:55px;background:#4a5568;opacity:.5">
                 <div class="bar-label">Client<br>Contribution</div>
               </div>
             </div>
             <!-- Investment Account -->
             <div class="bar-group">
               <div class="bar-value" id="doc-bar-inv">$4.4M</div>
-              <div class="bar-fill" style="height:180px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)">
+              <div class="bar-fill" id="doc-barfill-inv" style="height:180px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)">
                 <div class="bar-label">Taxable<br>Investment</div>
               </div>
             </div>
             <!-- Self-Funded LIRP -->
             <div class="bar-group">
               <div class="bar-value" id="doc-bar-lirp">$5.5M</div>
-              <div class="bar-fill" style="height:216px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)">
+              <div class="bar-fill" id="doc-barfill-lirp" style="height:216px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)">
                 <div class="bar-label">Self-Funded LIRP<br>LIRP</div>
               </div>
             </div>
             <!-- DEF -->
             <div class="bar-group">
               <div class="bar-value" style="color:var(--gold)" id="doc-bar-def">$9.2M</div>
-              <div class="bar-fill" style="height:340px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)">
+              <div class="bar-fill" id="doc-barfill-def" style="height:340px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)">
                 <div class="bar-label" style="color:var(--navy);font-weight:700">Deferred<br>Enhanced<br>Funding</div>
               </div>
             </div>
@@ -1784,6 +1784,20 @@
     if (el) { var diff = r.defTotalIncome - r.invTotalNet; var abs = Math.abs(diff); var s = abs >= 1000000 ? (abs/1000000).toFixed(1) + 'M' : Math.round(abs/1000) + 'K'; el.textContent = (diff >= 0 ? '▲ +$' : '▼ -$') + s + ' vs Taxable Account'; }
     el = document.getElementById('doc-bar-contrib');
     if (el) { var tot = r.totalClientOutlay; el.textContent = tot >= 1000000 ? '$' + (tot/1000000).toFixed(1) + 'M' : '$' + Math.round(tot/1000) + 'K'; }
+    // Bar heights — scale to 320px max (DEF is always max)
+    var maxVal = r.defTotalIncome;
+    var contribH = Math.round((r.totalClientOutlay / maxVal) * 320);
+    var invH = Math.round((r.invTotalNet / maxVal) * 320);
+    var lirpH = r.hasLIRP ? Math.round((r.lirpTotalIncome / maxVal) * 320) : 0;
+    var defH = 320;
+    el = document.getElementById('doc-barfill-contrib');
+    if (el) el.style.height = contribH + 'px';
+    el = document.getElementById('doc-barfill-inv');
+    if (el) el.style.height = invH + 'px';
+    el = document.getElementById('doc-barfill-lirp');
+    if (el) el.style.height = lirpH + 'px';
+    el = document.getElementById('doc-barfill-def');
+    if (el) el.style.height = defH + 'px';
   } catch(e) {}
 })();
 </script>
