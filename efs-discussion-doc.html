@@ -1595,7 +1595,7 @@
           <div class="bar-chart">
             <!-- Client Total Contribution reference bar -->
             <div class="bar-group" style="max-width:90px">
-              <div class="bar-value" style="color:var(--muted);font-size:13px">$500K</div>
+              <div class="bar-value" style="color:var(--muted);font-size:13px" id="doc-bar-contrib">$500K</div>
               <div class="bar-fill" style="height:55px;background:#4a5568;opacity:.5">
                 <div class="bar-label">Client<br>Contribution</div>
               </div>
@@ -1782,6 +1782,8 @@
     // Right sidebar vs Taxable delta
     el = document.getElementById('doc-vs-taxable');
     if (el) { var diff = r.defTotalIncome - r.invTotalNet; var abs = Math.abs(diff); var s = abs >= 1000000 ? (abs/1000000).toFixed(1) + 'M' : Math.round(abs/1000) + 'K'; el.textContent = (diff >= 0 ? '▲ +$' : '▼ -$') + s + ' vs Taxable Account'; }
+    el = document.getElementById('doc-bar-contrib');
+    if (el) { var tot = r.totalClientOutlay; el.textContent = tot >= 1000000 ? '$' + (tot/1000000).toFixed(1) + 'M' : '$' + Math.round(tot/1000) + 'K'; }
   } catch(e) {}
 })();
 </script>
