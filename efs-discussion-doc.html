@@ -600,15 +600,13 @@
   /* ── PAGE 5 SOLUTION CHART ── */
   .solution-main {
     flex: 1;
-    min-height: 0;
     display: flex;
     flex-direction: column;
     background: white;
-    overflow: hidden;
   }
 
   .solution-header {
-    padding: 0.1in 0.35in 0.08in;
+    padding: 0.3in 0.5in 0.2in;
     background: var(--navy);
   }
 
@@ -639,16 +637,13 @@
     display: grid;
     grid-template-columns: 3fr 2fr;
     gap: 0;
-    min-height: 0;
-    overflow: hidden;
   }
 
   .chart-area {
-    padding: 0.18in 0.3in 0.12in;
+    padding: 0.3in 0.4in 0.2in;
     display: flex;
     flex-direction: column;
     background: var(--off);
-    overflow: hidden;
   }
 
   .chart-title {
@@ -664,7 +659,7 @@
     display: flex;
     align-items: flex-end;
     gap: 28px;
-    padding-bottom: 16px;
+    padding-bottom: 32px;
     border-bottom: 2px solid var(--border);
     position: relative;
   }
@@ -745,16 +740,15 @@
 
   .solution-facts {
     background: var(--navy);
-    padding: 0.18in 0.28in;
+    padding: 0.3in 0.35in;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    overflow: hidden;
+    gap: 14px;
   }
 
   .fact-block {
     border-bottom: 1px solid rgba(255,255,255,.06);
-    padding-bottom: 8px;
+    padding-bottom: 14px;
   }
 
   .fact-block:last-child { border-bottom: none; padding-bottom: 0; }
@@ -796,11 +790,9 @@
   /* ── PAGE 6 WHY EFS ── */
   .why-main {
     flex: 1;
-    min-height: 0;
     display: flex;
     flex-direction: column;
     background: white;
-    overflow: hidden;
   }
 
   .why-header {
@@ -829,8 +821,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0;
-    min-height: 0;
-    overflow: hidden;
   }
 
   .why-points {
@@ -937,6 +927,44 @@
     letter-spacing: .5px;
   }
 </style>
+
+  <style>
+    /* Fix Options at a Glance + Why Us overflow — slides were merging */
+    .solution-main, .why-main {
+      overflow: hidden;
+      min-height: 0;
+    }
+    .solution-body, .why-body {
+      min-height: 0;
+      overflow: hidden;
+    }
+    .chart-area, .solution-facts {
+      min-height: 0;
+      overflow: hidden;
+    }
+    .solution-header {
+      flex-shrink: 0;
+      padding-top: 0.12in;
+      padding-bottom: 0.1in;
+    }
+    .solution-header h2 {
+      font-size: 20px;
+      line-height: 1.2;
+    }
+    .solution-header p {
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .why-header {
+      flex-shrink: 0;
+      padding-top: 0.15in;
+      padding-bottom: 0.12in;
+    }
+    .why-header h2 {
+      font-size: 20px;
+      line-height: 1.2;
+    }
+  </style>
 </head>
 <body>
 
@@ -1596,8 +1624,8 @@
     <div class="solution-main">
       <div class="solution-header">
         <div class="eyebrow">Comparative Analysis · <span id="doc-client-eyebrow">M45 D5 100k Sample</span></div>
-        <h2 style="font-size:18px;line-height:1.2">What is the best way to maximize a retirement income plan?</h2>
-        <p>Three strategies. Same contribution. Dramatically different outcomes.</p>
+        <h2>What is the best way to maximize a retirement income plan?</h2>
+        <p>Three strategies. Same annual contribution. Dramatically different lifetime outcomes.</p>
       </div>
       <div class="solution-body">
         <div class="chart-area">
@@ -1606,28 +1634,28 @@
             <!-- Client Total Contribution reference bar -->
             <div class="bar-group" style="max-width:90px">
               <div class="bar-value" style="color:var(--muted);font-size:13px">$500K</div>
-              <div class="bar-fill" style="height:39px;background:#4a5568;opacity:.5">
+              <div class="bar-fill" style="height:55px;background:#4a5568;opacity:.5">
                 <div class="bar-label">Client<br>Contribution</div>
               </div>
             </div>
             <!-- Investment Account -->
             <div class="bar-group">
               <div class="bar-value" id="doc-bar-inv">$4.4M</div>
-              <div class="bar-fill" style="height:127px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)">
+              <div class="bar-fill" style="height:180px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)">
                 <div class="bar-label">Taxable<br>Investment</div>
               </div>
             </div>
             <!-- Self-Funded LIRP -->
             <div class="bar-group">
               <div class="bar-value" id="doc-bar-lirp">$5.5M</div>
-              <div class="bar-fill" style="height:152px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)">
+              <div class="bar-fill" style="height:216px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)">
                 <div class="bar-label">Self-Funded LIRP<br>LIRP</div>
               </div>
             </div>
             <!-- DEF -->
             <div class="bar-group">
               <div class="bar-value" style="color:var(--gold)">$9.2M</div>
-              <div class="bar-fill" style="height:240px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)">
+              <div class="bar-fill" style="height:340px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)">
                 <div class="bar-label" style="color:var(--navy);font-weight:700">Deferred<br>Enhanced<br>Funding</div>
               </div>
             </div>
@@ -1686,7 +1714,7 @@
     <div class="why-main">
       <div class="why-header">
         <div class="eyebrow">Why EFS Life LLC</div>
-        <h2 style="font-size:20px;line-height:1.25">Expertise, Relationships &amp; a Philosophy Born from Experience</h2>
+        <h2>Expertise, Relationships &amp; a Philosophy Born from Experience</h2>
       </div>
       <div class="why-body">
         <div class="why-points">
