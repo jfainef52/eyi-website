@@ -1616,7 +1616,7 @@
             </div>
             <!-- DEF -->
             <div class="bar-group">
-              <div class="bar-value" style="color:var(--gold)">$9.2M</div>
+              <div class="bar-value" style="color:var(--gold)" id="doc-bar-def">$9.2M</div>
               <div class="bar-fill" style="height:340px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)">
                 <div class="bar-label" style="color:var(--navy);font-weight:700">Deferred<br>Enhanced<br>Funding</div>
               </div>
@@ -1639,7 +1639,7 @@
             <div class="fact-label">DEF Total Lifetime Income</div>
             <div class="fact-value" id="doc-total-income">$9,155,502</div>
             <div class="fact-sub"><span id="doc-income-ages">Ages 65–95</span> · Tax-free</div>
-            <div class="fact-delta">▲ +$4.8M vs Taxable Account</div>
+            <div class="fact-delta" id="doc-vs-taxable">▲ +$4.8M vs Taxable Account</div>
           </div>
           <div class="fact-block">
             <div class="fact-label">Annual Income</div>
@@ -1771,6 +1771,14 @@
     if (el) el.textContent = 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge;
     el = document.getElementById('doc-rate-sub');
     if (el) el.textContent = 'Per year · Tax-free · ' + r.rate1Label + ' Gross Return';
+    // Left sidebar assumption rates
+    el = document.getElementById('doc-life-ins-return');
+    if (el) el.textContent = (r.rate1Label || '6.75%') + ' Gross';
+    el = document.getElementById('doc-inv-return');
+    if (el) el.textContent = (r.rate2Label || '6.75%') + ' Net';
+    // Right sidebar vs Taxable delta
+    el = document.getElementById('doc-vs-taxable');
+    if (el) { var diff = r.defTotalIncome - r.invTotalNet; var abs = Math.abs(diff); var s = abs >= 1000000 ? (abs/1000000).toFixed(1) + 'M' : Math.round(abs/1000) + 'K'; el.textContent = (diff >= 0 ? '▲ +$' : '▼ -$') + s + ' vs Taxable Account'; }
   } catch(e) {}
 })();
 </script>
