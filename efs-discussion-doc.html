@@ -1638,7 +1638,7 @@
           <div class="fact-block">
             <div class="fact-label">DEF Total Lifetime Income</div>
             <div class="fact-value" id="doc-total-income">$9,155,502</div>
-            <div class="fact-sub"><span id="doc-income-ages">Ages 65–95</span> · Tax-free</div>
+            <div class="fact-sub"><span id="doc-income-ages-facts">Ages 65–95</span> · Tax-free</div>
             <div class="fact-delta" id="doc-vs-taxable">▲ +$4.8M vs Taxable Account</div>
           </div>
           <div class="fact-block">
@@ -1771,6 +1771,9 @@
     if (el) el.textContent = 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge;
     el = document.getElementById('doc-rate-sub');
     if (el) el.textContent = 'Per year · Tax-free · ' + r.rate1Label + ' Gross Return';
+    // Right sidebar DEF income ages (fact-sub - separate from chart title)
+    el = document.getElementById('doc-income-ages-facts');
+    if (el) el.textContent = 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge;
     // Left sidebar assumption rates
     el = document.getElementById('doc-life-ins-return');
     if (el) el.textContent = (r.rate1Label || '6.75%') + ' Gross';
