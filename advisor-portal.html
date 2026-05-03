@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advisor Portal — EFS Life</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --navy:    #0B1220;
+      --navy-2:  #152640;
+      --navy-3:  #1e3558;
+      --gold:    #C8A96E;
+      --gold-lt: #dfc278;
+      --white:   #ffffff;
+      --muted:   rgba(255,255,255,0.5);
+      --muted-2: rgba(255,255,255,0.25);
+      --border:  rgba(255,255,255,0.07);
+      --border-gold: rgba(200,169,110,0.2);
+      --sidebar-w: 280px;
+      --topbar-h: 60px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      height: var(--topbar-h);
+      background: rgba(11,18,32,0.95);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+      backdrop-filter: blur(12px);
+      z-index: 50;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-logo { display: flex; align-items: center; gap: 10px; }
+    .topbar-logo img { height: 28px; width: auto; opacity: .9; }
+    .topbar-logo .wm { height: 14px; width: auto; opacity: .85; }
+    .topbar-divider {
+      width: 1px; height: 20px;
+      background: var(--border); margin: 0 4px;
+    }
+    .topbar-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--gold);
+    }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .topbar-user {
+      font-size: 12px; color: var(--muted); letter-spacing: .3px;
+    }
+    .topbar-actions { display: flex; gap: 10px; }
+    .btn-sm {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 7px 16px; border-radius: 2px;
+      cursor: pointer; text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-sm-ghost {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-sm-ghost:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-sm-gold {
+      background: var(--gold); color: var(--navy);
+      border: 1px solid var(--gold);
+    }
+    .btn-sm-gold:hover { background: var(--gold-lt); }
+
+    /* ── MAIN LAYOUT ── */
+    .main {
+      display: flex; flex: 1; overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: rgba(21,38,64,0.4);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .sidebar-header {
+      padding: 20px 18px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .sidebar-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 12px;
+    }
+    .sidebar-search {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 8px 12px;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px; font-weight: 300;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .sidebar-search::placeholder { color: var(--muted-2); }
+    .sidebar-search:focus { border-color: var(--border-gold); }
+    .sidebar-tree {
+      flex: 1; overflow-y: auto; padding: 10px 0;
+    }
+    .sidebar-tree::-webkit-scrollbar { width: 4px; }
+    .sidebar-tree::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-tree::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    /* Folder */
+    .folder-group { margin-bottom: 2px; }
+    .folder-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 18px;
+      cursor: pointer;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: .5px; text-transform: uppercase;
+      color: var(--muted);
+      transition: color .2s;
+      user-select: none;
+    }
+    .folder-header:hover { color: var(--white); }
+    .folder-header.open { color: var(--white); }
+    .folder-arrow {
+      width: 14px; height: 14px; flex-shrink: 0;
+      transition: transform .2s;
+      opacity: .5;
+    }
+    .folder-header.open .folder-arrow { transform: rotate(90deg); }
+    .folder-icon { font-size: 13px; flex-shrink: 0; }
+    .folder-name { flex: 1; }
+    .folder-count {
+      font-size: 10px; color: var(--muted-2);
+      font-weight: 400; letter-spacing: 0;
+      text-transform: none;
+    }
+
+    /* Case items */
+    .case-list { display: none; }
+    .case-list.open { display: block; }
+    .case-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 18px 8px 38px;
+      cursor: pointer;
+      font-size: 13px; font-weight: 300;
+      color: var(--muted);
+      border-left: 2px solid transparent;
+      margin-left: 0;
+      transition: all .15s;
+    }
+    .case-item:hover { color: var(--white); background: rgba(255,255,255,0.03); }
+    .case-item.active {
+      color: var(--gold);
+      border-left-color: var(--gold);
+      background: rgba(200,169,110,0.06);
+    }
+    .case-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: currentColor; flex-shrink: 0; opacity: .5;
+    }
+    .case-item.active .case-dot { opacity: 1; }
+
+    /* Empty state */
+    .sidebar-empty {
+      padding: 40px 18px;
+      text-align: center;
+      color: var(--muted-2);
+      font-size: 13px; font-weight: 300; line-height: 1.7;
+    }
+
+    /* ── CONTENT PANEL ── */
+    .content {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    /* Case toolbar */
+    .case-toolbar {
+      height: 52px; flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 24px; gap: 16px;
+      background: rgba(11,18,32,0.5);
+    }
+    .case-toolbar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px; font-weight: 400;
+      flex: 1; color: var(--white);
+    }
+    .case-toolbar-folder {
+      font-size: 11px; color: var(--muted-2);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .toolbar-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex; gap: 0;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: rgba(11,18,32,0.3);
+      padding: 0 24px;
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer; border: none; background: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all .15s;
+    }
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* Viewer */
+    .viewer {
+      flex: 1; overflow: hidden; position: relative;
+    }
+    .viewer-pane {
+      display: none; width: 100%; height: 100%;
+    }
+    .viewer-pane.active { display: block; }
+    .viewer-pane iframe {
+      width: 100%; height: 100%; border: none;
+      background: white;
+    }
+
+    /* Empty / loading states */
+    .empty-state {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 16px;
+      color: var(--muted-2);
+    }
+    .empty-icon { font-size: 40px; opacity: .3; }
+    .empty-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; font-weight: 400;
+      color: var(--muted);
+    }
+    .empty-sub { font-size: 13px; font-weight: 300; max-width: 300px; text-align: center; line-height: 1.7; }
+
+    .loading-state {
+      display: flex; align-items: center; justify-content: center;
+      height: 100%; color: var(--muted);
+      font-size: 13px; gap: 10px;
+    }
+    .spinner {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--border-gold);
+      border-top-color: var(--gold);
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--navy-2); border: 1px solid var(--border-gold);
+      border-radius: 4px; padding: 12px 20px;
+      font-size: 13px; color: var(--white);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 200; opacity: 0;
+      transform: translateY(8px);
+      transition: all .25s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: rgba(80,200,120,0.4); }
+    .toast.error { border-color: rgba(200,80,80,0.4); }
+
+    /* Admin delete btn */
+    .btn-danger {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 7px 14px; border-radius: 2px;
+      cursor: pointer;
+      background: transparent; color: rgba(200,80,80,0.7);
+      border: 1px solid rgba(200,80,80,0.3);
+      transition: all .2s;
+    }
+    .btn-danger:hover { background: rgba(200,80,80,0.1); border-color: rgba(200,80,80,0.6); color: #e06060; }
+
+    /* Print styles */
+    @media print {
+      .topbar, .sidebar, .case-toolbar, .tab-bar { display: none !important; }
+      .main, .content, .viewer, .viewer-pane { overflow: visible !important; height: auto !important; }
+      .viewer-pane.active iframe { height: auto !important; }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      :root { --sidebar-w: 220px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">
+        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMTEzM3B4IiBoZWlnaHQ9Ijg3OHB4IiB2aWV3Qm94PSIwIDAgMTEzMyA4NzgiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDExMzMgODc4IiB4bWw6c3BhY2U9InByZXNlcnZlIj48Zz48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNODg3LjM1Niw5OC43MzNIMjQ0Ljc2OHY2NDIuNTg4aDMyMC45OGMtOC4wMDQsMTYuMTA2LTIyLjcxMSwzNy40NzMtMjcuMDc3LDQ2Ljc5NmwtMC42ODcsMS41NThsLTM0MS41NjktMC4wMDFWNTAuMzhoNzM5LjI5NGwtMC4wMDEsMTY3LjAyNGMtMTAuNDE2LDcuODU4LTIyLjExNCwxNS4xODctMzUuMjc3LDIyLjIxM2MtNC4yNjMsMi4yNzUtOC42NjYsNC4yNDYtMTMuMDc0LDYuMDg2Vjk4LjczM3oiLz48L2c+PC9zdmc+" alt="EFS">
+        <img class="wm" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMTQ3NHB4IiBoZWlnaHQ9IjM2OHB4IiB2aWV3Qm94PSIwIDAgMTQ3NCAzNjgiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDE0NzQgMzY4IiB4bWw6c3BhY2U9InByZXNlcnZlIj48Zz48cG9seWdvbiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZmlsbD0iI0ZGRkZGRiIgcG9pbnRzPSIyNDEuMDQyLDEyMi4xMDggMjQxLjA0Miw1OS40MjYgNDAuNTc5LDU5LjQyNiA0MC41NzksMzA4LjQ3NiAyNDEuMDQyLDMwOC40NzYgMjQxLjA0MiwyNDUuNzk0IDExMC44NzUsMjQ1Ljc5NCAxMTAuODc1LDIxMi43NTQgMjI5LjQzOSwyMTIuNzU0IDIyOS40MzksMTUwLjA3MiAxMTAuODc1LDE1MC4wNzIgMTEwLjg3NSwxMjIuMTA4Ii8+PC9nPjwvc3ZnPg==" alt="EFS Life">
+      </div>
+      <div class="topbar-divider"></div>
+      <div class="topbar-title">Sample Case Library</div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="userEmail"></span>
+      <div class="topbar-actions">
+        <a href="/efs-def-pre-illus.html" class="btn-sm btn-sm-ghost" id="modelerLink" style="display:none">Modeler</a>
+        <button class="btn-sm btn-sm-ghost" onclick="handleSignOut()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-label">Case Library</div>
+        <input class="sidebar-search" type="search" placeholder="Search cases…" id="searchInput" oninput="filterCases()">
+      </div>
+      <div class="sidebar-tree" id="sidebarTree">
+        <div class="loading-state"><div class="spinner"></div> Loading…</div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- Case toolbar (hidden until case selected) -->
+      <div class="case-toolbar" id="caseToolbar" style="display:none">
+        <div>
+          <div class="case-toolbar-folder" id="toolbarFolder"></div>
+          <div class="case-toolbar-title" id="toolbarTitle"></div>
+        </div>
+        <div class="toolbar-actions">
+          <button class="btn-sm btn-sm-ghost" onclick="printCurrent()">⎙ Print / PDF</button>
+          <button class="btn-danger" id="deleteBtn" style="display:none" onclick="deleteCase()">Delete</button>
+        </div>
+      </div>
+
+      <!-- Tab bar (hidden until case selected) -->
+      <div class="tab-bar" id="tabBar" style="display:none">
+        <button class="tab-btn active" id="tabLedger" onclick="switchTab('ledger')">Income Ledger</button>
+        <button class="tab-btn" id="tabDiscussion" onclick="switchTab('discussion')">Discussion Document</button>
+      </div>
+
+      <!-- Viewer -->
+      <div class="viewer" id="viewer">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">📂</div>
+          <div class="empty-title">Select a case</div>
+          <div class="empty-sub">Choose a folder from the sidebar, then select a saved case to view the income ledger and discussion document.</div>
+        </div>
+        <div class="viewer-pane active" id="paneLedger" style="display:none">
+          <iframe id="frameLedger" title="Income Ledger"></iframe>
+        </div>
+        <div class="viewer-pane" id="paneDiscussion" style="display:none">
+          <iframe id="frameDiscussion" title="Discussion Document"></iframe>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+    let currentProfile = null;
+    let allCases = [];
+    let activeCase = null;
+    let activeTab = 'ledger';
+
+    // ── INIT ──
+    (async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = '/advisor-login.html'; return; }
+
+      currentUser = session.user;
+      document.getElementById('userEmail').textContent = currentUser.email;
+
+      // Load profile
+      const { data: profile } = await sb.from('advisor_profiles')
+        .select('*').eq('id', currentUser.id).single();
+
+      if (!profile || !profile.approved) {
+        document.getElementById('sidebarTree').innerHTML =
+          '<div class="sidebar-empty">Your account is pending approval.<br>Contact jeff@enhancedfunding.com</div>';
+        return;
+      }
+
+      currentProfile = profile;
+
+      // Show modeler link for admin
+      if (profile.role === 'admin') {
+        document.getElementById('modelerLink').style.display = '';
+        document.getElementById('deleteBtn').style.display = '';
+      }
+
+      await loadCases();
+    })();
+
+    // ── LOAD CASES ──
+    async function loadCases() {
+      const { data, error } = await sb.from('sample_cases')
+        .select('id, folder, name, sort_order, created_at')
+        .order('folder').order('sort_order').order('name');
+
+      if (error) {
+        document.getElementById('sidebarTree').innerHTML =
+          '<div class="sidebar-empty">Error loading cases.<br>' + error.message + '</div>';
+        return;
+      }
+
+      allCases = data || [];
+      renderSidebar(allCases);
+    }
+
+    // ── RENDER SIDEBAR ──
+    function renderSidebar(cases) {
+      const tree = document.getElementById('sidebarTree');
+
+      if (!cases.length) {
+        tree.innerHTML = '<div class="sidebar-empty">No cases saved yet.<br>Use the modeler to save your first case.</div>';
+        return;
+      }
+
+      // Group by folder
+      const folders = {};
+      cases.forEach(c => {
+        if (!folders[c.folder]) folders[c.folder] = [];
+        folders[c.folder].push(c);
+      });
+
+      let html = '';
+      Object.entries(folders).forEach(([folder, items]) => {
+        const folderId = 'f_' + folder.replace(/\W/g, '_');
+        html += `
+          <div class="folder-group">
+            <div class="folder-header open" onclick="toggleFolder('${folderId}', this)" id="fh_${folderId}">
+              <svg class="folder-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+              <span class="folder-icon">📁</span>
+              <span class="folder-name">${escHtml(folder)}</span>
+              <span class="folder-count">${items.length}</span>
+            </div>
+            <div class="case-list open" id="${folderId}">
+              ${items.map(c => `
+                <div class="case-item" id="ci_${c.id}" onclick="selectCase('${c.id}')">
+                  <div class="case-dot"></div>
+                  ${escHtml(c.name)}
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
+      });
+
+      tree.innerHTML = html;
+    }
+
+    // ── FILTER ──
+    function filterCases() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!q) { renderSidebar(allCases); return; }
+      const filtered = allCases.filter(c =>
+        c.name.toLowerCase().includes(q) || c.folder.toLowerCase().includes(q)
+      );
+      renderSidebar(filtered);
+    }
+
+    // ── TOGGLE FOLDER ──
+    function toggleFolder(id, header) {
+      const list = document.getElementById(id);
+      const isOpen = list.classList.toggle('open');
+      header.classList.toggle('open', isOpen);
+    }
+
+    // ── SELECT CASE ──
+    async function selectCase(id) {
+      // Mark active in sidebar
+      document.querySelectorAll('.case-item').forEach(el => el.classList.remove('active'));
+      const el = document.getElementById('ci_' + id);
+      if (el) el.classList.add('active');
+
+      // Show loading
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('paneLedger').style.display = 'none';
+      document.getElementById('paneDiscussion').style.display = 'none';
+      document.getElementById('caseToolbar').style.display = '';
+      document.getElementById('tabBar').style.display = '';
+      document.getElementById('toolbarTitle').textContent = 'Loading…';
+      document.getElementById('toolbarFolder').textContent = '';
+
+      // Fetch full record
+      const { data, error } = await sb.from('sample_cases')
+        .select('*').eq('id', id).single();
+
+      if (error || !data) {
+        showToast('Failed to load case', 'error');
+        return;
+      }
+
+      activeCase = data;
+      document.getElementById('toolbarTitle').textContent = data.name;
+      document.getElementById('toolbarFolder').textContent = data.folder;
+
+      // Load iframes
+      loadIframe('frameLedger', data.ledger_html);
+      loadIframe('frameDiscussion', data.discussion_html);
+
+      // Show active tab
+      switchTab(activeTab);
+    }
+
+    function loadIframe(iframeId, html) {
+      const iframe = document.getElementById(iframeId);
+      if (!html) {
+        iframe.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#666">No content saved for this document.</body>';
+        return;
+      }
+      iframe.srcdoc = html;
+    }
+
+    // ── SWITCH TAB ──
+    function switchTab(tab) {
+      activeTab = tab;
+      document.getElementById('tabLedger').classList.toggle('active', tab === 'ledger');
+      document.getElementById('tabDiscussion').classList.toggle('active', tab === 'discussion');
+
+      if (activeCase) {
+        document.getElementById('paneLedger').style.display = tab === 'ledger' ? 'block' : 'none';
+        document.getElementById('paneDiscussion').style.display = tab === 'discussion' ? 'block' : 'none';
+      }
+    }
+
+    // ── PRINT ──
+    function printCurrent() {
+      const tab = activeTab;
+      const iframeId = tab === 'ledger' ? 'frameLedger' : 'frameDiscussion';
+      const iframe = document.getElementById(iframeId);
+      if (!iframe) return;
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }
+
+    // ── DELETE ──
+    async function deleteCase() {
+      if (!activeCase) return;
+      if (!confirm(`Delete "${activeCase.name}"? This cannot be undone.`)) return;
+
+      const { error } = await sb.from('sample_cases').delete().eq('id', activeCase.id);
+      if (error) { showToast('Delete failed: ' + error.message, 'error'); return; }
+
+      showToast('Case deleted', 'success');
+      activeCase = null;
+      document.getElementById('caseToolbar').style.display = 'none';
+      document.getElementById('tabBar').style.display = 'none';
+      document.getElementById('paneLedger').style.display = 'none';
+      document.getElementById('paneDiscussion').style.display = 'none';
+      document.getElementById('emptyState').style.display = '';
+      allCases = allCases.filter(c => c.id !== activeCase?.id);
+      await loadCases();
+    }
+
+    // ── SIGN OUT ──
+    async function handleSignOut() {
+      await sb.auth.signOut();
+      window.location.href = '/advisor-login.html';
+    }
+
+    // ── UTILS ──
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (type ? ' ' + type : '');
+      setTimeout(() => { t.className = 'toast'; }, 3000);
+    }
+  </script>
+</body>
+</html>
