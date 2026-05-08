@@ -2223,8 +2223,10 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 ${pageStyles}
 body { background: #fff !important; margin: 0; padding: 24px !important; }
 .topbar, .hdr { display: none !important; }
-.page { padding: 0 !important; max-width: 100% !important; }
-@media print { body { padding: 8px !important; } @page { margin: 1cm; } }
+.page { padding: 0 !important; max-width: none !important; width: auto !important; }
+#ledger-rendered { overflow: visible !important; width: auto !important; }
+#ledger-rendered table { min-width: max-content; table-layout: auto !important; }
+@media print { body { padding: 8px !important; } @page { size: landscape; margin: 0.5cm; } } @page { margin: 1cm; } }
 </style>
 </head><body>
 <div style="margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #c9a84c;">
