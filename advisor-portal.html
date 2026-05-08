@@ -237,7 +237,7 @@
 
     /* Viewer */
     .viewer {
-      flex: 1; overflow: hidden; position: relative;
+      flex: 1; overflow: auto; position: relative;
     }
     .viewer-pane {
       display: none; width: 100%; height: 100%;
@@ -246,6 +246,7 @@
     .viewer-pane iframe {
       width: 100%; height: 100%; border: none;
       background: white;
+      overflow: auto;
     }
 
     /* Empty / loading states */
