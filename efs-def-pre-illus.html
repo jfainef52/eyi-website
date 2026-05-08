@@ -2130,7 +2130,27 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   const btn = document.createElement('button');
   btn.id = 'stl-btn';
   btn.innerHTML = '&#128190; Save to Library';
-  btn.onclick = () => window.stlOpen();
+  btn.title = 'Upload a CSV/Excel file and generate the ledger first';
+  btn.style.opacity = '0.45';
+  btn.style.cursor = 'not-allowed';
+  btn.onclick = () => {
+    const ledger = document.getElementById('ledger-rendered');
+    const hasContent = ledger && ledger.querySelector('table');
+    if (!hasContent) {
+      window.stlShowToast('Please upload a CSV/Excel file and generate the ledger first.', 'err');
+      return;
+    }
+    window.stlOpen();
+  };
+  const ledgerObs = new MutationObserver(() => {
+    const ledger = document.getElementById('ledger-rendered');
+    const hasContent = ledger && ledger.querySelector('table');
+    btn.style.opacity = hasContent ? '1' : '0.45';
+    btn.style.cursor = hasContent ? 'pointer' : 'not-allowed';
+    btn.title = hasContent ? 'Save this scenario to the Case Library' : 'Upload a CSV/Excel file and generate the ledger first';
+  });
+  const ledgerTarget = document.getElementById('ledger-rendered');
+  if (ledgerTarget) ledgerObs.observe(ledgerTarget, {childList:true, subtree:true});
   document.body.appendChild(btn);
 
   const overlay = document.createElement('div');
@@ -2149,6 +2169,22 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   document.body.appendChild(overlay);
   overlay.addEventListener('click', e => { if (e.target===overlay) window.stlClose(); });
   document.addEventListener('keydown', e => { if (e.key==='Escape') window.stlClose(); });
+
+  window.stlShowToast = function(msg, type) {
+    var t = document.getElementById('stl-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'stl-toast';
+      t.style.cssText = 'position:fixed;bottom:80px;right:24px;z-index:10001;background:#152640;border:1px solid rgba(200,169,110,0.3);border-radius:4px;padding:10px 18px;font-family:\'Barlow\',sans-serif;font-size:13px;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.4);opacity:0;transition:opacity .3s;pointer-events:none;max-width:320px;';
+      document.body.appendChild(t);
+    }
+    if (type === 'err') t.style.borderColor = 'rgba(200,80,80,0.5)';
+    else t.style.borderColor = 'rgba(200,169,110,0.3)';
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._to);
+    t._to = setTimeout(() => t.style.opacity = '0', 3000);
+  };
 
   window.stlOpen = function() {
     overlay.classList.add('open');
@@ -2171,20 +2207,38 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       const el = document.getElementById('ledger-rendered');
       let ledgerHtml = '';
       if (el) {
-        // Capture full modeler styles for faithful rendering
-        const allStyles = [...document.styleSheets].map(s=>{try{return [...s.cssRules].map(r=>r.cssText).join('\n');}catch(e){return '';}}).join('\n');
-        ledgerHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${name} — Income Ledger</title>
+        // Resolve CSS variables and build self-contained ledger snapshot
+        const rootStyle = getComputedStyle(document.documentElement);
+        const navy = rootStyle.getPropertyValue('--navy').trim() || '#0d1b2e';
+        const gold = rootStyle.getPropertyValue('--gold').trim() || '#c9a84c';
+        const navy2 = rootStyle.getPropertyValue('--navy-2').trim() || '#152640';
+        const green = rootStyle.getPropertyValue('--green').trim() || '#27ae60';
+        const red2 = rootStyle.getPropertyValue('--red').trim() || '#e74c3c';
+        ledgerHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>${name} — Income Ledger</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-${allStyles}
-body{background:#fff!important;padding:20px!important;}
-.topbar,.hdr,header{display:none!important;}
-@media print{body{padding:0!important;}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;font-size:11px;padding:24px;background:#fff;color:#000;}
+h2{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;color:${navy};letter-spacing:1px;margin-bottom:4px;}
+.meta{font-size:11px;color:#666;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid ${gold};}
+table{border-collapse:collapse;width:100%;margin-bottom:28px;font-size:10.5px;}
+thead tr th{background:${navy};color:#fff;padding:5px 7px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:.5px;border:1px solid rgba(255,255,255,0.15);white-space:nowrap;}
+tbody tr td{border:1px solid #ddd;padding:3px 7px;text-align:right;white-space:nowrap;}
+tbody tr td:first-child{text-align:center;}
+tbody tr:nth-child(even){background:#f8f8f8;}
+tbody tr:hover{background:#f0f4ff;}
+.navy-row td{background:${navy}!important;color:#fff!important;font-weight:600!important;border-color:rgba(255,255,255,0.2)!important;}
+.section-header td{background:${navy2}!important;color:${gold}!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:600!important;letter-spacing:1px!important;text-transform:uppercase!important;font-size:10px!important;}
+tfoot tr td{background:${navy};color:#fff;font-weight:600;padding:5px 7px;border:1px solid rgba(255,255,255,0.15);}
+.positive{color:${green};}
+.negative{color:${red2};}
+@media print{body{padding:8px;}@page{margin:1cm;}}
 </style></head><body>
-<div style="margin-bottom:16px;font-family:Arial,sans-serif">
-  <div style="font-size:17px;font-weight:bold;color:#0d1b2e;margin-bottom:3px">${name}</div>
-  <div style="font-size:11px;color:#888">Folder: ${folder} &nbsp;·&nbsp; ${new Date().toLocaleDateString()}</div>
-</div>
-${el.innerHTML}</body></html>`;
+<h2>${name}</h2>
+<div class="meta">Folder: ${folder} &nbsp;&middot;&nbsp; Generated: ${new Date().toLocaleDateString()}</div>
+${el.innerHTML}
+</body></html>`;
       }
 
       status.textContent='Capturing discussion document…';
