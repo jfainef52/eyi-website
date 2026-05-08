@@ -2214,29 +2214,23 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
         const navy2 = rootStyle.getPropertyValue('--navy-2').trim() || '#152640';
         const green = rootStyle.getPropertyValue('--green').trim() || '#27ae60';
         const red2 = rootStyle.getPropertyValue('--red').trim() || '#e74c3c';
+        // Capture exact page styles for pixel-perfect ledger snapshot
+        const pageStyles = [...document.querySelectorAll('style')]
+          .map(s => s.textContent).join('\n');
         ledgerHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <title>${name} — Income Ledger</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Barlow',sans-serif;font-size:11px;padding:24px;background:#fff;color:#000;}
-h2{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:600;color:${navy};letter-spacing:1px;margin-bottom:4px;}
-.meta{font-size:11px;color:#666;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid ${gold};}
-table{border-collapse:collapse;width:100%;margin-bottom:28px;font-size:10.5px;}
-thead tr th{background:${navy};color:#fff;padding:5px 7px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:.5px;border:1px solid rgba(255,255,255,0.15);white-space:nowrap;}
-tbody tr td{border:1px solid #ddd;padding:3px 7px;text-align:right;white-space:nowrap;}
-tbody tr td:first-child{text-align:center;}
-tbody tr:nth-child(even){background:#f8f8f8;}
-tbody tr:hover{background:#f0f4ff;}
-.navy-row td{background:${navy}!important;color:#fff!important;font-weight:600!important;border-color:rgba(255,255,255,0.2)!important;}
-.section-header td{background:${navy2}!important;color:${gold}!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:600!important;letter-spacing:1px!important;text-transform:uppercase!important;font-size:10px!important;}
-tfoot tr td{background:${navy};color:#fff;font-weight:600;padding:5px 7px;border:1px solid rgba(255,255,255,0.15);}
-.positive{color:${green};}
-.negative{color:${red2};}
-@media print{body{padding:8px;}@page{margin:1cm;}}
-</style></head><body>
-<h2>${name}</h2>
-<div class="meta">Folder: ${folder} &nbsp;&middot;&nbsp; Generated: ${new Date().toLocaleDateString()}</div>
+${pageStyles}
+body { background: #fff !important; margin: 0; padding: 24px !important; }
+.topbar, .hdr { display: none !important; }
+.page { padding: 0 !important; max-width: 100% !important; }
+@media print { body { padding: 8px !important; } @page { margin: 1cm; } }
+</style>
+</head><body>
+<div style="margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #c9a84c;">
+  <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:600;color:#0d1b2e;letter-spacing:1px">${name}</div>
+  <div style="font-family:'Barlow',sans-serif;font-size:11px;color:#666;margin-top:3px">Folder: ${folder} &nbsp;&middot;&nbsp; Generated: ${new Date().toLocaleDateString()}</div>
+</div>
 ${el.innerHTML}
 </body></html>`;
       }
