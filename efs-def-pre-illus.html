@@ -147,7 +147,7 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
     <span class="sofr-dot"></span>
     <span id="sofr-display">Fetching SOFR…</span>
   </div>
-  <div class="hdr-right">DEF Pre-Illustration Modeler</div>
+  <a href="/advisor-portal.html" id="case-lib-link" style="display:none;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c9a84c;text-decoration:none;margin-right:16px;border:1px solid rgba(201,168,76,0.35);padding:5px 14px;border-radius:2px" onmouseover="this.style.background='rgba(201,168,76,0.12)'" onmouseout="this.style.background='none'">Case Library</a><div class="hdr-right">DEF Pre-Illustration Modeler</div>
 </div>
 
 <div class="page" id="intake-panel">
@@ -2080,6 +2080,9 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   }
   const isAdmin = await checkAdmin();
   if (!isAdmin) return;
+  // Show Case Library link for admin
+  const clLink = document.getElementById('case-lib-link');
+  if (clLink) clLink.style.display = 'inline-flex';
 
   const style = document.createElement('style');
   style.textContent = `
@@ -2168,16 +2171,19 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       const el = document.getElementById('ledger-rendered');
       let ledgerHtml = '';
       if (el) {
+        // Capture full modeler styles for faithful rendering
+        const allStyles = [...document.styleSheets].map(s=>{try{return [...s.cssRules].map(r=>r.cssText).join('\n');}catch(e){return '';}}).join('\n');
         ledgerHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${name} — Income Ledger</title>
-<style>body{font-family:Arial,sans-serif;font-size:11px;padding:16px;color:#000;margin:0}
-table{border-collapse:collapse;width:100%;margin-bottom:24px}
-th,td{border:1px solid #ccc;padding:3px 7px;text-align:right;white-space:nowrap}
-th{background:#0B1220;color:#fff;text-align:center;font-size:10px}
-td:first-child,th:first-child{text-align:center}
-.navy-row td{background:#0B1220!important;color:#fff!important;font-weight:bold}
-h2{font-family:Arial,sans-serif;color:#0B1220;margin:0 0 8px}
-@media print{body{padding:0}}</style></head><body>
-<h2>${name}</h2><p style="font-size:11px;color:#666;margin-bottom:16px">Folder: ${folder} | Generated: ${new Date().toLocaleDateString()}</p>
+<style>
+${allStyles}
+body{background:#fff!important;padding:20px!important;}
+.topbar,.hdr,header{display:none!important;}
+@media print{body{padding:0!important;}}
+</style></head><body>
+<div style="margin-bottom:16px;font-family:Arial,sans-serif">
+  <div style="font-size:17px;font-weight:bold;color:#0d1b2e;margin-bottom:3px">${name}</div>
+  <div style="font-size:11px;color:#888">Folder: ${folder} &nbsp;·&nbsp; ${new Date().toLocaleDateString()}</div>
+</div>
 ${el.innerHTML}</body></html>`;
       }
 
