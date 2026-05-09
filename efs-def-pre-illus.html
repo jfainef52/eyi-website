@@ -2158,7 +2158,17 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       if(intake)intake.style.display='none';
       if(hdr)hdr.style.display='none';
       if(stlBtn)stlBtn.style.display='none';
-      const ledgerHtml='<!DOCTYPE html>'+document.documentElement.outerHTML;
+      // Remove Save-to-Library UI from snapshot so it doesn't appear in portal
+      const stlOverlay=document.getElementById('stl-overlay');
+      const stlToast=document.getElementById('stl-toast');
+      if(stlOverlay)stlOverlay.remove();
+      if(stlToast)stlToast.remove();
+      let ledgerHtml='<!DOCTYPE html>'+document.documentElement.outerHTML;
+      // Strip initSaveToLibrary script so it doesn't re-run in the portal iframe
+      ledgerHtml=ledgerHtml.replace(/\/\/\s*─+ SAVE TO LIBRARY[\s\S]*?\/\/ ─+ END SAVE TO LIBRARY\s*\n?/,'');
+      // Restore them after snapshot
+      document.body.appendChild(overlay);
+      if(stlToast)document.body.appendChild(stlToast);
       if(intake)intake.style.display='';
       if(hdr)hdr.style.display='';
       if(stlBtn)stlBtn.style.display='';
