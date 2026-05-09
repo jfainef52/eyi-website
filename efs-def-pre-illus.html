@@ -2130,27 +2130,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   const btn = document.createElement('button');
   btn.id = 'stl-btn';
   btn.innerHTML = '&#128190; Save to Library';
-  btn.title = 'Upload a CSV/Excel file and generate the ledger first';
-  btn.style.opacity = '0.45';
-  btn.style.cursor = 'not-allowed';
-  btn.onclick = () => {
-    const ledger = document.getElementById('ledger-rendered');
-    const hasContent = ledger && ledger.querySelector('table');
-    if (!hasContent) {
-      window.stlShowToast('Please upload a CSV/Excel file and generate the ledger first.', 'err');
-      return;
-    }
-    window.stlOpen();
-  };
-  const ledgerObs = new MutationObserver(() => {
-    const ledger = document.getElementById('ledger-rendered');
-    const hasContent = ledger && ledger.querySelector('table');
-    btn.style.opacity = hasContent ? '1' : '0.45';
-    btn.style.cursor = hasContent ? 'pointer' : 'not-allowed';
-    btn.title = hasContent ? 'Save this scenario to the Case Library' : 'Upload a CSV/Excel file and generate the ledger first';
-  });
-  const ledgerTarget = document.getElementById('ledger-rendered');
-  if (ledgerTarget) ledgerObs.observe(ledgerTarget, {childList:true, subtree:true});
+  btn.onclick = () => window.stlOpen();
   document.body.appendChild(btn);
 
   const overlay = document.createElement('div');
@@ -2170,22 +2150,6 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   overlay.addEventListener('click', e => { if (e.target===overlay) window.stlClose(); });
   document.addEventListener('keydown', e => { if (e.key==='Escape') window.stlClose(); });
 
-  window.stlShowToast = function(msg, type) {
-    var t = document.getElementById('stl-toast');
-    if (!t) {
-      t = document.createElement('div');
-      t.id = 'stl-toast';
-      t.style.cssText = 'position:fixed;bottom:80px;right:24px;z-index:10001;background:#152640;border:1px solid rgba(200,169,110,0.3);border-radius:4px;padding:10px 18px;font-family:\'Barlow\',sans-serif;font-size:13px;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.4);opacity:0;transition:opacity .3s;pointer-events:none;max-width:320px;';
-      document.body.appendChild(t);
-    }
-    if (type === 'err') t.style.borderColor = 'rgba(200,80,80,0.5)';
-    else t.style.borderColor = 'rgba(200,169,110,0.3)';
-    t.textContent = msg;
-    t.style.opacity = '1';
-    clearTimeout(t._to);
-    t._to = setTimeout(() => t.style.opacity = '0', 3000);
-  };
-
   window.stlOpen = function() {
     overlay.classList.add('open');
     document.getElementById('stl-status').textContent='';
@@ -2203,43 +2167,19 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     sb2.disabled=true; sb2.textContent='Saving…'; status.className='mstatus';
 
     try {
-      status.textContent='Capturing ledger…';
-        const el = document.getElementById('ledger-output-content');
-        // Hide action bar (save button etc) from snapshot
-        const actionBar = el ? el.querySelector('#ledger-action-bar') : null;
-        if (actionBar) actionBar.style.display = 'none';
-        const restoreBar = () => { if (actionBar) actionBar.style.display = ''; };
-      let ledgerHtml = '';
-      if (el) {
-        // Resolve CSS variables and build self-contained ledger snapshot
-        const rootStyle = getComputedStyle(document.documentElement);
-        const navy = rootStyle.getPropertyValue('--navy').trim() || '#0d1b2e';
-        const gold = rootStyle.getPropertyValue('--gold').trim() || '#c9a84c';
-        const navy2 = rootStyle.getPropertyValue('--navy-2').trim() || '#152640';
-        const green = rootStyle.getPropertyValue('--green').trim() || '#27ae60';
-        const red2 = rootStyle.getPropertyValue('--red').trim() || '#e74c3c';
-        // Capture exact page styles for pixel-perfect ledger snapshot
-        const pageStyles = [...document.querySelectorAll('style')]
-          .map(s => s.textContent).join('\n');
-        ledgerHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>${name} — Income Ledger</title>
-<style>
-${pageStyles}
-body { background: #fff !important; margin: 0; padding: 24px !important; }
-.topbar, .hdr { display: none !important; }
-.page { padding: 0 !important; max-width: none !important; width: auto !important; }
-#ledger-rendered { overflow: visible !important; width: auto !important; }
-#ledger-rendered table { width: auto !important; table-layout: auto !important; }
-body { width: max-content !important; min-width: max-content !important; }
-@media print { body { padding: 8px !important; } @page { size: landscape; margin: 0.5cm; } } @page { margin: 1cm; } }
-</style>
-</head><body>
-<div style="margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #c9a84c;">
-  <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:600;color:#0d1b2e;letter-spacing:1px">${name}</div>
-  <div style="font-family:'Barlow',sans-serif;font-size:11px;color:#666;margin-top:3px">Folder: ${folder} &nbsp;&middot;&nbsp; Generated: ${new Date().toLocaleDateString()}</div>
-</div>
-${el.innerHTML}
-</body></html>`;
+        status.textContent='Capturing ledger…';
+        // Capture the full page as-is (same approach as discussion doc)
+        // Hide intake panel and save button so they don't appear in snapshot
+        const intakePanel = document.getElementById('intake-panel');
+        const saveBtn = document.getElementById('stl-btn');
+        const hdr = document.querySelector('.hdr');
+        if (intakePanel) intakePanel.style.display = 'none';
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (hdr) hdr.style.display = 'none';
+        const ledgerHtml = '<!DOCTYPE html>' + document.documentElement.outerHTML;
+        if (intakePanel) intakePanel.style.display = '';
+        if (saveBtn) saveBtn.style.display = '';
+        if (hdr) hdr.style.display = '';
       }
 
       status.textContent='Capturing discussion document…';
@@ -2260,7 +2200,6 @@ ${el.innerHTML}
       if (error) throw error;
 
       status.textContent='✓ Saved successfully!';
-        restoreBar();
       status.className='mstatus ok';
       sb2.textContent='Saved!';
       setTimeout(()=>{window.stlClose();sb2.disabled=false;sb2.textContent='Save Case';},1800);
@@ -2268,7 +2207,6 @@ ${el.innerHTML}
       console.error('STL error:',err);
       status.textContent='Error: '+(err.message||'Save failed');
       status.className='mstatus err';
-        restoreBar();
       sb2.disabled=false;sb2.textContent='Save Case';
     }
   };
