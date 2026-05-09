@@ -1129,8 +1129,11 @@ function parseCarrierCSV(text) {
   if (headerIdx < 0) return null;
   const metaHeaderParts = lines[0] ? lines[0].split(',').map(v => v.replace(/["\s]/g,'')) : [];
   const metaValueParts = lines[1] ? lines[1].split(',').map(v => v.replace(/["\s]/g,'')) : [];
-  const tpColIdx = metaHeaderParts.findIndex(h => h.toLowerCase().includes('target') && h.toLowerCase().includes('premium'));
+  let tpColIdx = metaHeaderParts.findIndex(h => h.toLowerCase().includes('target') && h.toLowerCase().includes('prem'));
+  if (tpColIdx < 0) tpColIdx = metaHeaderParts.findIndex(h => h.toLowerCase().includes('target'));
+  if (tpColIdx < 0 && metaValueParts[6] && !isNaN(parseFloat(metaValueParts[6].replace(/[^0-9.]/g,'')))) tpColIdx = 6;
   const targetPremiumRaw = tpColIdx >= 0 ? parseFloat(metaValueParts[tpColIdx].replace(/[^0-9.]/g,'')) : NaN;
+  console.log('[DEF] metaHeaders:', JSON.stringify(metaHeaderParts.slice(0,10)), 'tpColIdx:', tpColIdx, 'raw:', targetPremiumRaw);
 
   const rows = [];
   for (let i = headerIdx + 1; i < lines.length; i++) {
