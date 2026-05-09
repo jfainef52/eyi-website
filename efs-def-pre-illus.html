@@ -2149,8 +2149,25 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     const status = document.getElementById('stl-status');
     const sb2    = document.getElementById('stl-save');
     if (!folder||!name){status.textContent='Please fill in both fields.';status.className='mstatus err';return;}
-    sb2.disabled=true; sb2.textContent='Saving…'; status.className='mstatus';
+    sb2.disabled=true; sb2.textContent='Checking…'; status.className='mstatus';
     try {
+      // Check for duplicate folder + name
+      status.textContent='Checking for duplicates…';
+      const {data: existing} = await sb.from('sample_cases').select('id').eq('folder', folder).eq('name', name).single();
+      if (existing) {
+        // Warn user and ask to overwrite
+        const confirmOverwrite = confirm('⚠️ A case named “' + name + '” already exists in folder “' + folder + '”.
+
+Do you want to overwrite it?');
+        if (!confirmOverwrite) {
+          sb2.disabled=false; sb2.textContent='Save Case';
+          status.textContent='Save cancelled.'; status.className='mstatus';
+          return;
+        }
+        // Delete existing so we can re-insert fresh
+        await sb.from('sample_cases').delete().eq('id', existing.id);
+        status.textContent='Overwriting existing case…';
+      }
       status.textContent='Capturing ledger…';
       const intake=document.getElementById('intake-panel');
       const hdr=document.querySelector('.hdr');
