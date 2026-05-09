@@ -1127,6 +1127,10 @@ function parseCarrierCSV(text) {
     l.toLowerCase().includes('policy year') || l.toLowerCase().includes('year') && l.toLowerCase().includes('age')
   );
   if (headerIdx < 0) return null;
+  const metaHeaderParts = lines[0] ? lines[0].split(',').map(v => v.replace(/["\s]/g,'')) : [];
+  const metaValueParts = lines[1] ? lines[1].split(',').map(v => v.replace(/["\s]/g,'')) : [];
+  const tpColIdx = metaHeaderParts.findIndex(h => h.toLowerCase().includes('target') && h.toLowerCase().includes('premium'));
+  const targetPremiumRaw = tpColIdx >= 0 ? parseFloat(metaValueParts[tpColIdx].replace(/[^0-9.]/g,'')) : NaN;
 
   const rows = [];
   for (let i = headerIdx + 1; i < lines.length; i++) {
@@ -1145,7 +1149,9 @@ function parseCarrierCSV(text) {
       grossDB: parseFloat(parts[7]) || 0,
     });
   }
-  return rows.length > 0 ? rows : null;
+  if (rows.length === 0) return null;
+rows._targetPremium = isNaN(targetPremiumRaw) ? null : targetPremiumRaw;
+return rows;
 }
 
 // ── INVESTMENT ACCOUNT (solved to zero, 15% cap gains on withdrawals) ──
@@ -1275,7 +1281,8 @@ async function generateLedger() {
       rate1Label, rate2Label, advisorName, dateStr,
       clientName, issueAge, payYears, annualContrib,
       incomeStartAge, incomeEndAge, payoffYear,
-      hasLIRP: rowsLIRP !== null
+      hasLIRP: rowsLIRP !== null,
+      targetPremium: rows1?._targetPremium ?? null
     });
 
   } catch(e) {
@@ -1406,7 +1413,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
         <div class="name">${clientName}</div>
         <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);font-weight:600;letter-spacing:1px;margin-top:3px">Deferred Enhanced Funding</div>
         <div style="font-family:'Playfair Display',serif;font-size:13px;color:rgba(255,255,255,.5);font-weight:400;letter-spacing:1px;margin-top:2px">Enhanced Roth Alternative</div>
-        <div class="meta" style="margin-top:3px">${payYears}-Pay · Age ${issueAge} · Income Ages ${incomeStartAge}–${incomeEndAge} · ${dateStr}${advisorName ? ' · ' + advisorName : ''}</div>
+        <div class="meta" style="margin-top:3px">${payYears}-Pay · Age ${issueAge} · Income Ages ${incomeStartAge}–${incomeEndAge} · ${dateStr}${advisorName ? ' · ' + advisorName : ''}${r && r.targetPremium ? ' · Version ' + Math.round(r.targetPremium).toLocaleString('en-US') : ''}</div>
       </div>
       <div class="banner-stats">
         <div class="bstat"><div class="bl">Total Client Investment</div><div class="bv">${$f(totalClientOutlay)}</div></div>
@@ -1462,7 +1469,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     </div>
 
     <div class="ldg-disc" style="margin-top:0;border-top:1px solid var(--border)">
-      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''} · ${dateStr}
+      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${r && r.targetPremium ? ' · Version ' + Math.round(r.targetPremium).toLocaleString('en-US') : ''} · ${dateStr}
     </div>
 
     <!-- PAGE 2 -->
@@ -1529,7 +1536,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     `}
 
     <div class="ldg-disc" style="display:flex;align-items:center;gap:14px;"><div style="flex:1">
-      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''} · ${dateStr}
+      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${r && r.targetPremium ? ' · Version ' + Math.round(r.targetPremium).toLocaleString('en-US') : ''} · ${dateStr}
     </div></div>
   `;
 
