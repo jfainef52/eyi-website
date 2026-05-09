@@ -2062,90 +2062,74 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 (async function initSaveToLibrary() {
   const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
   const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
-  function getSb() {
-    if (!window.__eyi_sb) {
-      window.__eyi_sb = window.supabase.createClient(SB_URL, SB_KEY);
-    }
-    return window.__eyi_sb;
-  }nc function getSb() {
-    if (window.__eyi_sb) return window.__eyi_sb;
-    if (!window.supabase) {
-      await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
-    }
-    window.__eyi_sb = window.supabase.createClient(SB_URL, SB_KEY);
-    return window.__eyi_sb;
-  }
-  async function checkAdmin() {
-    try {
-      const sb = getSb();
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) return false;
-      const { data: prof } = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
-      return prof && prof.role === 'admin';
-    } catch(e) { return false; }
-  }
-  const isAdmin = await checkAdmin();
-  if (!isAdmin) return;
-  // Show Case Library link for admin
+  const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+  // Check admin
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const { data: prof } = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
+    if (!prof || prof.role !== 'admin') return;
+  } catch(e) { return; }
+
+  // Show Case Library link
   const clLink = document.getElementById('case-lib-link');
   if (clLink) clLink.style.display = 'inline-flex';
 
+  // Styles
   const style = document.createElement('style');
   style.textContent = `
-    #stl-btn {
-      position:fixed;bottom:24px;right:24px;z-index:9999;
-      background:#C8A96E;color:#0B1220;
-      font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;
-      letter-spacing:2px;text-transform:uppercase;
-      border:none;border-radius:3px;padding:12px 22px;cursor:pointer;
-      box-shadow:0 4px 20px rgba(200,169,110,0.35);
-      display:flex;align-items:center;gap:8px;transition:all .2s;
-    }
-    #stl-btn:hover{background:#dfc278;transform:translateY(-2px);}
-    #stl-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-    #stl-overlay{
-      display:none;position:fixed;inset:0;z-index:10000;
-      background:rgba(11,18,32,0.88);backdrop-filter:blur(6px);
-      align-items:center;justify-content:center;
-    }
+    #stl-btn{position:fixed;bottom:24px;right:24px;z-index:9999;background:#C8A96E;color:#0B1220;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:12px 22px;cursor:pointer;box-shadow:0 4px 20px rgba(200,169,110,0.35);display:flex;align-items:center;gap:8px;opacity:0.4;}
+    #stl-btn:hover:not([disabled]){background:#dfc278;transform:translateY(-2px);}
+    #stl-btn[disabled]{opacity:.35;cursor:not-allowed;transform:none;}
+    #stl-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(11,18,32,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;}
     #stl-overlay.open{display:flex;}
-    #stl-modal{
-      background:#152640;border:1px solid rgba(200,169,110,0.25);
-      border-radius:6px;padding:40px;width:480px;max-width:95vw;
-    }
+    #stl-modal{background:#152640;border:1px solid rgba(200,169,110,0.25);border-radius:6px;padding:40px;width:480px;max-width:95vw;}
     #stl-modal h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:500;color:#fff;margin-bottom:8px;}
     #stl-modal .msub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:28px;line-height:1.6;}
     .mfield{margin-bottom:18px;}
     .mfield label{display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;}
-    .mfield input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:'Barlow',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+    .mfield input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:'Barlow',sans-serif;font-size:14px;outline:none;}
     .mfield input:focus{border-color:rgba(200,169,110,0.5);}
     .mfield input::placeholder{color:rgba(255,255,255,0.2);}
     .mhint{font-size:11px;color:rgba(255,255,255,0.25);margin-top:5px;}
     .mactions{display:flex;gap:12px;margin-top:28px;}
-    .msave{flex:1;background:#C8A96E;color:#0B1220;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:13px;cursor:pointer;transition:background .2s;}
-    .msave:hover:not(:disabled){background:#dfc278;}
-    .msave:disabled{opacity:.5;cursor:not-allowed;}
-    .mcancel{background:transparent;color:rgba(255,255,255,0.4);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:13px 20px;cursor:pointer;transition:all .2s;}
+    .msave{flex:1;background:#C8A96E;color:#0B1220;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:13px;cursor:pointer;}
+    .msave:hover:not(:disabled){background:#dfc278;} .msave:disabled{opacity:.5;cursor:not-allowed;}
+    .mcancel{background:transparent;color:rgba(255,255,255,0.4);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:13px 20px;cursor:pointer;}
     .mcancel:hover{border-color:rgba(255,255,255,0.3);color:#fff;}
     .mstatus{margin-top:14px;font-size:12px;min-height:16px;color:rgba(200,169,110,0.8);text-align:center;}
-    .mstatus.err{color:#e06060;}
-    .mstatus.ok{color:#60c880;}
+    .mstatus.err{color:#e06060;} .mstatus.ok{color:#60c880;}
   `;
   document.head.appendChild(style);
 
+  // Button
   const btn = document.createElement('button');
   btn.id = 'stl-btn';
+  btn.setAttribute('disabled','');
+  btn.title = 'Upload a CSV/Excel file and generate the ledger first';
   btn.innerHTML = '&#128190; Save to Library';
   btn.onclick = () => window.stlOpen();
   document.body.appendChild(btn);
 
+  // Enable when ledger renders
+  const ledgerObs = new MutationObserver(() => {
+    const lr = document.getElementById('ledger-rendered');
+    const has = lr && lr.querySelector('table');
+    if (has) { btn.removeAttribute('disabled'); btn.style.opacity='1'; btn.title='Save to Case Library'; }
+    else { btn.setAttribute('disabled',''); btn.style.opacity='0.4'; btn.title='Upload a CSV/Excel file and generate the ledger first'; }
+  });
+  const lr = document.getElementById('ledger-rendered');
+  if (lr) ledgerObs.observe(lr, {childList:true, subtree:true});
+
+  // Modal
   const overlay = document.createElement('div');
   overlay.id = 'stl-overlay';
   overlay.innerHTML = `<div id="stl-modal">
     <h3>Save to Case Library</h3>
-    <p class="msub">Captures the current ledger and discussion document as a snapshot visible to all advisors in the portal.</p>
-    <div class="mfield"><label>Folder</label><input type="text" id="stl-folder" placeholder="e.g. Male 35 — DEF 7Pay"><div class="mhint">Groups related cases in the sidebar.</div></div>
-    <div class="mfield"><label>Case Name</label><input type="text" id="stl-name" placeholder="e.g. 35k Annual Contribution"><div class="mhint">The label advisors will see.</div></div>
+    <p class="msub">Captures the current ledger and discussion document as a snapshot visible to all advisors.</p>
+    <div class="mfield"><label>Folder</label><input type="text" id="stl-folder" placeholder="e.g. Male 40"><div class="mhint">Groups related cases in the sidebar.</div></div>
+    <div class="mfield"><label>Case Name</label><input type="text" id="stl-name" placeholder="e.g. 50k Annual"><div class="mhint">The label advisors will see.</div></div>
     <div class="mactions">
       <button class="msave" id="stl-save" onclick="window.stlSave()">Save Case</button>
       <button class="mcancel" onclick="window.stlClose()">Cancel</button>
@@ -2153,15 +2137,10 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     <div class="mstatus" id="stl-status"></div>
   </div>`;
   document.body.appendChild(overlay);
-  overlay.addEventListener('click', e => { if (e.target===overlay) window.stlClose(); });
-  document.addEventListener('keydown', e => { if (e.key==='Escape') window.stlClose(); });
+  overlay.addEventListener('click', e => { if(e.target===overlay) window.stlClose(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') window.stlClose(); });
 
-  window.stlOpen = function() {
-    overlay.classList.add('open');
-    document.getElementById('stl-status').textContent='';
-    document.getElementById('stl-status').className='mstatus';
-    setTimeout(()=>document.getElementById('stl-folder').focus(),50);
-  };
+  window.stlOpen = function() { overlay.classList.add('open'); document.getElementById('stl-status').textContent=''; document.getElementById('stl-status').className='mstatus'; setTimeout(()=>document.getElementById('stl-folder').focus(),50); };
   window.stlClose = function() { overlay.classList.remove('open'); };
 
   window.stlSave = async function() {
@@ -2169,51 +2148,39 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     const name   = document.getElementById('stl-name').value.trim();
     const status = document.getElementById('stl-status');
     const sb2    = document.getElementById('stl-save');
-    if (!folder||!name) { status.textContent='Please fill in both fields.';status.className='mstatus err';return; }
+    if (!folder||!name){status.textContent='Please fill in both fields.';status.className='mstatus err';return;}
     sb2.disabled=true; sb2.textContent='Saving…'; status.className='mstatus';
-
     try {
-        status.textContent='Capturing ledger…';
-        // Capture the full page as-is (same approach as discussion doc)
-        // Hide intake panel and save button so they don't appear in snapshot
-        const intakePanel = document.getElementById('intake-panel');
-        const saveBtn = document.getElementById('stl-btn');
-        const hdr = document.querySelector('.hdr');
-        if (intakePanel) intakePanel.style.display = 'none';
-        if (saveBtn) saveBtn.style.display = 'none';
-        if (hdr) hdr.style.display = 'none';
-        const ledgerHtml = '<!DOCTYPE html>' + document.documentElement.outerHTML;
-        if (intakePanel) intakePanel.style.display = '';
-        if (saveBtn) saveBtn.style.display = '';
-        if (hdr) hdr.style.display = '';
-      }
-
-      status.textContent='Capturing discussion document…';
-      let discHtml = '';
+      status.textContent='Capturing ledger…';
+      const intake=document.getElementById('intake-panel');
+      const hdr=document.querySelector('.hdr');
+      const stlBtn=document.getElementById('stl-btn');
+      if(intake)intake.style.display='none';
+      if(hdr)hdr.style.display='none';
+      if(stlBtn)stlBtn.style.display='none';
+      const ledgerHtml='<!DOCTYPE html>'+document.documentElement.outerHTML;
+      if(intake)intake.style.display='';
+      if(hdr)hdr.style.display='';
+      if(stlBtn)stlBtn.style.display='';
+      status.textContent='Capturing discussion doc…';
+      let discHtml='';
       try {
         const lsData={};
         for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);lsData[k]=localStorage.getItem(k);}
-        const resp = await fetch('/efs-discussion-doc.html');
-        let dh = await resp.text();
-        const lsScript = '<scr'+'ipt>(function(d){Object.entries(d).forEach(function(e){try{localStorage.setItem(e[0],e[1]);}catch(x){}});})('+JSON.stringify(lsData)+');<'+'/script>';
-        dh = dh.replace('</head>', lsScript+'</head>');
-        discHtml = dh;
-      } catch(e) { discHtml='<html><body><p>Discussion doc unavailable: '+e.message+'</p></body></html>'; }
-
-      status.textContent='Saving to database…';
-      const sbClient = getSb();
-      const { error } = await sbClient.from('sample_cases').insert({folder,name,ledger_html:ledgerHtml,discussion_html:discHtml,sort_order:0});
-      if (error) throw error;
-
-      status.textContent='✓ Saved successfully!';
-      status.className='mstatus ok';
-      sb2.textContent='Saved!';
+        const resp=await fetch('/efs-discussion-doc.html');
+        let dh=await resp.text();
+        const lsScript='<scr'+'ipt>(function(d){Object.entries(d).forEach(function(e){try{localStorage.setItem(e[0],e[1]);}catch(x){}});})('+JSON.stringify(lsData)+');<'+'/script>';
+        dh=dh.replace('</head>',lsScript+'</head>');
+        discHtml=dh;
+      } catch(e){discHtml='<html><body><p>Discussion doc unavailable</p></body></html>';}
+      status.textContent='Saving…';
+      const {error}=await sb.from('sample_cases').insert({folder,name,ledger_html:ledgerHtml,discussion_html:discHtml,sort_order:0});
+      if(error)throw error;
+      status.textContent='✓ Saved!'; status.className='mstatus ok'; sb2.textContent='Saved!';
       setTimeout(()=>{window.stlClose();sb2.disabled=false;sb2.textContent='Save Case';},1800);
-    } catch(err) {
-      console.error('STL error:',err);
-      status.textContent='Error: '+(err.message||'Save failed');
-      status.className='mstatus err';
-      sb2.disabled=false;sb2.textContent='Save Case';
+    } catch(err){
+      status.textContent='Error: '+(err.message||'Save failed'); status.className='mstatus err';
+      sb2.disabled=false; sb2.textContent='Save Case';
     }
   };
 })();
