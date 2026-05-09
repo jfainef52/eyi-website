@@ -2059,7 +2059,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 
 
 // ─── SAVE TO LIBRARY (admin only) ───────────────────────────────────────────
-(async function initSaveToLibrary() {
+window.addEventListener('load', async function initSaveToLibrary() {
   const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
   const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
   async function getSb() {
@@ -2211,7 +2211,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       sb2.disabled=false;sb2.textContent='Save Case';
     }
   };
-})();
+});
 // ─── END SAVE TO LIBRARY ───────────────────────────────────────────────────────────
 </script>
 </body>
