@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Advisor Portal — EFS Life</title>
+  <title>Advisor Portal â EFS Life</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -31,7 +31,7 @@
       display: flex; flex-direction: column;
     }
 
-    /* ── TOP BAR ── */
+    /* ââ TOP BAR ââ */
     .topbar {
       height: var(--topbar-h);
       background: rgba(11,18,32,0.95);
@@ -81,12 +81,12 @@
     }
     .btn-sm-gold:hover { background: var(--gold-lt); }
 
-    /* ── MAIN LAYOUT ── */
+    /* ââ MAIN LAYOUT ââ */
     .main {
       display: flex; flex: 1; overflow: hidden;
     }
 
-    /* ── SIDEBAR ── */
+    /* ââ SIDEBAR ââ */
     .sidebar {
       width: var(--sidebar-w);
       background: rgba(21,38,64,0.4);
@@ -188,7 +188,7 @@
       font-size: 13px; font-weight: 300; line-height: 1.7;
     }
 
-    /* ── CONTENT PANEL ── */
+    /* ââ CONTENT PANEL ââ */
     .content {
       flex: 1; display: flex; flex-direction: column; overflow: hidden;
     }
@@ -317,6 +317,8 @@
     @media (max-width: 768px) {
       :root { --sidebar-w: 220px; }
     }
+      .btn-close-case{background:none;border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:rgba(255,255,255,0.45);font-size:20px;line-height:1;padding:2px 10px;cursor:pointer;transition:all .2s;margin-left:4px;}
+    .btn-close-case:hover{border-color:rgba(255,255,255,0.4);color:#fff;background:rgba(255,255,255,0.07);}
   </style>
 </head>
 <body>
@@ -352,10 +354,10 @@
     <div class="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-label">Case Library</div>
-        <input class="sidebar-search" type="search" placeholder="Search cases…" id="searchInput" oninput="filterCases()">
+        <input class="sidebar-search" type="search" placeholder="Search casesâ¦" id="searchInput" oninput="filterCases()">
       </div>
       <div class="sidebar-tree" id="sidebarTree">
-        <div class="loading-state"><div class="spinner"></div> Loading…</div>
+        <div class="loading-state"><div class="spinner"></div> Loadingâ¦</div>
       </div>
     </div>
 
@@ -369,7 +371,7 @@
           <div class="case-toolbar-title" id="toolbarTitle"></div>
         </div>
         <div class="toolbar-actions">
-          <button class="btn-sm btn-sm-ghost" onclick="printCurrent()">⎙ Print / PDF</button>
+          <button class="btn-sm btn-sm-ghost" onclick="printCurrent()">â Print / PDF</button>
           <button class="btn-danger" id="deleteBtn" style="display:none" onclick="deleteCase()">Delete</button>
         </div>
       </div>
@@ -383,7 +385,7 @@
       <!-- Viewer -->
       <div class="viewer" id="viewer">
         <div class="empty-state" id="emptyState">
-          <div class="empty-icon">📂</div>
+          <div class="empty-icon">ð</div>
           <div class="empty-title">Select a case</div>
           <div class="empty-sub">Choose a folder from the sidebar, then select a saved case to view the income ledger and discussion document.</div>
         </div>
@@ -413,7 +415,7 @@
     let activeCase = null;
     let activeTab = 'ledger';
 
-    // ── INIT ──
+    // ââ INIT ââ
     (async () => {
       const { data: { session } } = await sb.auth.getSession();
       if (!session) { window.location.href = '/advisor-login.html'; return; }
@@ -442,7 +444,7 @@
       await loadCases();
     })();
 
-    // ── LOAD CASES ──
+    // ââ LOAD CASES ââ
     async function loadCases() {
       const { data, error } = await sb.from('sample_cases')
         .select('id, folder, name, sort_order, created_at')
@@ -458,7 +460,7 @@
       renderSidebar(allCases);
     }
 
-    // ── RENDER SIDEBAR ──
+    // ââ RENDER SIDEBAR ââ
     function renderSidebar(cases) {
       const tree = document.getElementById('sidebarTree');
 
@@ -481,7 +483,7 @@
           <div class="folder-group">
             <div class="folder-header open" onclick="toggleFolder('${folderId}', this)" id="fh_${folderId}">
               <svg class="folder-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-              <span class="folder-icon">📁</span>
+              <span class="folder-icon">ð</span>
               <span class="folder-name">${escHtml(folder)}</span>
               <span class="folder-count">${items.length}</span>
             </div>
@@ -499,7 +501,7 @@
       tree.innerHTML = html;
     }
 
-    // ── FILTER ──
+    // ââ FILTER ââ
     function filterCases() {
       const q = document.getElementById('searchInput').value.toLowerCase().trim();
       if (!q) { renderSidebar(allCases); return; }
@@ -509,14 +511,14 @@
       renderSidebar(filtered);
     }
 
-    // ── TOGGLE FOLDER ──
+    // ââ TOGGLE FOLDER ââ
     function toggleFolder(id, header) {
       const list = document.getElementById(id);
       const isOpen = list.classList.toggle('open');
       header.classList.toggle('open', isOpen);
     }
 
-    // ── SELECT CASE ──
+    // ââ SELECT CASE ââ
     async function selectCase(id) {
       // Mark active in sidebar
       document.querySelectorAll('.case-item').forEach(el => el.classList.remove('active'));
@@ -529,7 +531,7 @@
       document.getElementById('paneDiscussion').style.display = 'none';
       document.getElementById('caseToolbar').style.display = '';
       document.getElementById('tabBar').style.display = '';
-      document.getElementById('toolbarTitle').textContent = 'Loading…';
+      document.getElementById('toolbarTitle').textContent = 'Loadingâ¦';
       document.getElementById('toolbarFolder').textContent = '';
 
       // Fetch full record
@@ -562,7 +564,7 @@
       iframe.srcdoc = html;
     }
 
-    // ── SWITCH TAB ──
+    // ââ SWITCH TAB ââ
     function switchTab(tab) {
       activeTab = tab;
       document.getElementById('tabLedger').classList.toggle('active', tab === 'ledger');
@@ -574,7 +576,7 @@
       }
     }
 
-    // ── PRINT ──
+    // ââ PRINT ââ
     function printCurrent() {
       const tab = activeTab;
       const iframeId = tab === 'ledger' ? 'frameLedger' : 'frameDiscussion';
@@ -584,7 +586,7 @@
       iframe.contentWindow.print();
     }
 
-    // ── DELETE ──
+    // ââ DELETE ââ
     async function deleteCase() {
       if (!activeCase) return;
       if (!confirm(`Delete "${activeCase.name}"? This cannot be undone.`)) return;
@@ -603,13 +605,13 @@
       await loadCases();
     }
 
-    // ── SIGN OUT ──
+    // ââ SIGN OUT ââ
     async function handleSignOut() {
       await sb.auth.signOut();
       window.location.href = '/advisor-login.html';
     }
 
-    // ── UTILS ──
+    // ââ UTILS ââ
     function escHtml(str) {
       return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
@@ -620,6 +622,8 @@
       t.className = 'toast show' + (type ? ' ' + type : '');
       setTimeout(() => { t.className = 'toast'; }, 3000);
     }
-  </script>
+  
+  function closeCase(){document.getElementById("caseToolbar").style.display="none";document.getElementById("emptyState").style.display="flex";document.querySelectorAll(".viewer-pane").forEach(p=>p.style.display="none");document.querySelectorAll(".case-item").forEach(el=>el.classList.remove("active"));const fl=document.getElementById("frameLedger");const fd=document.getElementById("frameDiscussion");if(fl)fl.srcdoc="";if(fd)fd.srcdoc="";document.getElementById("toolbarTitle").textContent="";document.getElementById("toolbarFolder").textContent="";}
+</script>
 </body>
 </html>
