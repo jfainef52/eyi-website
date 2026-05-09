@@ -1416,7 +1416,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
         <div class="name">${clientName}</div>
         <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);font-weight:600;letter-spacing:1px;margin-top:3px">Deferred Enhanced Funding</div>
         <div style="font-family:'Playfair Display',serif;font-size:13px;color:rgba(255,255,255,.5);font-weight:400;letter-spacing:1px;margin-top:2px">Enhanced Roth Alternative</div>
-        <div class="meta" style="margin-top:3px">${payYears}-Pay · Age ${issueAge} · Income Ages ${incomeStartAge}–${incomeEndAge} · ${dateStr}${advisorName ? ' · ' + advisorName : ''}${r && r.targetPremium ? ' · Version ' + Math.round(r.targetPremium).toLocaleString('en-US') : ''}</div>
+        <div class="meta" style="margin-top:3px">${payYears}-Pay · Age ${issueAge} · Income Ages ${incomeStartAge}–${incomeEndAge} · ${dateStr}${advisorName ? ' · ' + advisorName : ''}${d && d.targetPremium ? ' · Version ' + Math.round(d.targetPremium).toLocaleString('en-US') : ''}</div>
       </div>
       <div class="banner-stats">
         <div class="bstat"><div class="bl">Total Client Investment</div><div class="bv">${$f(totalClientOutlay)}</div></div>
@@ -1472,7 +1472,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     </div>
 
     <div class="ldg-disc" style="margin-top:0;border-top:1px solid var(--border)">
-      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${r && r.targetPremium ? ' · Version ' + Math.round(r.targetPremium).toLocaleString('en-US') : ''} · ${dateStr}
+      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${d && d.targetPremium ? ' · Version ' + Math.round(d.targetPremium).toLocaleString('en-US') : ''} · ${dateStr}
     </div>
 
     <!-- PAGE 2 -->
@@ -1539,7 +1539,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     `}
 
     <div class="ldg-disc" style="display:flex;align-items:center;gap:14px;"><div style="flex:1">
-      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${r && r.targetPremium ? ' · Version ' + Math.round(r.targetPremium).toLocaleString('en-US') : ''} · ${dateStr}
+      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${d && d.targetPremium ? ' · Version ' + Math.round(d.targetPremium).toLocaleString('en-US') : ''} · ${dateStr}
     </div></div>
   `;
 
