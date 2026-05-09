@@ -2059,10 +2059,15 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 
 
 // ─── SAVE TO LIBRARY (admin only) ───────────────────────────────────────────
-window.addEventListener('load', async function initSaveToLibrary() {
+(async function initSaveToLibrary() {
   const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
   const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
-  async function getSb() {
+  function getSb() {
+    if (!window.__eyi_sb) {
+      window.__eyi_sb = window.supabase.createClient(SB_URL, SB_KEY);
+    }
+    return window.__eyi_sb;
+  }nc function getSb() {
     if (window.__eyi_sb) return window.__eyi_sb;
     if (!window.supabase) {
       await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
@@ -2072,7 +2077,7 @@ window.addEventListener('load', async function initSaveToLibrary() {
   }
   async function checkAdmin() {
     try {
-      const sb = await getSb();
+      const sb = getSb();
       const { data: { session } } = await sb.auth.getSession();
       if (!session) return false;
       const { data: prof } = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
@@ -2196,7 +2201,7 @@ window.addEventListener('load', async function initSaveToLibrary() {
       } catch(e) { discHtml='<html><body><p>Discussion doc unavailable: '+e.message+'</p></body></html>'; }
 
       status.textContent='Saving to database…';
-      const sbClient = await getSb();
+      const sbClient = getSb();
       const { error } = await sbClient.from('sample_cases').insert({folder,name,ledger_html:ledgerHtml,discussion_html:discHtml,sort_order:0});
       if (error) throw error;
 
@@ -2211,7 +2216,7 @@ window.addEventListener('load', async function initSaveToLibrary() {
       sb2.disabled=false;sb2.textContent='Save Case';
     }
   };
-});
+})();
 // ─── END SAVE TO LIBRARY ───────────────────────────────────────────────────────────
 </script>
 </body>
