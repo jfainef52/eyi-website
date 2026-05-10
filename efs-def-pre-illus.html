@@ -1247,6 +1247,7 @@ async function generateLedger() {
   try {
     const [t1, t2] = await Promise.all([readLedgerFile(lFiles.lcsv1), readLedgerFile(lFiles.lcsv2)]);
     const rows1 = parseCarrierCSV(t1);
+    const targetPremiumVal = rows1?._targetPremium ?? null;
     const rows2 = parseCarrierCSV(t2);
     if (!rows1) return showLedgerError('Could not parse primary rate CSV. Confirm file format.');
     if (!rows2) return showLedgerError('Could not parse alternative rate CSV. Confirm file format.');
@@ -1285,7 +1286,7 @@ async function generateLedger() {
       clientName, issueAge, payYears, annualContrib,
       incomeStartAge, incomeEndAge, payoffYear,
       hasLIRP: rowsLIRP !== null,
-      targetPremium: rows1?._targetPremium ?? null
+      targetPremium: targetPremiumVal
     });
 
   } catch(e) {
