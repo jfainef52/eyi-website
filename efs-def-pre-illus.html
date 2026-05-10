@@ -1285,6 +1285,7 @@ async function generateLedger() {
       rate1Label, rate2Label, advisorName, dateStr,
       clientName, issueAge, payYears, annualContrib,
       incomeStartAge, incomeEndAge, payoffYear,
+    console.log('[VERSION] targetPremiumVal=', targetPremiumVal, 'rows1._tp=', rows1?._targetPremium);
       hasLIRP: rowsLIRP !== null,
       targetPremium: targetPremiumVal
     });
