@@ -2070,29 +2070,17 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 
 
 // ─── SAVE TO LIBRARY (admin only) ───────────────────────────────────────────
-(async function initSaveToLibrary() {
+window.addEventListener('load', async function() {
   const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
   const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
-  const sb = window.supabase.createClient(SB_URL, SB_KEY);
-
-  // Wait for auth to initialize via onAuthStateChange (fires once on init with INITIAL_SESSION)
-  const session = await new Promise((resolve) => {
-    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
-      subscription.unsubscribe();
-      resolve(session);
-    });
-    // Fallback timeout after 5 seconds
-    setTimeout(() => resolve(null), 5000);
-  });
-
-  if (!session) return;
-
   try {
+    const sb = window.supabase.createClient(SB_URL, SB_KEY);
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
     const { data: prof } = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
     if (!prof || prof.role !== 'admin') return;
-  } catch(e) { return; }
 
-  // Show Case Library link
+    // Show Case Library link
   const clLink = document.getElementById('case-lib-link');
   if (clLink) clLink.style.display = 'inline-flex';
 
@@ -2231,7 +2219,9 @@ Do you want to overwrite it?');
     }
   };
 
-})();
+
+  } catch(e) { return; }
+});
 // ─── END SAVE TO LIBRARY ───────────────────────────────────────────────────────────
 </script>
 </body>
