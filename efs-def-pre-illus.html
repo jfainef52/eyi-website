@@ -2075,8 +2075,18 @@ window.addEventListener('load', async function() {
   const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
   try {
     const sb = window.supabase.createClient(SB_URL, SB_KEY);
-    const { data: { session } } = await sb.auth.getSession();
+
+    // Wait for Supabase auth to restore session from localStorage
+    const session = await new Promise((resolve) => {
+      const { data: { subscription } } = sb.auth.onAuthStateChange((_event, sess) => {
+        subscription.unsubscribe();
+        resolve(sess);
+      });
+      setTimeout(() => resolve(null), 5000);
+    });
+
     if (!session) return;
+
     const { data: prof } = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
     if (!prof || prof.role !== 'admin') return;
 
