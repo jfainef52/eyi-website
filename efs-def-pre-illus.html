@@ -1238,8 +1238,10 @@ async function generateLedger() {
   try {
         const extractTargetPremium = (rawText) => {
       const lines = rawText.split('\n');
-      const headers = (lines[0] || '').split(',').map(v => v.replace(/["\r\s]/g, ''));
-      const values  = (lines[1] || '').split(',').map(v => v.replace(/["\r\s]/g, ''));
+      const headers = (lines[0] || '').split(',').map(v => v.trim().replace(/["
+]/g, ''));
+      const values  = (lines[1] || '').split(',').map(v => v.trim().replace(/["
+]/g, ''));
       const idx = headers.findIndex(h => h.toLowerCase().includes('target') && h.toLowerCase().includes('prem'));
       if (idx < 0) return null;
       const n = parseFloat(values[idx].replace(/[^0-9.]/g, ''));
