@@ -2142,7 +2142,7 @@ window.addEventListener('load', async function() {
       const {data: existing} = await sb.from('sample_cases').select('id').eq('folder', folder).eq('name', name).single();
       if (existing) {
         // Warn user and ask to overwrite
-        const confirmOverwrite = confirm('⚠️ A case named “' + name + '” already exists in folder “' + folder + '”.
+        const confirmOverwrite = confirm('A case named "' + name + '" already exists in folder "' + folder + '". Overwrite it?');
 
 Do you want to overwrite it?');
         if (!confirmOverwrite) {
