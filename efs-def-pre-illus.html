@@ -2071,6 +2071,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 
 // ─── SAVE TO LIBRARY (admin only) ───────────────────────────────────────────
 (async function initSaveToLibrary() {
+  await new Promise(r => setTimeout(r, 800));
   const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
   const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
   const sb = window.supabase.createClient(SB_URL, SB_KEY);
