@@ -2078,7 +2078,11 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 
   // Check admin
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    let { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      await new Promise(r => setTimeout(r, 1200));
+      ({ data: { session } } = await sb.auth.getSession());
+    }
     if (!session) return;
     const { data: prof } = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
     if (!prof || prof.role !== 'admin') return;
