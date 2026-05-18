@@ -2069,7 +2069,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 (function(){var obs=new MutationObserver(function(){var el=document.getElementById("ledger-rendered");if(!el)return;var tbodies=el.querySelectorAll("tbody");if(!tbodies.length)return;var hasData=false;tbodies.forEach(function(tb){var rows=tb.querySelectorAll("tr");if(rows.length>50)hasData=true;});if(!hasData)return;obs.disconnect();tbodies.forEach(function(tb){var rows=tb.querySelectorAll("tr");for(var i=0;i<rows.length;i++){if(i<50)continue;var tds=rows[i].querySelectorAll("td");if(!tds||tds.length<2)continue;var age=parseInt(tds[1].textContent);if(isNaN(age)||age%5!==0){rows[i].style.display="none";}else{tds[0].style.background="#0B1220";tds[0].style.color="#fff";tds[0].style.fontWeight="700";tds[1].style.background="#0B1220";tds[1].style.color="#fff";tds[1].style.fontWeight="700";}}});});obs.observe(document.body,{childList:true,subtree:true});})();
 
 
-// ─── SAVE TO LIBRARY (admin only) ───────────────────────────────────────────
+// ─── SAVE TO LIBRARY (admin only) ────────────────────────────────────────
 window.addEventListener('load', async function() {
   const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
   const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
@@ -2081,74 +2081,42 @@ window.addEventListener('load', async function() {
     if (!prof || prof.role !== 'admin') return;
 
     // Show Case Library link
-  const clLink = document.getElementById('case-lib-link');
-  if (clLink) clLink.style.display = 'inline-flex';
+    const clLink = document.getElementById('case-lib-link');
+    if (clLink) clLink.style.display = 'inline-flex';
 
-  // Styles
-  const style = document.createElement('style');
-  style.textContent = `
-    #stl-btn{position:fixed;bottom:24px;right:24px;z-index:9999;background:#C8A96E;color:#0B1220;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:12px 22px;cursor:pointer;box-shadow:0 4px 20px rgba(200,169,110,0.35);display:flex;align-items:center;gap:8px;opacity:0.4;}
-    #stl-btn:hover:not([disabled]){background:#dfc278;transform:translateY(-2px);}
-    #stl-btn[disabled]{opacity:.35;cursor:not-allowed;transform:none;}
-    #stl-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(11,18,32,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;}
-    #stl-overlay.open{display:flex;}
-    #stl-modal{background:#152640;border:1px solid rgba(200,169,110,0.25);border-radius:6px;padding:40px;width:480px;max-width:95vw;}
-    #stl-modal h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:500;color:#fff;margin-bottom:8px;}
-    #stl-modal .msub{font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:28px;line-height:1.6;}
-    .mfield{margin-bottom:18px;}
-    .mfield label{display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;}
-    .mfield input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:'Barlow',sans-serif;font-size:14px;outline:none;}
-    .mfield input:focus{border-color:rgba(200,169,110,0.5);}
-    .mfield input::placeholder{color:rgba(255,255,255,0.2);}
-    .mhint{font-size:11px;color:rgba(255,255,255,0.25);margin-top:5px;}
-    .mactions{display:flex;gap:12px;margin-top:28px;}
-    .msave{flex:1;background:#C8A96E;color:#0B1220;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:13px;cursor:pointer;}
-    .msave:hover:not(:disabled){background:#dfc278;} .msave:disabled{opacity:.5;cursor:not-allowed;}
-    .mcancel{background:transparent;color:rgba(255,255,255,0.4);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:13px 20px;cursor:pointer;}
-    .mcancel:hover{border-color:rgba(255,255,255,0.3);color:#fff;}
-    .mstatus{margin-top:14px;font-size:12px;min-height:16px;color:rgba(200,169,110,0.8);text-align:center;}
-    .mstatus.err{color:#e06060;} .mstatus.ok{color:#60c880;}
-  `;
-  document.head.appendChild(style);
+    // Styles
+    const style = document.createElement('style');
+    style.id = 'stl-style';
+    style.textContent = '#stl-btn{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;align-items:center;gap:8px;background:#C8A96E;color:#0B1220;font-family:"Barlow Condensed",sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:12px 22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);transition:opacity .2s;}#stl-btn:disabled{opacity:.4;cursor:not-allowed;}#stl-overlay{position:fixed;inset:0;background:rgba(11,18,32,.82);z-index:10000;display:flex;align-items:center;justify-content:center;}#stl-modal{background:#152640;border:1px solid #C8A96E44;border-radius:6px;padding:32px;width:360px;color:#fff;font-family:"Barlow Condensed",sans-serif;}';
+    document.head.appendChild(style);
 
-  // Button
-  const btn = document.createElement('button');
-  btn.id = 'stl-btn';
-  btn.setAttribute('disabled','');
-  btn.title = 'Upload a CSV/Excel file and generate the ledger first';
-  btn.innerHTML = '&#128190; Save to Library';
-  btn.onclick = () => window.stlOpen();
-  document.body.appendChild(btn);
+    // Button
+    const btn = document.createElement('button');
+    btn.id = 'stl-btn';
+    btn.setAttribute('disabled', '');
+    btn.innerHTML = '&#128190; Save to Library';
+    document.body.appendChild(btn);
 
-  // Enable when ledger renders
-  const ledgerObs = new MutationObserver(() => {
-    const lr = document.getElementById('ledger-rendered');
-    const has = lr && lr.querySelector('table');
-    if (has) { btn.removeAttribute('disabled'); btn.style.opacity='1'; btn.title='Save to Case Library'; }
-    else { btn.setAttribute('disabled',''); btn.style.opacity='0.4'; btn.title='Upload a CSV/Excel file and generate the ledger first'; }
-  });
-  const lr = document.getElementById('ledger-rendered');
-  if (lr) ledgerObs.observe(lr, {childList:true, subtree:true});
+    // Enable button when ledger is rendered
+    const obs = new MutationObserver(() => {
+      const lr = document.getElementById('ledger-rendered');
+      if (lr && lr.querySelector('tbody tr')) {
+        btn.removeAttribute('disabled');
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
 
-  // Modal
-  const overlay = document.createElement('div');
-  overlay.id = 'stl-overlay';
-  overlay.innerHTML = `<div id="stl-modal">
-    <h3>Save to Case Library</h3>
-    <p class="msub">Captures the current ledger and discussion document as a snapshot visible to all advisors.</p>
-    <div class="mfield"><label>Folder</label><input type="text" id="stl-folder" placeholder="e.g. Male 40"><div class="mhint">Groups related cases in the sidebar.</div></div>
-    <div class="mfield"><label>Case Name</label><input type="text" id="stl-name" placeholder="e.g. 50k Annual"><div class="mhint">The label advisors will see.</div></div>
-    <div class="mactions">
-      <button class="msave" id="stl-save" onclick="window.stlSave()">Save Case</button>
-      <button class="mcancel" onclick="window.stlClose()">Cancel</button>
-    </div>
-    <div class="mstatus" id="stl-status"></div>
-  </div>`;
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', e => { if(e.target===overlay) window.stlClose(); });
-  document.addEventListener('keydown', e => { if(e.key==='Escape') window.stlClose(); });
+    // Click handler
+    btn.addEventListener('click', () => window.stlOpen && window.stlOpen());
 
-  window.stlOpen = function() { overlay.classList.add('open'); document.getElementById('stl-status').textContent=''; document.getElementById('stl-status').className='mstatus'; setTimeout(()=>document.getElementById('stl-folder').focus(),50); };
+    // Modal HTML
+    const overlay = document.createElement('div');
+    overlay.id = 'stl-overlay';
+    overlay.style.display = 'none';
+    overlay.innerHTML = '<div id="stl-modal"><h3 style="margin:0 0 20px;font-size:18px;letter-spacing:2px;color:#C8A96E;text-transform:uppercase;">Save to Library</h3><label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:1px;">FOLDER</label><input id="stl-folder" type="text" placeholder="e.g. Whitacre" style="width:100%;box-sizing:border-box;background:#0B1220;border:1px solid #C8A96E55;color:#fff;padding:10px;border-radius:3px;font-family:inherit;font-size:14px;margin-bottom:16px;"><label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:1px;">CASE NAME</label><input id="stl-name" type="text" placeholder="e.g. DEF 5-Pay 6.75%" style="width:100%;box-sizing:border-box;background:#0B1220;border:1px solid #C8A96E55;color:#fff;padding:10px;border-radius:3px;font-family:inherit;font-size:14px;margin-bottom:24px;"><div style="display:flex;gap:12px;justify-content:flex-end;"><button class="mcancel" onclick="window.stlClose()" style="background:none;border:1px solid #C8A96E55;color:#C8A96E;padding:10px 20px;border-radius:3px;cursor:pointer;font-family:inherit;font-size:13px;letter-spacing:1px;">Cancel</button><button class="msave" onclick="window.stlSave()" style="background:#C8A96E;color:#0B1220;border:none;padding:10px 20px;border-radius:3px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:1px;">Save Case</button></div><div id="stl-status" style="margin-top:12px;font-size:12px;min-height:16px;"></div></div>';
+    document.body.appendChild(overlay);
+
+    window.stlOpen = function() { overlay.classList.add('open'); document.getElementById('stl-status').textContent=''; document.getElementById('stl-status').className='mstatus'; setTimeout(()=>document.getElementById('stl-folder').focus(),50); };
   window.stlClose = function() { overlay.classList.remove('open'); };
 
   window.stlSave = async function() {
@@ -2222,7 +2190,10 @@ Do you want to overwrite it?');
 
   } catch(e) { return; }
 });
-// ─── END SAVE TO LIBRARY ───────────────────────────────────────────────────────────
+
+  } catch(e) { console.error('STL init error:', e); }
+});
+// ─── END SAVE TO LIBRARY ─────────────────────────────────────────────
 </script>
 </body>
 </html>
