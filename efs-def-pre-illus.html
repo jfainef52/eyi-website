@@ -2160,7 +2160,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
         '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:24px!important;min-width:max-content!important;}' +
         '.topbar,.hdr{display:none!important;}.page{padding:0!important;max-width:100%!important;}' +
         '@media print{body{padding:8px!important;}@page{margin:1cm;}}' +
-        '</style></head><body>' + el.innerHTML + '</body></html>';
+        '</style></head><body><div style="display:inline-block;min-width:100%;">' + el.innerHTML + '</div></body></html>';
       if (statusMsg) statusMsg.textContent = 'Capturing discussion document…';
       var discResp = await fetch('/efs-discussion-doc.html');
       var dh = await discResp.text();
