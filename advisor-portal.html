@@ -448,7 +448,7 @@
     // ── LOAD CASES ──
     async function loadCases() {
       const { data, error } = await sb.from('sample_cases')
-        .select('id, folder, name, sort_order, created_at')
+        .select('id, folder, name, sort_order, created_at, html, status')
         .order('folder').order('sort_order').order('name');
 
       if (error) {
@@ -549,8 +549,8 @@
       document.getElementById('toolbarFolder').textContent = data.folder;
 
       // Load iframes
-      loadIframe('frameLedger', data.ledger_html);
-      loadIframe('frameDiscussion', data.discussion_html);
+      loadIframe('frameLedger', data.html);
+      loadIframe('frameDiscussion', data.discussion_html || null);
 
       // Show active tab
       switchTab(activeTab);
