@@ -51,8 +51,10 @@
       margin: 0;
       box-shadow: none;
       page-break-after: always;
+      page-break-after: always;
       page-break-inside: avoid;
     }
+    .page:last-child { page-break-after: avoid !important; }
     @page { size: 11in 8.5in landscape; margin: 0; }
   }
 
