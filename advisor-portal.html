@@ -561,11 +561,14 @@
       const frameLedger = document.getElementById('frameLedger');
       if (frameLedger) {
         if (c.html) {
+          var btnStyle = 'background:#0B1220;color:#C8A96E;border:1px solid #C8A96E;padding:14px 32px;border-radius:3px;font-family:IBM Plex Sans,sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin:0 8px;';
           frameLedger.srcdoc = '<body style="font-family:IBM Plex Sans,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f3ee;">' +
             '<div style="text-align:center;">' +
-            '<div style="font-size:14px;color:#666;margin-bottom:20px;">Income Ledger · ' + c.name + '</div>' +
-            '<button onclick="window.parent.openCaseLedger()" style="background:#0B1220;color:#C8A96E;border:1px solid #C8A96E;padding:14px 32px;border-radius:3px;font-family:IBM Plex Sans,sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">OPEN / PRINT LEDGER</button>' +
-            '<div style="font-size:11px;color:#999;margin-top:12px;">Opens in a new tab — full formatting, print-ready</div>' +
+            '<div style="font-size:14px;color:#666;margin-bottom:8px;font-family:Barlow Condensed,sans-serif;letter-spacing:2px;text-transform:uppercase;">' + c.folder + '</div>' +
+            '<div style="font-size:22px;color:#0B1220;margin-bottom:28px;font-family:Cormorant Garamond,serif;font-weight:600;">' + c.name + '</div>' +
+            '<button onclick="window.parent.openCaseLedger()" style="' + btnStyle + '">Income Ledger</button>' +
+            '<button onclick="window.parent.openCaseDiscussion()" style="' + btnStyle + '">Discussion Document</button>' +
+            '<div style="font-size:11px;color:#999;margin-top:20px;">Each opens in a new tab — full formatting, print-ready</div>' +
             '</div></body>';
         } else {
           frameLedger.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#666;">No ledger saved for this case.</body>';
@@ -648,7 +651,12 @@
 
     window.openCaseLedger = function() {
       const c = window._selectedCase;
-      if (!c || !c.html) return;
+      if (!c) return;
+      window.open('/efs-ledger-output.html?case=' + c.id, '_blank');
+    };
+    window.openCaseDiscussion = function() {
+      const c = window._selectedCase;
+      if (!c || !c.html) { alert('No discussion data saved for this case.'); return; }
       localStorage.setItem('efs_ledger_data', c.html);
       window.open('/efs-discussion-doc.html', '_blank');
     };
