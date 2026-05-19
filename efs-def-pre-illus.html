@@ -2071,6 +2071,20 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   var SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
   var SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
 
+  // Show Case Library link if admin is logged in
+  (async function() {
+    var sb = window.supabase.createClient(SB_URL, SB_KEY);
+    var sess = await new Promise(function(res) {
+      sb.auth.onAuthStateChange(function(event, session) { res(session); });
+    });
+    if (!sess) return;
+    var prof = await sb.from('advisor_profiles').select('role').eq('id', sess.user.id).single();
+    if (prof.data && prof.data.role === 'admin') {
+      var link = document.getElementById('case-lib-link');
+      if (link) link.style.display = 'inline-block';
+    }
+  })();
+
   // Wait for ledger content before showing button
   var obs = new MutationObserver(function() {
     var tbody = document.querySelector('#ledger-rendered tbody');
