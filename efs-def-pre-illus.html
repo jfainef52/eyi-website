@@ -2157,10 +2157,8 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       var styleArr = document.querySelectorAll('style');
       var pageStyles = Array.from(styleArr).map(function(s){return s.textContent;}).join('\n');
       var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-        '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:24px!important;min-width:max-content!important;}' +
-        '.topbar,.hdr{display:none!important;}.page{padding:0!important;max-width:100%!important;}' +
-        '@media print{body{padding:8px!important;}@page{margin:1cm;}}' +
-        '</style></head><body><div style="display:inline-block;min-width:100%;">' + el.innerHTML + '</div></body></html>';
+      '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:0!important;}.topbar,.hdr{display:none!important;}.page{padding:24px!important;max-width:none!important;}@media print{.page{padding:8px!important;}@page{size:11in 17in landscape;margin:0.5cm;}}' +
+      '</style></head><body>' + el.innerHTML + '</body></html>';
       if (statusMsg) statusMsg.textContent = 'Capturing discussion document…';
       var discResp = await fetch('/efs-discussion-doc.html');
       var dh = await discResp.text();
