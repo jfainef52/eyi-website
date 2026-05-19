@@ -2149,29 +2149,100 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   };
 
   window.stlSave = async function() {
-    var name = document.getElementById('stl-name').value.trim();
+    var name   = document.getElementById('stl-name').value.trim();
     var folder = document.getElementById('stl-folder').value.trim();
     var status = document.getElementById('stl-status').value;
-    if (!name || !folder) { alert('Please enter a client name and folder.'); return; }
-    var lr = document.getElementById('ledger-rendered');
-    if (!lr || lr.innerHTML.trim().length < 100) { alert('Please generate and view the income ledger first before saving.'); return; }
-    // Use full ledger data from localStorage (written by proceedToLedger with all CSV data)
-    var html = localStorage.getItem('efs_ledger_data') || '';
-    if (!html || html.length < 10) { alert('Please generate and open the income ledger first before saving.'); return; }
-    var sb = window.supabase.createClient(SB_URL, SB_KEY);
-    var dup = await sb.from('sample_cases').select('id').eq('folder', folder).eq('name', name);
-    if (dup.data && dup.data.length > 0) {
-      if (!confirm('A case "' + name + '" already exists in "' + folder + '". Overwrite?')) return;
-      await sb.from('sample_cases').delete().eq('folder', folder).eq('name', name);
-    }
-    var ledgerHtml = document.getElementById('ledger-rendered')?.innerHTML || '';
-    var result = await sb.from('sample_cases').insert([{name:name, folder:folder, status:status, html:html, ledger_html:ledgerHtml, created_at:new Date().toISOString()}]);
-    if (result.error) { alert('Error saving: ' + result.error.message); return; }
-    window.stlClose();
-    var btn = document.getElementById('stl-btn');
-    if (btn) { var orig = btn.innerHTML; btn.innerHTML = '&#10003; Saved!'; setTimeout(function(){ btn.innerHTML = orig; }, 2500); }
-  };
+    if (!name || !folder) { alert('Please fill in both fields.'); return; }
 
+    var sb2 = document.getElementById('stl-save');
+    var statusEl = document.getElementById('stl-status-msg');
+    if (sb2) { sb2.disabled = true; sb2.textContent = 'Saving…'; }
+
+    try {
+      // Step 1: Capture ledger HTML with all page styles
+      if (statusEl) statusEl.textContent = 'Capturing ledger…';
+      var el = document.getElementById('ledger-rendered');
+      if (!el || !el.querySelector('table')) {
+        alert('Please generate the income ledger first before saving.');
+        if (sb2) { sb2.disabled = false; sb2.textContent = 'Save Case'; }
+        return;
+      }
+      var pageStyles = [...document.querySelectorAll('style')].map(s => s.textContent).join('
+');
+      var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+        '<style>
+' + pageStyles + '
+body{background:#fff!important;margin:0;padding:24px!important;}' +
+        '.topbar,.hdr{display:none!important;}' +
+        '.page{padding:0!important;max-width:100%!important;}' +
+        '@media print{body{padding:8px!important;}@page{margin:1cm;}}' +
+        '</style></head><body>' +
+        '<div style="margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #c9a84c;">' +
+        '<div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:600;color:#0d1b2e;letter-spacing:1px">' + name + '</div>' +
+        '<div style="font-family:'Barlow',sans-serif;font-size:11px;color:#666;margin-top:3px">Folder: ' + folder + ' · Generated: ' + new Date().toLocaleDateString() + '</div>' +
+        '</div>' +
+        el.innerHTML +
+        '</body></html>';
+
+      // Step 2: Capture discussion document with localStorage data injected
+      if (statusEl) statusEl.textContent = 'Capturing discussion document…';
+      var discHtml = '';
+      try {
+        var lsData = {};
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          lsData[k] = localStorage.getItem(k);
+        }
+        var discResp = await fetch('/efs-discussion-doc.html');
+        var dh = await discResp.text();
+        var lsScript = '<scr' + 'ipt>(function(d){Object.entries(d).forEach(function(e){try{localStorage.setItem(e[0],e[1]);}catch(x){}});})('+JSON.stringify(lsData)+');</' + 'script>';
+        dh = dh.replace('</head>', lsScript + '</head>');
+        discHtml = dh;
+      } catch(e) {
+        discHtml = '<html><body><p>Discussion doc unavailable: ' + e.message + '</p></body></html>';
+      }
+
+      // Step 3: Save to Supabase
+      if (statusEl) statusEl.textContent = 'Saving to database…';
+      var sbClient = window.supabase.createClient(
+        'https://oqpoivcpvlzplcfrpkzb.supabase.co',
+        'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v'
+      );
+
+      // Check for duplicate
+      var dup = await sbClient.from('sample_cases').select('id').eq('folder', folder).eq('name', name);
+      if (dup.data && dup.data.length > 0) {
+        if (!confirm('A case "' + name + '" already exists in "' + folder + '". Overwrite it?')) {
+          if (sb2) { sb2.disabled = false; sb2.textContent = 'Save Case'; }
+          return;
+        }
+        await sbClient.from('sample_cases').delete().eq('folder', folder).eq('name', name);
+      }
+
+      var result = await sbClient.from('sample_cases').insert([{
+        folder: folder,
+        name: name,
+        status: status,
+        ledger_html: ledgerHtml,
+        discussion_html: discHtml,
+        sort_order: 0,
+        created_at: new Date().toISOString()
+      }]);
+
+      if (result.error) throw result.error;
+
+      window.stlClose();
+      if (sb2) { sb2.textContent = '✓ Saved!'; }
+      setTimeout(function() {
+        if (sb2) { sb2.disabled = false; sb2.textContent = 'Save Case'; }
+      }, 1800);
+
+    } catch(err) {
+      console.error('STL error:', err);
+      alert('Error saving: ' + (err.message || 'Save failed'));
+      if (sb2) { sb2.disabled = false; sb2.textContent = 'Save Case'; }
+    }
+  };
 })();
 </script>
 // ─── END SAVE TO LIBRARY
