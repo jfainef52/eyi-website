@@ -2127,25 +2127,20 @@ window.addEventListener('load', async function() {
   var overlay = document.createElement('div');
   overlay.id = 'stl-overlay';
   overlay.style.display = 'none';
-  overlay.innerHTML = '<div id="stl-modal"><h3>Save to Library</h3><label>Client Name</label><input id="stl-name" type="text" placeholder="e.g. John Smith"/><label>Folder</label><input id="stl-folder" type="text" placeholder="e.g. Prospects"/><label>Status</label><select id="stl-status"><option value="sample">Sample</option><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select><div class="stl-row"><button id="stl-cancel-btn" onclick="window.stlClose()">Cancel</button><button id="stl-save-btn" onclick="window.stlSave()">Save Case</button></div></div>';
-  document.body.appendChild(overlay);
-
-  window.stlOpen = function() {
-    overlay.style.display = 'flex';
-    document.getElementById('stl-name').focus();
-  };
-
-  window.stlClose = function() {
-    overlay.style.display = 'none';
-  };
-
-  window.stlSave = async function() {
+  overlay.innerHTML = '<div id="stl-modal"><h3>Save to Library</h3><label>Client Name</label><input id="stl-name" type="text" placeholder="e.g. John Smith"/><label>Folder</label><input id="stl-folder" type="text" placeholder="e.g. Prospects"/><label>Status</label><select id="stl-status"><option value="sample">Sample</option><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select><div class="stl-row"><button id="stl-cancel-btn" onclick="window.stlClose()">Cancel</button><button id="stl-save-btn" onclick="window.stlSave = async function() {
     var folder = document.getElementById('stl-folder').value.trim();
     var name = document.getElementById('stl-name').value.trim();
     var status = document.getElementById('stl-status').value;
 
     if (!folder || !name) { alert('Please enter a client name and folder.'); return; }
 
+    // Capture ledger HTML directly from the DOM
+    var lr = document.getElementById('ledger-rendered');
+    if (!lr || lr.innerHTML.trim().length < 100) { alert('Please generate a ledger first.'); return; }
+    var ledgerHtml = lr.innerHTML;
+
+    var SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
+    var SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
     var sb2 = window.supabase.createClient(SB_URL, SB_KEY);
 
     // Check for duplicate
@@ -2156,14 +2151,13 @@ window.addEventListener('load', async function() {
       await sb2.from('sample_cases').delete().eq('folder', folder).eq('name', name);
     }
 
-    // Capture ledger HTML (strip STL elements)
-    var lr = document.getElementById('ledger-rendered');
-    var clone = lr.cloneNode(true);
-    var stlEl = clone.querySelector('#stl-overlay'); if (stlEl) stlEl.remove();
-    var stlBtnEl = clone.querySelector('#stl-btn'); if (stlBtnEl) stlBtnEl.remove();
-    var ledgerHtml = clone.innerHTML;
-
-    var payload = { folder: folder, name: name, status: status, html: ledgerHtml, created_at: new Date().toISOString() };
+    var payload = {
+      folder: folder,
+      name: name,
+      status: status,
+      html: ledgerHtml,
+      created_at: new Date().toISOString()
+    };
 
     var resp = await sb2.from('sample_cases').insert([payload]);
     if (resp.error) { alert('Error saving: ' + resp.error.message); return; }
@@ -2173,9 +2167,3 @@ window.addEventListener('load', async function() {
     btn.innerHTML = '&#10003; Saved!';
     setTimeout(function() { btn.innerHTML = origText; }, 2500);
   };
-});
-
-// ─── END SAVE TO LIBRARY
-</script>
-</body>
-</html>
