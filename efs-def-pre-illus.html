@@ -1078,51 +1078,7 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
   </div>
 </div>
 
-
 <script>
-function buildPayoffDropdown() {
-  const issueAge = parseInt(document.getElementById('issueAge').value);
-  const payYears = parseInt(document.getElementById('payYears').value);
-  const sel = document.getElementById('payoffYear');
-  const prevVal = sel.value;
-
-  sel.innerHTML = '';
-
-  if (isNaN(issueAge) || isNaN(payYears) || payYears < 5 || payYears > 10) {
-    sel.innerHTML = '<option value="">— enter age &amp; pay years first —</option>';
-    return;
-  }
-
-  const totalPremYears = payYears + 2;
-  const minPayoff = totalPremYears + 1; // must be at least 1 year after last premium
-  const maxPayoff = 20;
-
-  for (let yr = minPayoff; yr <= maxPayoff; yr++) {
-    const age = issueAge + yr - 1;
-    const opt = document.createElement('option');
-    opt.value = yr;
-    opt.textContent = `Yr ${yr}  /  Age ${age}`;
-    if (String(yr) === prevVal) opt.selected = true;
-    sel.appendChild(opt);
-  }
-
-  // Default selection: pick a reasonable payoff year (totalPremYears + 3 or first option)
-  if (!prevVal || parseInt(prevVal) < minPayoff) {
-    const defaultYr = Math.min(totalPremYears + 3, maxPayoff);
-    sel.value = defaultYr;
-  }
-}
-
-// ── UPDATE HINT ──
-document.getElementById('payYears').addEventListener('input', function() {
-  const v = parseInt(this.value);
-  if (!isNaN(v) && v >= 5 && v <= 10) {
-    document.getElementById('pay-hint').textContent =
-      `Total premium years = ${v + 2}  ·  Lender-only years: ${v+1} and ${v+2}`;
-  }
-  buildPayoffDropdown();
-})
-
 // ── LEDGER FILE HANDLING ──
 let lFiles = { lcsv1: null, lcsv2: null, lcsv3: null };
 
@@ -2111,8 +2067,6 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 (function(){var obs=new MutationObserver(function(){var el=document.getElementById("ledger-rendered");if(!el)return;var tbodies=el.querySelectorAll("tbody");if(!tbodies.length)return;var hasData=false;tbodies.forEach(function(tb){var rows=tb.querySelectorAll("tr");if(rows.length>50)hasData=true;});if(!hasData)return;obs.disconnect();tbodies.forEach(function(tb){var rows=tb.querySelectorAll("tr");for(var i=0;i<rows.length;i++){if(i<50)continue;var tds=rows[i].querySelectorAll("td");if(!tds||tds.length<2)continue;var age=parseInt(tds[1].textContent);if(isNaN(age)||age%5!==0){rows[i].style.display="none";}else{tds[0].style.background="#0B1220";tds[0].style.color="#fff";tds[0].style.fontWeight="700";tds[1].style.background="#0B1220";tds[1].style.color="#fff";tds[1].style.fontWeight="700";}}});});obs.observe(document.body,{childList:true,subtree:true});})();
 
 
-</script>
-<script>
 // ─── SAVE TO LIBRARY
 
 (function() {
