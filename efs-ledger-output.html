@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Income Ledger — EFS Life</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&family=Barlow+Condensed:wght@300;400;500&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --navy:#0B1220; --navy-2:#152640; --gold:#C8A96E; --white:#ffffff; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#f5f3ee;font-family:'Barlow',sans-serif;min-height:100vh;}
+    .page-header{background:var(--navy);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+    .page-header .logo{color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:500;letter-spacing:3px;text-transform:uppercase;}
+    .print-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:8px 20px;font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:2px;}
+    .print-btn:hover{background:var(--gold);color:var(--navy);}
+    .status{display:flex;align-items:center;justify-content:center;height:60vh;font-size:14px;color:#666;}
+    .status.error{color:#c00;}
+    @media print{.page-header .print-btn{display:none;}body{background:white;}}
+    
+/* Ledger-specific styles */
+#ledger-panel { display:none; }
+.ledger-page-wrap { background:var(--white); }
+
+/* Upload step */
+.upload-step { max-width:900px; margin:0 auto; padding:40px 32px; }
+.upload-step h2 { font-family:'Playfair Display',serif; font-size:28px; color:var(--navy); margin-bottom:6px; }
+.upload-step .sub { font-size:13px; color:var(--muted); margin-bottom:36px; letter-spacing:.5px; }
+
+.upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:28px; }
+.upload-zone-lg {
+  border:1.5px dashed rgba(13,27,46,.2); border-radius:6px; padding:28px 24px;
+  text-align:center; cursor:pointer; position:relative; background:var(--off);
+  transition:all .2s;
+}
+.upload-zone-lg:hover, .upload-zone-lg.has-file { border-color:var(--gold); background:rgba(201,168,76,.05); }
+.upload-zone-lg input[type=file] { position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%; }
+.uz-icon { font-size:28px; margin-bottom:10px; }
+.uz-title { font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--navy); font-weight:600; margin-bottom:4px; }
+.uz-rate { font-family:'IBM Plex Mono',monospace; font-size:18px; color:var(--gold); font-weight:500; margin-bottom:4px; }
+.uz-hint { font-size:11px; color:var(--muted); }
+.uz-file { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--green); margin-top:8px; }
+
+.rate-fields { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:14px; margin-bottom:24px; }
+
+.gen-ledger-btn {
+  background:var(--gold); color:var(--navy); border:none; border-radius:3px;
+  font-family:'IBM Plex Sans',sans-serif; font-size:12px; font-weight:600;
+  letter-spacing:2px; text-transform:uppercase; padding:14px 40px;
+  cursor:pointer; transition:all .2s; display:block; margin:0 auto;
+}
+.gen-ledger-btn:hover { background:var(--gold-lt); }
+
+/* Summary banner */
+.ledger-banner {
+  background:var(--navy); padding:28px 48px;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:20px;
+}
+.banner-client .name { font-family:'Playfair Display',serif; font-size:28px; color:var(--white); }
+.banner-client .meta { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-top:3px; }
+.banner-stats { display:flex; gap:28px; flex-wrap:wrap; }
+.bstat { text-align:right; }
+.bstat .bl { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:3px; }
+.bstat .bv { font-family:'Playfair Display',serif; font-size:22px; color:var(--gold); }
+
+/* Ledger table wrapper */
+.ledger-tbl-wrap { overflow-x:auto; padding:0; }
+
+/* Column group header */
+.tbl-section-hdr {
+  background:var(--navy-2); color:var(--gold);
+  font-size:11px !important; letter-spacing:1.5px; text-transform:uppercase;
+  text-align:center; padding:8px 10px; border-right:2px solid rgba(255,255,255,.1);
+  white-space:normal; line-height:1.4;
+}
+
+table.ldg {
+  width:100%; border-collapse:collapse;
+  font-family:'IBM Plex Mono',monospace; font-size:11px;
+  min-width:1600px;
+}
+table.ldg thead th {
+  background:var(--navy); color:rgba(255,255,255,.65);
+  font-size:8px; letter-spacing:.8px; text-transform:uppercase;
+  padding:8px 7px; text-align:right; white-space:nowrap;
+  border-right:1px solid rgba(255,255,255,.07);
+}
+table.ldg thead th:first-child, table.ldg thead th:nth-child(2) { text-align:center; }
+table.ldg thead th.sec-div { border-left:2px solid rgba(201,168,76,.4); }
+
+table.ldg tbody td {
+  padding:5px 7px; text-align:right;
+  border-bottom:1px solid var(--border);
+  border-right:1px solid #eee;
+  white-space:nowrap; font-size:10.5px;
+}
+table.ldg tbody td:first-child, table.ldg tbody td:nth-child(2) { text-align:center; font-weight:500; }
+table.ldg tbody td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
+table.ldg tbody tr:nth-child(even) { background:var(--off); }
+table.ldg tbody tr:hover { background:rgba(201,168,76,.05); }
+table.ldg tbody tr.payoff-yr td { background:rgba(42,110,69,.08)!important; }
+table.ldg tbody tr.income-yr td { background:rgba(13,27,46,.02); }
+table.ldg tbody tr.income-yr td.income-val { color:var(--green); font-weight:600; }
+table.ldg tfoot td {
+  padding:8px 8px; text-align:right; font-weight:600;
+  border-top:2px solid var(--navy); background:var(--off); font-size:11px;
+}
+table.ldg tfoot td:first-child, table.ldg tfoot td:nth-child(2) { text-align:center; }
+table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
+
+/* Comparison cards */
+.comp-strip {
+  padding:24px 48px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;
+  border-top:1px solid var(--border);
+}
+.comp-crd { border:1px solid var(--border); border-radius:5px; padding:18px 20px; }
+.comp-crd.hl { border-color:var(--gold); background:rgba(201,168,76,.03); }
+.comp-crd .ct { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+.comp-crd.hl .ct { color:var(--gold); }
+.comp-crd .cv { font-family:'Playfair Display',serif; font-size:18px; color:var(--navy); font-weight:600; margin-bottom:12px; }
+.cstat { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border); font-size:11px; }
+.cstat:last-child { border-bottom:none; }
+.cstat .ck { color:var(--muted); }
+.cstat .cv2 { font-family:'IBM Plex Mono',monospace; font-weight:500; }
+.cstat .cv2.g { color:var(--green); font-weight:600; }
+
+/* Page 2 */
+.pg2-header {
+  background:var(--navy-2); padding:18px 48px;
+  display:flex; align-items:center; gap:14px; margin-top:40px;
+  border-top:3px solid var(--gold);
+}
+.pg2-header h3 { font-family:'Playfair Display',serif; font-size:18px; color:var(--white); font-weight:500; }
+.pg2-header .badge { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); background:rgba(201,168,76,.15); border:1px solid rgba(201,168,76,.3); padding:2px 9px; border-radius:2px; }
+
+/* Action bar ledger */
+.ledger-action-bar {
+  background:var(--navy-2); padding:14px 40px; display:flex; gap:12px;
+  align-items:center; position:sticky; top:0; z-index:200;
+  border-bottom:1px solid rgba(201,168,76,.2);
+}
+.lab-btn {
+  border:1px solid rgba(201,168,76,.3); color:var(--gold); background:transparent;
+  font-size:10px; letter-spacing:1.5px; text-transform:uppercase; padding:7px 16px;
+  border-radius:3px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; transition:all .2s;
+}
+.lab-btn:hover { border-color:var(--gold); background:rgba(201,168,76,.1); }
+.lab-btn.primary { background:var(--gold); color:var(--navy); font-weight:600; border-color:var(--gold); margin-left:auto; }
+.lab-btn.primary:hover { background:var(--gold-lt); }
+
+.ldg-disc { padding:20px 48px; font-size:9px; color:var(--muted); line-height:1.6; border-top:1px solid var(--border); }
+
+@media print {
+  .hdr, .ledger-action-bar, #intake-panel, #ledger-upload-step, .gen-ledger-btn { display:none!important; }
+  #ledger-panel { display:block!important; }
+  #ledger-output-content { display:block!important; }
+  @page { size:17in 11in landscape; margin:0.4in; }
+  body { background:white; }
+  .ledger-tbl-wrap { overflow:visible; }
+}
+
+  </style>
+</head>
+<body>
+  <div class="page-header" id="hdr" style="display:none">
+    <div class="logo">EFS Life · Income Ledger</div>
+    <button class="print-btn" onclick="window.print()">Print / Save PDF (11×17)</button>
+  </div>
+  <div id="status" class="status">Loading ledger…</div>
+  <div id="ledger-rendered"></div>
+  <script>
+  (async function() {
+    var SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
+    var SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
+    var params = new URLSearchParams(window.location.search);
+    var caseId = params.get('case');
+    var statusEl = document.getElementById('status');
+    if (!caseId) { statusEl.textContent = 'No case ID provided.'; statusEl.className = 'status error'; return; }
+    try {
+      var sb = supabase.createClient(SB_URL, SB_KEY);
+      var res = await sb.from('sample_cases').select('name,ledger_html').eq('id', caseId).single();
+      if (res.error || !res.data) throw new Error(res.error ? res.error.message : 'Not found');
+      var html = res.data.ledger_html;
+      if (!html || html.trim().length < 100) {
+        statusEl.textContent = 'No income ledger saved for this case. Re-save from the modeler after generating the ledger.';
+        statusEl.className = 'status error';
+        return;
+      }
+      document.getElementById('ledger-rendered').innerHTML = html;
+      statusEl.style.display = 'none';
+      document.getElementById('hdr').style.display = 'flex';
+      document.title = res.data.name + ' — Income Ledger — EFS Life';
+    } catch(e) {
+      statusEl.textContent = 'Error: ' + e.message;
+      statusEl.className = 'status error';
+    }
+  })();
+  </script>
+</body>
+</html>
