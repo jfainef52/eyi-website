@@ -2153,97 +2153,62 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     var folder = document.getElementById('stl-folder').value.trim();
     var status = document.getElementById('stl-status').value;
     if (!name || !folder) { alert('Please fill in both fields.'); return; }
-
-    var sb2 = document.getElementById('stl-save');
-    var statusEl = document.getElementById('stl-status-msg');
-    if (sb2) { sb2.disabled = true; sb2.textContent = 'Saving…'; }
-
+    var saveBtn = document.getElementById('stl-save');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
     try {
-      // Step 1: Capture ledger HTML with all page styles
-      if (statusEl) statusEl.textContent = 'Capturing ledger…';
+      // Step 1: Capture ledger
       var el = document.getElementById('ledger-rendered');
       if (!el || !el.querySelector('table')) {
-        alert('Please generate the income ledger first before saving.');
-        if (sb2) { sb2.disabled = false; sb2.textContent = 'Save Case'; }
+        alert('Please generate the income ledger first.');
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; }
         return;
       }
-      var pageStyles = [...document.querySelectorAll('style')].map(s => s.textContent).join('
-');
+      var styleArr = document.querySelectorAll('style');
+      var pageStyles = Array.from(styleArr).map(function(s){return s.textContent;}).join('\n');
       var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-        '<style>
-' + pageStyles + '
-body{background:#fff!important;margin:0;padding:24px!important;}' +
+        '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:24px!important;}' +
         '.topbar,.hdr{display:none!important;}' +
         '.page{padding:0!important;max-width:100%!important;}' +
         '@media print{body{padding:8px!important;}@page{margin:1cm;}}' +
         '</style></head><body>' +
         '<div style="margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #c9a84c;">' +
-        '<div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:600;color:#0d1b2e;letter-spacing:1px">' + name + '</div>' +
-        '<div style="font-family:'Barlow',sans-serif;font-size:11px;color:#666;margin-top:3px">Folder: ' + folder + ' · Generated: ' + new Date().toLocaleDateString() + '</div>' +
-        '</div>' +
-        el.innerHTML +
-        '</body></html>';
-
-      // Step 2: Capture discussion document with localStorage data injected
-      if (statusEl) statusEl.textContent = 'Capturing discussion document…';
+        '<div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:600;color:#0d1b2e;letter-spacing:1px">' + name + '</div>' +
+        '<div style="font-family:Barlow,sans-serif;font-size:11px;color:#666;margin-top:3px">Folder: ' + folder + ' · ' + new Date().toLocaleDateString() + '</div>' +
+        '</div>' + el.innerHTML + '</body></html>';
+      // Step 2: Capture discussion doc with localStorage injected
       var discHtml = '';
       try {
         var lsData = {};
         for (var i = 0; i < localStorage.length; i++) {
-          var k = localStorage.key(i);
-          lsData[k] = localStorage.getItem(k);
+          var k = localStorage.key(i); lsData[k] = localStorage.getItem(k);
         }
         var discResp = await fetch('/efs-discussion-doc.html');
         var dh = await discResp.text();
-        var lsScript = '<scr' + 'ipt>(function(d){Object.entries(d).forEach(function(e){try{localStorage.setItem(e[0],e[1]);}catch(x){}});})('+JSON.stringify(lsData)+');</' + 'script>';
-        dh = dh.replace('</head>', lsScript + '</head>');
-        discHtml = dh;
-      } catch(e) {
-        discHtml = '<html><body><p>Discussion doc unavailable: ' + e.message + '</p></body></html>';
-      }
-
+        var injectScript = '<scr' + 'ipt>(function(d){Object.entries(d).forEach(function(e){try{localStorage.setItem(e[0],e[1]);}catch(x){}});})' + '(' + JSON.stringify(lsData) + ');<' + '/script>';
+        discHtml = dh.replace('</head>', injectScript + '</head>');
+      } catch(e2) { discHtml = '<html><body>Discussion doc unavailable: ' + e2.message + '</body></html>'; }
       // Step 3: Save to Supabase
-      if (statusEl) statusEl.textContent = 'Saving to database…';
-      var sbClient = window.supabase.createClient(
-        'https://oqpoivcpvlzplcfrpkzb.supabase.co',
-        'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v'
-      );
-
-      // Check for duplicate
+      var sbClient = window.supabase.createClient('https://oqpoivcpvlzplcfrpkzb.supabase.co', 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v');
       var dup = await sbClient.from('sample_cases').select('id').eq('folder', folder).eq('name', name);
       if (dup.data && dup.data.length > 0) {
-        if (!confirm('A case "' + name + '" already exists in "' + folder + '". Overwrite it?')) {
-          if (sb2) { sb2.disabled = false; sb2.textContent = 'Save Case'; }
-          return;
+        if (!confirm('Case "' + name + '" exists in "' + folder + '". Overwrite?')) {
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; } return;
         }
         await sbClient.from('sample_cases').delete().eq('folder', folder).eq('name', name);
       }
-
       var result = await sbClient.from('sample_cases').insert([{
-        folder: folder,
-        name: name,
-        status: status,
-        ledger_html: ledgerHtml,
-        discussion_html: discHtml,
-        sort_order: 0,
-        created_at: new Date().toISOString()
+        folder: folder, name: name, status: status,
+        ledger_html: ledgerHtml, discussion_html: discHtml,
+        sort_order: 0, created_at: new Date().toISOString()
       }]);
-
       if (result.error) throw result.error;
-
       window.stlClose();
-      if (sb2) { sb2.textContent = '✓ Saved!'; }
-      setTimeout(function() {
-        if (sb2) { sb2.disabled = false; sb2.textContent = 'Save Case'; }
-      }, 1800);
-
+      if (saveBtn) { saveBtn.textContent = '✓ Saved!'; setTimeout(function(){ saveBtn.disabled=false; saveBtn.textContent='Save Case'; }, 1800); }
     } catch(err) {
-      console.error('STL error:', err);
-      alert('Error saving: ' + (err.message || 'Save failed'));
-      if (sb2) { sb2.disabled = false; sb2.textContent = 'Save Case'; }
+      alert('Error: ' + (err.message || 'Save failed'));
+      if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; }
     }
-  };
-})();
+  };})();
 </script>
 // ─── END SAVE TO LIBRARY
 </html>
