@@ -2159,10 +2159,26 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       // Step 1: Capture ledger
       var el = document.getElementById('ledger-rendered');
       if (!el || !el.querySelector('table')) {
-        alert('Please generate the income ledger first.');
+        alert('Please upload the CSV files and generate the income ledger first.');
         if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; }
         return;
       }
+      // Verify full ledger data exists (requires Proceed to Income Ledger to have been clicked)
+      var ledgerDataRaw = localStorage.getItem('efs_ledger_data');
+      if (!ledgerDataRaw) {
+        alert('Please click "Proceed to Income Ledger" first before saving. This captures all chart and income data needed for the discussion document.');
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; }
+        return;
+      }
+      try {
+        var ledgerDataCheck = JSON.parse(ledgerDataRaw);
+        if (!ledgerDataCheck.annualGrossWithdrawal) {
+          alert('Incomplete ledger data. Please upload CSVs and click "Proceed to Income Ledger" before saving.');
+          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; }
+          return;
+        }
+      } catch(e) {}
+
       var styleArr = document.querySelectorAll('style');
       var pageStyles = Array.from(styleArr).map(function(s){return s.textContent;}).join('\n');
       var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
