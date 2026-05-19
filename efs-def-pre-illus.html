@@ -2157,7 +2157,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       var styleArr = document.querySelectorAll('style');
       var pageStyles = Array.from(styleArr).map(function(s){return s.textContent;}).join('\n');
       var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-        '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:24px!important;}' +
+        '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:24px!important;min-width:max-content!important;}' +
         '.topbar,.hdr{display:none!important;}.page{padding:0!important;max-width:100%!important;}' +
         '@media print{body{padding:8px!important;}@page{margin:1cm;}}' +
         '</style></head><body>' + el.innerHTML + '</body></html>';
