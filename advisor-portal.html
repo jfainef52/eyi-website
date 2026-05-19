@@ -448,7 +448,7 @@
     // ── LOAD CASES ──
     async function loadCases() {
       const { data, error } = await sb.from('sample_cases')
-        .select('id, folder, name, sort_order, created_at, html, status')
+        .select('id, folder, name, sort_order, created_at, ledger_html, discussion_html, status')
         .order('folder').order('sort_order').order('name');
 
       if (error) {
@@ -528,6 +528,10 @@
       const c = (window._allCases || []).find(c => c.id === id);
       if (!c) return;
 
+      // Set activeCase for delete function
+      activeCase = c;
+      window._selectedCase = c;
+
       // Update toolbar
       const toolbarFolder = document.getElementById('toolbarFolder');
       const toolbarTitle = document.getElementById('toolbarTitle');
@@ -542,7 +546,7 @@
       if (empty) empty.style.display = 'none';
       if (viewer) viewer.style.display = '';
 
-      // Activate ledger tab
+      // Show ledger tab by default
       const tabLedger = document.getElementById('tabLedger');
       const tabDiscussion = document.getElementById('tabDiscussion');
       const paneLedger = document.getElementById('paneLedger');
@@ -552,41 +556,20 @@
       if (paneLedger) paneLedger.style.display = '';
       if (paneDiscussion) paneDiscussion.style.display = 'none';
 
-      // Store current case id for open/delete
-      window._selectedCaseId = id;
-      window._selectedCase = c;
-      activeCase = c;
-
-      // Render ledger pane with Open button
-      const frameLedger = document.getElementById('frameLedger');
-      if (frameLedger) {
-        if (c.html) {
-          var btnStyle = 'background:#0B1220;color:#C8A96E;border:1px solid #C8A96E;padding:14px 32px;border-radius:3px;font-family:IBM Plex Sans,sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin:0 8px;';
-          frameLedger.srcdoc = '<body style="font-family:IBM Plex Sans,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f3ee;">' +
-            '<div style="text-align:center;">' +
-            '<div style="font-size:14px;color:#666;margin-bottom:8px;font-family:Barlow Condensed,sans-serif;letter-spacing:2px;text-transform:uppercase;">' + c.folder + '</div>' +
-            '<div style="font-size:22px;color:#0B1220;margin-bottom:28px;font-family:Cormorant Garamond,serif;font-weight:600;">' + c.name + '</div>' +
-            '<button onclick="window.parent.openCaseLedger()" style="' + btnStyle + '">Income Ledger</button>' +
-            '<button onclick="window.parent.openCaseDiscussion()" style="' + btnStyle + '">Discussion Document</button>' +
-            '<div style="font-size:11px;color:#999;margin-top:20px;">Each opens in a new tab — full formatting, print-ready</div>' +
-            '</div></body>';
-        } else {
-          frameLedger.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#666;">No ledger saved for this case.</body>';
-        }
-      }
+      // Render ledger directly via srcdoc
+      loadIframe('frameLedger', c.ledger_html || null);
+      // Pre-load discussion iframe too
+      loadIframe('frameDiscussion', c.discussion_html || null);
     }
     
     function loadIframe(iframeId, html) {
       const iframe = document.getElementById(iframeId);
-      if (!html) {
-        iframe.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#666">No content saved for this document.</body>';
+      if (!iframe) return;
+      if (!html || html.trim().length < 100) {
+        iframe.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#666;background:#f9f9f9;">No content saved for this case. Re-save from the modeler.</body>';
         return;
       }
-      // Wrap in a full document with the modeler CSS so it renders correctly
-      iframe.srcdoc = '<!DOCTYPE html><html><head>' +
-        '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&family=Barlow+Condensed:wght@300;400;500&display=swap" rel="stylesheet">' +
-        '<style>body{margin:0;padding:0;background:#fff;}</style>' +
-        '</head><body>' + html + '</body></html>';
+      iframe.srcdoc = html;
     }
     
     function switchTab(tab) {
