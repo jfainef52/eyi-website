@@ -2154,7 +2154,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     var status = document.getElementById('stl-status').value;
     if (!name || !folder) { alert('Please enter a client name and folder.'); return; }
     var lr = document.getElementById('ledger-rendered');
-    if (!window._defData && (!lr || lr.innerHTML.trim().length < 100)) { alert('Please generate a ledger first.'); return; }
+    if (!lr || lr.innerHTML.trim().length < 100) { alert('Please generate and view the income ledger first before saving.'); return; }
     var html = window._defData ? JSON.stringify(window._defData) : lr.innerHTML;
     if (!html || html.length < 10) { alert('Please generate a ledger first.'); return; }
     var sb = window.supabase.createClient(SB_URL, SB_KEY);
@@ -2163,7 +2163,8 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       if (!confirm('A case "' + name + '" already exists in "' + folder + '". Overwrite?')) return;
       await sb.from('sample_cases').delete().eq('folder', folder).eq('name', name);
     }
-    var result = await sb.from('sample_cases').insert([{name:name, folder:folder, status:status, html:html, created_at:new Date().toISOString()}]);
+    var ledgerHtml = document.getElementById('ledger-rendered')?.innerHTML || '';
+    var result = await sb.from('sample_cases').insert([{name:name, folder:folder, status:status, html:html, ledger_html:ledgerHtml, created_at:new Date().toISOString()}]);
     if (result.error) { alert('Error saving: ' + result.error.message); return; }
     window.stlClose();
     var btn = document.getElementById('stl-btn');
