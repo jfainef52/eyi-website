@@ -2127,7 +2127,7 @@ window.addEventListener('load', async function() {
   var overlay = document.createElement('div');
   overlay.id = 'stl-overlay';
   overlay.style.display = 'none';
-  overlay.innerHTML = '<div id="stl-modal"><h3>Save to Library</h3><label>Client Name</label><input id="stl-name" type="text" placeholder="e.g. John Smith"/><label>Folder</label><input id="stl-folder" type="text" placeholder="e.g. Prospects"/><label>Status</label><select id="stl-status"><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select><div class="stl-row"><button id="stl-cancel-btn" onclick="window.stlClose()">Cancel</button><button id="stl-save-btn" onclick="window.stlSave()">Save Case</button></div></div>';
+  overlay.innerHTML = '<div id="stl-modal"><h3>Save to Library</h3><label>Client Name</label><input id="stl-name" type="text" placeholder="e.g. John Smith"/><label>Folder</label><input id="stl-folder" type="text" placeholder="e.g. Prospects"/><label>Status</label><select id="stl-status"><option value="sample">Sample</option><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select><div class="stl-row"><button id="stl-cancel-btn" onclick="window.stlClose()">Cancel</button><button id="stl-save-btn" onclick="window.stlSave()">Save Case</button></div></div>';
   document.body.appendChild(overlay);
 
   window.stlOpen = function() {
