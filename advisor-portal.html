@@ -526,29 +526,36 @@
       const el = document.getElementById('ci_' + id);
       if (el) el.classList.add('active');
 
-      // Find case data from already-loaded cache
-      const caseData = (window._allCases || []).find(c => c.id === id);
+      // Find case from cache
+      const c = (window._allCases || []).find(c => c.id === id);
+      if (!c) return;
 
-      // Update header
-      const header = document.getElementById('caseHeader');
-      const title = document.getElementById('caseTitle');
-      const folder = document.getElementById('caseFolderLabel');
-      if (header) header.style.display = 'block';
-      if (title && caseData) title.textContent = caseData.name;
-      if (folder && caseData) folder.textContent = caseData.folder;
+      // Update toolbar
+      const toolbarFolder = document.getElementById('toolbarFolder');
+      const toolbarTitle = document.getElementById('toolbarTitle');
+      if (toolbarFolder) toolbarFolder.textContent = c.folder;
+      if (toolbarTitle) toolbarTitle.textContent = c.name;
 
-      // Hide loading
-      const loading = document.getElementById('loadingIndicator');
-      if (loading) loading.style.display = 'none';
+      // Show toolbar, hide empty state, show viewer
+      const toolbar = document.getElementById('caseToolbar');
+      const empty = document.getElementById('emptyState');
+      const viewer = document.getElementById('viewer');
+      if (toolbar) toolbar.style.display = '';
+      if (empty) empty.style.display = 'none';
+      if (viewer) viewer.style.display = '';
 
-      // Render ledger tab
-      const html = caseData ? caseData.html : null;
-      loadIframe('frameLedger', html);
-      loadIframe('frameDiscussion', null);
+      // Activate ledger tab
+      const tabLedger = document.getElementById('tabLedger');
+      const tabDiscussion = document.getElementById('tabDiscussion');
+      const paneLedger = document.getElementById('paneLedger');
+      const paneDiscussion = document.getElementById('paneDiscussion');
+      if (tabLedger) tabLedger.classList.add('active');
+      if (tabDiscussion) tabDiscussion.classList.remove('active');
+      if (paneLedger) paneLedger.style.display = '';
+      if (paneDiscussion) paneDiscussion.style.display = 'none';
 
-      // Show content area
-      const content = document.getElementById('caseContent');
-      if (content) content.style.display = 'block';
+      // Load HTML into ledger iframe
+      loadIframe('frameLedger', c.html || null);
     }
     
     function loadIframe(iframeId, html) {
