@@ -2067,108 +2067,95 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 
 </script>
 <script>
-(function(){var obs=new MutationObserver(function(){var el=document.getElementById("ledger-rendered");if(!el)return;var tbodies=el.querySelectorAll("tbody");if(!tbodies.length)return;var hasData=false;tbodies.forEach(function(tb){var rows=tb.querySelectorAll("tr");if(rows.length>50)hasData=true;});if(!hasData)return;obs.disconnect();tbodies.forEach(function(tb){var rows=tb.querySelectorAll("tr");for(var i=0;i<rows.length;i++){if(i<50)continue;var tds=rows[i].querySelectorAll("td");if(!tds||tds.length<2)continue;var age=parseInt(tds[1].textContent);if(isNaN(age)||age%5!==0){rows[i].style.display="none";}else{tds[0].style.background="#0B1220";tds[0].style.color="#fff";tds[0].style.fontWeight="700";tds[1].style.background="#0B1220";tds[1].style.color="#fff";tds[1].style.fontWeight="700";}}});});obs.observe(document.body,{childList:true,subtree:true});})();
-
-
-// ─── SAVE TO LIBRARY
-
 (function() {
-  var obs = new MutationObserver(function() {
-    var el = document.getElementById('ledger-rendered');
-    if (!el) return;
-    var tbodies = el.querySelectorAll('tbody');
-    if (!tbodies.length) return;
-    var btn = document.getElementById('stl-btn');
-    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
-  });
-  obs.observe(document.body, { childList: true, subtree: true });
-})();
-
-window.addEventListener('load', async function() {
   var SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
   var SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
-  var sb = window.supabase.createClient(SB_URL, SB_KEY);
 
-  // Wait for Supabase auth to initialize
-  var session = await new Promise(function(resolve) {
-    var sub = sb.auth.onAuthStateChange(function(_event, sess) {
-      sub.data.subscription.unsubscribe();
-      resolve(sess);
-    });
-    setTimeout(function() { resolve(null); }, 5000);
-  });
-
-  if (!session) return;
-
-  try {
-    var profResp = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
-    if (!profResp.data || profResp.data.role !== 'admin') return;
-  } catch(e) { return; }
-
-  // Show case library link
-  var clLink = document.getElementById('case-lib-link');
-  if (clLink) clLink.style.display = 'inline-flex';
-
-  // Inject styles
-  var style = document.createElement('style');
-  style.textContent = '#stl-btn{position:fixed;bottom:24px;right:24px;z-index:9999;background:#C8A96E;color:#0B1220;font-family:"Barlow Condensed",Barlow,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:12px 22px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4);transition:opacity .2s;}#stl-btn:disabled{opacity:.4;cursor:default;}#stl-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:center;justify-content:center;}#stl-modal{background:#0B1220;border:1px solid #C8A96E;border-radius:6px;padding:32px;width:420px;max-width:90vw;color:#fff;font-family:Barlow,sans-serif;}#stl-modal h3{margin:0 0 20px;color:#C8A96E;font-family:"Barlow Condensed",sans-serif;letter-spacing:2px;text-transform:uppercase;font-size:16px;}#stl-modal label{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8a8070;margin-bottom:4px;}#stl-modal input,#stl-modal select{width:100%;padding:8px 10px;background:#152640;border:1px solid #1e3558;border-radius:3px;color:#fff;font-size:14px;margin-bottom:14px;box-sizing:border-box;}#stl-modal .stl-row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}#stl-modal button{padding:10px 20px;border:none;border-radius:3px;font-family:"Barlow Condensed",sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;}#stl-save-btn{background:#C8A96E;color:#0B1220;}#stl-cancel-btn{background:#1e3558;color:#fff;}';
-  document.head.appendChild(style);
-
-  // Create button
-  var btn = document.createElement('button');
-  btn.id = 'stl-btn';
-  btn.disabled = true;
-  btn.style.opacity = '0.4';
-  btn.innerHTML = '&#128190; Save to Library';
-  btn.onclick = function() { window.stlOpen && window.stlOpen(); };
-  document.body.appendChild(btn);
-
-  // Create overlay/modal
-  var overlay = document.createElement('div');
-  overlay.id = 'stl-overlay';
-  overlay.style.display = 'none';
-  overlay.innerHTML = '<div id="stl-modal"><h3>Save to Library</h3><label>Client Name</label><input id="stl-name" type="text" placeholder="e.g. John Smith"/><label>Folder</label><input id="stl-folder" type="text" placeholder="e.g. Prospects"/><label>Status</label><select id="stl-status"><option value="sample">Sample</option><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select><div class="stl-row"><button id="stl-cancel-btn" onclick="window.stlClose()">Cancel</button><button id="stl-save-btn" onclick="window.stlSave = async function() {
-    var folder = document.getElementById('stl-folder').value.trim();
-    var name = document.getElementById('stl-name').value.trim();
-    var status = document.getElementById('stl-status').value;
-
-    if (!folder || !name) { alert('Please enter a client name and folder.'); return; }
-
-    // Capture ledger HTML directly from the DOM
-    var lr = document.getElementById('ledger-rendered');
-    if (!lr || lr.innerHTML.trim().length < 100) { alert('Please generate a ledger first.'); return; }
-    var ledgerHtml = lr.innerHTML;
-
-    var SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
-    var SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
-    var sb2 = window.supabase.createClient(SB_URL, SB_KEY);
-
-    // Check for duplicate
-    var dupCheck = await sb2.from('sample_cases').select('id').eq('folder', folder).eq('name', name);
-    if (dupCheck.data && dupCheck.data.length > 0) {
-      var confirmOverwrite = confirm('A case named "' + name + '" already exists in folder "' + folder + '". Overwrite it?');
-      if (!confirmOverwrite) return;
-      await sb2.from('sample_cases').delete().eq('folder', folder).eq('name', name);
+  // Wait for ledger content before showing button
+  var obs = new MutationObserver(function() {
+    var tbody = document.querySelector('#ledger-rendered tbody');
+    if (tbody && tbody.rows.length > 0) {
+      initSTL();
+      obs.disconnect();
     }
+  });
+  obs.observe(document.getElementById('ledger-rendered'), {childList:true, subtree:true});
 
-    var payload = {
-      folder: folder,
-      name: name,
-      status: status,
-      html: ledgerHtml,
-      created_at: new Date().toISOString()
-    };
+  function initSTL() {
+    if (document.getElementById('stl-btn')) return;
 
-    var resp = await sb2.from('sample_cases').insert([payload]);
-    if (resp.error) { alert('Error saving: ' + resp.error.message); return; }
+    // Create button
+    var btn = document.createElement('button');
+    btn.id = 'stl-btn';
+    btn.innerHTML = '&#128190; SAVE TO LIBRARY';
+    btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:900;background:var(--gold);color:var(--navy);border:none;border-radius:3px;font-family:IBM Plex Sans,sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:14px 36px;cursor:pointer;transition:all .2s;';
+    btn.addEventListener('mouseenter', function() { btn.style.background = 'var(--navy-3)'; });
+    btn.addEventListener('mouseleave', function() { btn.style.background = 'var(--gold)'; });
+    btn.addEventListener('click', window.stlOpen);
+    document.body.appendChild(btn);
 
-    window.stlClose();
-    var origText = btn.innerHTML;
-    btn.innerHTML = '&#10003; Saved!';
-    setTimeout(function() { btn.innerHTML = origText; }, 2500);
+    // Create overlay
+    var overlay = document.createElement('div');
+    overlay.id = 'stl-overlay';
+    overlay.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:center;justify-content:center;';
+    overlay.innerHTML = [
+      '<div id="stl-modal" style="background:#0d1e35;border:1px solid var(--gold);border-radius:4px;padding:32px;min-width:340px;font-family:IBM Plex Sans,sans-serif;">',
+      '<h3 style="color:var(--gold);margin:0 0 20px;font-family:Cormorant Garamond,serif;font-size:22px;">Save to Library</h3>',
+      '<label style="display:block;color:var(--gold);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Client Name</label>',
+      '<input id="stl-name" type="text" placeholder="e.g. John Smith" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(200,169,110,.3);color:#fff;padding:10px 12px;border-radius:3px;font-size:14px;margin-bottom:14px;">',
+      '<label style="display:block;color:var(--gold);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Folder</label>',
+      '<input id="stl-folder" type="text" placeholder="e.g. Prospects" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(200,169,110,.3);color:#fff;padding:10px 12px;border-radius:3px;font-size:14px;margin-bottom:14px;">',
+      '<label style="display:block;color:var(--gold);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Status</label>',
+      '<select id="stl-status" style="width:100%;box-sizing:border-box;background:#0d1e35;border:1px solid rgba(200,169,110,.3);color:#fff;padding:10px 12px;border-radius:3px;font-size:14px;margin-bottom:20px;">',
+      '<option value="sample">Sample</option>',
+      '<option value="prospect">Prospect</option>',
+      '<option value="client">Client</option>',
+      '<option value="review">Under Review</option>',
+      '</select>',
+      '<div style="display:flex;gap:12px;justify-content:flex-end;">',
+      '<button onclick="window.stlClose()" style="background:transparent;border:1px solid rgba(200,169,110,.4);color:var(--gold);padding:10px 20px;border-radius:3px;cursor:pointer;font-size:13px;">Cancel</button>',
+      '<button onclick="window.stlSave()" style="background:var(--gold);border:none;color:var(--navy);padding:10px 24px;border-radius:3px;cursor:pointer;font-size:13px;font-weight:600;">Save</button>',
+      '</div>',
+      '</div>'
+    ].join('');
+    document.body.appendChild(overlay);
+  }
+
+  window.stlOpen = function() {
+    var overlay = document.getElementById('stl-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    document.getElementById('stl-name').value = '';
+    document.getElementById('stl-folder').value = '';
   };
 
-});
+  window.stlClose = function() {
+    var overlay = document.getElementById('stl-overlay');
+    if (overlay) overlay.style.display = 'none';
+  };
+
+  window.stlSave = async function() {
+    var name = document.getElementById('stl-name').value.trim();
+    var folder = document.getElementById('stl-folder').value.trim();
+    var status = document.getElementById('stl-status').value;
+    if (!name || !folder) { alert('Please enter a client name and folder.'); return; }
+    var lr = document.getElementById('ledger-rendered');
+    if (!lr || lr.innerHTML.trim().length < 100) { alert('Please generate a ledger first.'); return; }
+    var html = lr.innerHTML;
+    var sb = window.supabase.createClient(SB_URL, SB_KEY);
+    var dup = await sb.from('sample_cases').select('id').eq('folder', folder).eq('name', name);
+    if (dup.data && dup.data.length > 0) {
+      if (!confirm('A case "' + name + '" already exists in "' + folder + '". Overwrite?')) return;
+      await sb.from('sample_cases').delete().eq('folder', folder).eq('name', name);
+    }
+    var result = await sb.from('sample_cases').insert([{name:name, folder:folder, status:status, html:html, created_at:new Date().toISOString()}]);
+    if (result.error) { alert('Error saving: ' + result.error.message); return; }
+    window.stlClose();
+    var btn = document.getElementById('stl-btn');
+    if (btn) { var orig = btn.innerHTML; btn.innerHTML = '&#10003; Saved!'; setTimeout(function(){ btn.innerHTML = orig; }, 2500); }
+  };
+
+})();
 </script>
 // ─── END SAVE TO LIBRARY
 </html>
