@@ -2067,85 +2067,91 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 
 </script>
 <script>
-(function(){var obs=new MutationObserver(function(){var el=document.getElementById("ledger-rendered");if(!el)return;var tbodies=el.querySelectorAll("tbody");if(!tbodies.length)return;var hasData=false;tbodies.forEach(function(tb){var rows=tb.querySelectorAll("tr");if(rows.length>50)hasData=true;});if(!hasData)return;obs.disconnect();tbodies.forEach(function(tb){var rows=tb.querySelectorAll("tr");for(var i=0;i<rows.length;i++){if(i<50)continue;var tds=rows[i].querySelectorAll("td");if(!tds||tds.length<2)continue;var age=parseInt(tds[1].textContent);if(isNaN(age)||age%5!==0){rows[i].style.display="none";}else{tds[0].style.background="#0B1220";tds[0].style.color="#fff";tds[0].style.fontWeight="700";tds[1].style.background="#0B1220";tds[1].style.color="#fff";tds[1].style.fontWeight="700";}}});});obs.observe(document.body,{childList:true,subtree:true});})();
+(async function initSaveToLibrary() {
+  const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
+  const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
+  async function getSb() {
+    if (window.__eyi_sb) return window.__eyi_sb;
+    if (!window.supabase) {
+      await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    }
+    window.__eyi_sb = window.supabase.createClient(SB_URL, SB_KEY);
+    return window.__eyi_sb;
+  }
+  async function checkAdmin() {
+    try {
+      const sb = await getSb();
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) return false;
+      const { data: prof } = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
+      return prof && prof.role === 'admin';
+    } catch(e) { return false; }
+  }
+  const isAdmin = await checkAdmin();
+  if (!isAdmin) return;
 
-
-// ─── SAVE TO LIBRARY
-
-(function() {
-  var obs = new MutationObserver(function() {
-    var el = document.getElementById('ledger-rendered');
-    if (!el) return;
-    var tbodies = el.querySelectorAll('tbody');
-    if (!tbodies.length) return;
-    var btn = document.getElementById('stl-btn');
-    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
-  });
-  obs.observe(document.body, { childList: true, subtree: true });
-})();
-
-window.addEventListener('load', async function() {
-  var SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
-  var SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
-  var sb = window.supabase.createClient(SB_URL, SB_KEY);
-
-  // Wait for Supabase auth to initialize
-  var session = await new Promise(function(resolve) {
-    var sub = sb.auth.onAuthStateChange(function(_event, sess) {
-      sub.data.subscription.unsubscribe();
-      resolve(sess);
-    });
-    setTimeout(function() { resolve(null); }, 5000);
-  });
-
-  if (!session) return;
-
-  try {
-    var profResp = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
-    if (!profResp.data || profResp.data.role !== 'admin') return;
-  } catch(e) { return; }
-
-  // Show case library link
-  var clLink = document.getElementById('case-lib-link');
+  // Show Case Library link for admin
+  const clLink = document.getElementById('case-lib-link');
   if (clLink) clLink.style.display = 'inline-flex';
 
-  // Inject styles
-  var style = document.createElement('style');
-  style.textContent = '#stl-btn{position:fixed;bottom:24px;right:24px;z-index:9999;background:#C8A96E;color:#0B1220;font-family:"Barlow Condensed",Barlow,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:12px 22px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4);transition:opacity .2s;}#stl-btn:disabled{opacity:.4;cursor:default;}#stl-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:center;justify-content:center;}#stl-modal{background:#0B1220;border:1px solid #C8A96E;border-radius:6px;padding:32px;width:420px;max-width:90vw;color:#fff;font-family:Barlow,sans-serif;}#stl-modal h3{margin:0 0 20px;color:#C8A96E;font-family:"Barlow Condensed",sans-serif;letter-spacing:2px;text-transform:uppercase;font-size:16px;}#stl-modal label{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8a8070;margin-bottom:4px;}#stl-modal input,#stl-modal select{width:100%;padding:8px 10px;background:#152640;border:1px solid #1e3558;border-radius:3px;color:#fff;font-size:14px;margin-bottom:14px;box-sizing:border-box;}#stl-modal .stl-row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}#stl-modal button{padding:10px 20px;border:none;border-radius:3px;font-family:"Barlow Condensed",sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;}#stl-save-btn{background:#C8A96E;color:#0B1220;}#stl-cancel-btn{background:#1e3558;color:#fff;}';
-  document.head.appendChild(style);
+  // Add Sign Out button
+  const signOutBtn = document.createElement('button');
+  signOutBtn.textContent = 'Sign Out';
+  signOutBtn.style.cssText = 'position:fixed;top:14px;right:16px;z-index:9999;background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.2);border-radius:3px;padding:6px 14px;font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;';
+  signOutBtn.onclick = async function() {
+    const sb = await getSb();
+    await sb.auth.signOut();
+    window.location.href = '/advisor-login.html';
+  };
+  document.body.appendChild(signOutBtn);
 
-  // Create button
+  // Save button
   var btn = document.createElement('button');
   btn.id = 'stl-btn';
-  btn.disabled = true;
-  btn.style.opacity = '0.4';
   btn.innerHTML = '&#128190; Save to Library';
-  btn.onclick = function() { window.stlOpen && window.stlOpen(); };
+  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#C8A96E;color:#0B1220;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:12px 22px;cursor:pointer;box-shadow:0 4px 20px rgba(200,169,110,0.35);';
+  btn.onclick = function() { window.stlOpen(); };
   document.body.appendChild(btn);
 
-  // Create overlay/modal
+  // Modal overlay
   var overlay = document.createElement('div');
   overlay.id = 'stl-overlay';
   overlay.style.display = 'none';
-  overlay.innerHTML = '<div id="stl-modal"><h3>Save to Library</h3><label>Client Name</label><input id="stl-name" type="text" placeholder="e.g. John Smith"/><label>Folder</label><input id="stl-folder" type="text" placeholder="e.g. Prospects"/><label>Status</label><select id="stl-status"><option value="sample">Sample</option><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select><div class="stl-row"><button id="stl-cancel-btn" onclick="window.stlClose()">Cancel</button><button id="stl-save-btn" onclick="window.stlSave = async function() {
+  overlay.style.cssText = 'display:none;position:fixed;inset:0;z-index:10000;background:rgba(11,18,32,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;';
+  overlay.innerHTML = '<div id="stl-modal" style="background:#152640;border:1px solid rgba(200,169,110,0.25);border-radius:6px;padding:40px;width:480px;max-width:95vw;"><h3 style="font-family:Playfair Display,serif;font-size:22px;color:#fff;margin-bottom:8px;">Save to Case Library</h3><p style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:28px;">Captures the current ledger and discussion document.</p><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Folder</label><input type="text" id="stl-folder" placeholder="e.g. M45" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"></div><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Case Name</label><input type="text" id="stl-name" placeholder="e.g. D5 40k Inc A65" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"></div><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Status</label><select id="stl-status" style="width:100%;background:#152640;border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"><option value="sample">Sample</option><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select></div><div style="display:flex;gap:12px;margin-top:28px;"><button id="stl-save" onclick="window.stlSave()" style="flex:1;background:#C8A96E;color:#0B1220;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:13px;cursor:pointer;">Save Case</button><button onclick="window.stlClose()" style="background:transparent;color:rgba(255,255,255,0.4);font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:13px 20px;cursor:pointer;">Cancel</button></div><div id="stl-status-msg" style="margin-top:14px;font-size:12px;min-height:16px;color:rgba(200,169,110,0.8);text-align:center;"></div></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target===overlay) window.stlClose(); });
+  document.addEventListener('keydown', function(e) { if (e.key==='Escape') window.stlClose(); });
+
+  window.stlOpen = function() {
+    overlay.style.display = 'flex';
+    document.getElementById('stl-status-msg').textContent = '';
+  };
+  window.stlClose = function() {
+    overlay.style.display = 'none';
+  };
+
+  window.stlSave = async function() {
     var name   = document.getElementById('stl-name').value.trim();
     var folder = document.getElementById('stl-folder').value.trim();
-    var status = document.getElementById('stl-status') ? document.getElementById('stl-status').value : 'Sample';
+    var status = document.getElementById('stl-status').value;
     if (!name || !folder) { alert('Please fill in both fields.'); return; }
     var saveBtn = document.getElementById('stl-save');
+    var statusMsg = document.getElementById('stl-status-msg');
     if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
     try {
       var el = document.getElementById('ledger-rendered');
       if (!el || !el.querySelector('table')) {
         alert('Please generate the income ledger before saving.');
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; }
+        if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='Save Case'; }
         return;
       }
       if (!window._ledgerResults) {
         alert('Please click "Generate Income Ledger" before saving.');
-        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; }
+        if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='Save Case'; }
         return;
       }
+      if (statusMsg) statusMsg.textContent = 'Capturing ledger…';
       var styleArr = document.querySelectorAll('style');
       var pageStyles = Array.from(styleArr).map(function(s){return s.textContent;}).join('\n');
       var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
@@ -2153,16 +2159,17 @@ window.addEventListener('load', async function() {
         '.topbar,.hdr{display:none!important;}.page{padding:0!important;max-width:100%!important;}' +
         '@media print{body{padding:8px!important;}@page{margin:1cm;}}' +
         '</style></head><body>' + el.innerHTML + '</body></html>';
+      if (statusMsg) statusMsg.textContent = 'Capturing discussion document…';
       var discResp = await fetch('/efs-discussion-doc.html');
       var dh = await discResp.text();
-      var ledgerJson = JSON.stringify(window._ledgerResults);
-      var escaped = ledgerJson.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      var injectScript = '<scr'+'ipt>try{localStorage.setItem(' + "'" + 'efs_ledger_data' + "','" + escaped + "');}catch(e){}</" + 'script>';
+      var lrJson = JSON.stringify(window._ledgerResults);
+      var injectScript = '<scr'+'ipt>try{var d='+JSON.stringify(lrJson)+';localStorage.setItem("efs_ledger_data",d);}catch(e){}</'+'script>';
       var discHtml = dh.replace('</head>', injectScript + '</head>');
-      var sbClient = window.supabase.createClient('https://oqpoivcpvlzplcfrpkzb.supabase.co','sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v');
+      if (statusMsg) statusMsg.textContent = 'Saving…';
+      var sbClient = await getSb();
       var dup = await sbClient.from('sample_cases').select('id').eq('folder',folder).eq('name',name);
       if (dup.data && dup.data.length > 0) {
-        if (!confirm('Case "'+name+'" exists in "'+folder+'". Overwrite?')) {
+        if (!confirm('Case "'+name+'" in "'+folder+'" already exists. Overwrite?')) {
           if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='Save Case'; } return;
         }
         await sbClient.from('sample_cases').delete().eq('folder',folder).eq('name',name);
@@ -2181,7 +2188,7 @@ window.addEventListener('load', async function() {
       if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='Save Case'; }
     }
   };
-});
+})();
 </script>
 // ─── END SAVE TO LIBRARY
 </html>
