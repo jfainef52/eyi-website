@@ -1079,6 +1079,51 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
 </div>
 
 <script>
+function buildPayoffDropdown() {
+  const issueAge = parseInt(document.getElementById('issueAge').value);
+  const payYears = parseInt(document.getElementById('payYears').value);
+  const sel = document.getElementById('payoffYear');
+  const prevVal = sel.value;
+
+  sel.innerHTML = '';
+
+  if (isNaN(issueAge) || isNaN(payYears) || payYears < 5 || payYears > 10) {
+    sel.innerHTML = '<option value="">— enter age &amp; pay years first —</option>';
+    return;
+  }
+
+  const totalPremYears = payYears + 2;
+  const minPayoff = totalPremYears + 1; // must be at least 1 year after last premium
+  const maxPayoff = 20;
+
+  for (let yr = minPayoff; yr <= maxPayoff; yr++) {
+    const age = issueAge + yr - 1;
+    const opt = document.createElement('option');
+    opt.value = yr;
+    opt.textContent = `Yr ${yr}  /  Age ${age}`;
+    if (String(yr) === prevVal) opt.selected = true;
+    sel.appendChild(opt);
+  }
+
+  // Default selection: pick a reasonable payoff year (totalPremYears + 3 or first option)
+  if (!prevVal || parseInt(prevVal) < minPayoff) {
+    const defaultYr = Math.min(totalPremYears + 3, maxPayoff);
+    sel.value = defaultYr;
+  }
+}
+
+// ── UPDATE HINT ──
+document.getElementById('payYears').addEventListener('input', function() {
+  const v = parseInt(this.value);
+  if (!isNaN(v) && v >= 5 && v <= 10) {
+    document.getElementById('pay-hint').textContent =
+      `Total premium years = ${v + 2}  ·  Lender-only years: ${v+1} and ${v+2}`;
+  }
+  buildPayoffDropdown();
+})
+
+</script>
+<script>
 // ── LEDGER FILE HANDLING ──
 let lFiles = { lcsv1: null, lcsv2: null, lcsv3: null };
 
