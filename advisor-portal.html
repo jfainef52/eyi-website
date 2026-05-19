@@ -526,46 +526,44 @@
       const el = document.getElementById('ci_' + id);
       if (el) el.classList.add('active');
 
-      // Show loading
-      document.getElementById('emptyState').style.display = 'none';
-      document.getElementById('paneLedger').style.display = 'none';
-      document.getElementById('paneDiscussion').style.display = 'none';
-      document.getElementById('caseToolbar').style.display = '';
-      document.getElementById('tabBar').style.display = '';
-      document.getElementById('toolbarTitle').textContent = 'Loading…';
-      document.getElementById('toolbarFolder').textContent = '';
+      // Find case data from already-loaded cache
+      const caseData = (window._allCases || []).find(c => c.id === id);
 
-      // Fetch full record
-      const { data, error } = await sb.from('sample_cases')
-        .select('*').eq('id', id).single();
+      // Update header
+      const header = document.getElementById('caseHeader');
+      const title = document.getElementById('caseTitle');
+      const folder = document.getElementById('caseFolderLabel');
+      if (header) header.style.display = 'block';
+      if (title && caseData) title.textContent = caseData.name;
+      if (folder && caseData) folder.textContent = caseData.folder;
 
-      if (error || !data) {
-        showToast('Failed to load case', 'error');
-        return;
-      }
+      // Hide loading
+      const loading = document.getElementById('loadingIndicator');
+      if (loading) loading.style.display = 'none';
 
-      activeCase = data;
-      document.getElementById('toolbarTitle').textContent = data.name;
-      document.getElementById('toolbarFolder').textContent = data.folder;
+      // Render ledger tab
+      const html = caseData ? caseData.html : null;
+      loadIframe('frameLedger', html);
+      loadIframe('frameDiscussion', null);
 
-      // Load iframes
-      loadIframe('frameLedger', data.html);
-      loadIframe('frameDiscussion', data.discussion_html || null);
-
-      // Show active tab
-      switchTab(activeTab);
+      // Show content area
+      const content = document.getElementById('caseContent');
+      if (content) content.style.display = 'block';
     }
-
+    
     function loadIframe(iframeId, html) {
       const iframe = document.getElementById(iframeId);
       if (!html) {
         iframe.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#666">No content saved for this document.</body>';
         return;
       }
-      iframe.srcdoc = html;
+      // Wrap in a full document with the modeler CSS so it renders correctly
+      iframe.srcdoc = '<!DOCTYPE html><html><head>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&family=Barlow+Condensed:wght@300;400;500&display=swap" rel="stylesheet">' +
+        '<style>body{margin:0;padding:0;background:#fff;}</style>' +
+        '</head><body>' + html + '</body></html>';
     }
-
-    // ── SWITCH TAB ──
+    
     function switchTab(tab) {
       activeTab = tab;
       document.getElementById('tabLedger').classList.toggle('active', tab === 'ledger');
