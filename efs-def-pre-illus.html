@@ -2166,26 +2166,23 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
             var styleArr = document.querySelectorAll('style');
       var pageStyles = Array.from(styleArr).map(function(s){return s.textContent;}).join('\n');
       var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-        '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:24px!important;}' +
-        '.topbar,.hdr{display:none!important;}' +
-        '.page{padding:0!important;max-width:100%!important;}' +
-        '@media print{body{padding:8px!important;}@page{margin:1cm;}}' +
-        '</style></head><body>' +
-        '<div style="margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #c9a84c;">' +
-        '<div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:600;color:#0d1b2e;letter-spacing:1px">' + name + '</div>' +
-        '<div style="font-family:Barlow,sans-serif;font-size:11px;color:#666;margin-top:3px">Folder: ' + folder + ' · ' + new Date().toLocaleDateString() + '</div>' +
-        '</div>' + el.innerHTML + '</body></html>';
-      // Step 2: Capture discussion doc with localStorage injected
-      var discHtml = '';
-      try {
-        var lsData = {};
-        for (var i = 0; i < localStorage.length; i++) {
-          var k = localStorage.key(i); lsData[k] = localStorage.getItem(k);
-        }
-        var discResp = await fetch('/efs-discussion-doc.html');
-        var dh = await discResp.text();
-        var injectScript = '<scr' + 'ipt>(function(d){Object.entries(d).forEach(function(e){try{localStorage.setItem(e[0],e[1]);}catch(x){}});})' + '(' + JSON.stringify(lsData) + ');<' + '/script>';
-        discHtml = dh.replace('</head>', injectScript + '</head>');
+      '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:24px!important;}' +
+      '.topbar,.hdr{display:none!important;}' +
+      '.page{padding:0!important;max-width:100%!important;}' +
+      '@media print{body{padding:8px!important;}@page{margin:1cm;}}' +
+      '</style></head><body>' + el.innerHTML + '</body></html>';
+      // Step 2: Capture discussion doc — inject window._ledgerResults as efs_ledger_data
+      var discResp = await fetch('/efs-discussion-doc.html');
+      var dh = await discResp.text();
+      // Use window._ledgerResults (the full in-memory r object) for the chart data
+      var ledgerResultsJson = window._ledgerResults ? JSON.stringify(window._ledgerResults) : null;
+      if (!ledgerResultsJson) {
+        alert('Please generate the income ledger fully before saving. Upload CSVs then click Generate Income Ledger.');
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Case'; }
+        return;
+      }
+      var injectScript = '<scr'+'ipt>localStorage.setItem(' + "'" + 'efs_ledger_data' + "'" + ','+JSON.stringify(ledgerResultsJson)+');<'+'/script>';
+      discHtml = dh.replace('</head>', injectScript + '</head>');
       } catch(e2) { discHtml = '<html><body>Discussion doc unavailable: ' + e2.message + '</body></html>'; }
       // Step 3: Save to Supabase
       var sbClient = window.supabase.createClient('https://oqpoivcpvlzplcfrpkzb.supabase.co', 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v');
