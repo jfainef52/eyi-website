@@ -521,12 +521,10 @@
 
     // ── SELECT CASE ──
     async function selectCase(id) {
-      // Mark active in sidebar
       document.querySelectorAll('.case-item').forEach(el => el.classList.remove('active'));
       const el = document.getElementById('ci_' + id);
       if (el) el.classList.add('active');
 
-      // Find case from cache
       const c = (window._allCases || []).find(c => c.id === id);
       if (!c) return;
 
@@ -554,8 +552,25 @@
       if (paneLedger) paneLedger.style.display = '';
       if (paneDiscussion) paneDiscussion.style.display = 'none';
 
-      // Load HTML into ledger iframe
-      loadIframe('frameLedger', c.html || null);
+      // Store current case id for open/delete
+      window._selectedCaseId = id;
+      window._selectedCase = c;
+      activeCase = c;
+
+      // Render ledger pane with Open button
+      const frameLedger = document.getElementById('frameLedger');
+      if (frameLedger) {
+        if (c.html) {
+          frameLedger.srcdoc = '<body style="font-family:IBM Plex Sans,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f5f3ee;">' +
+            '<div style="text-align:center;">' +
+            '<div style="font-size:14px;color:#666;margin-bottom:20px;">Income Ledger · ' + c.name + '</div>' +
+            '<button onclick="window.parent.openCaseLedger()" style="background:#0B1220;color:#C8A96E;border:1px solid #C8A96E;padding:14px 32px;border-radius:3px;font-family:IBM Plex Sans,sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;">OPEN / PRINT LEDGER</button>' +
+            '<div style="font-size:11px;color:#999;margin-top:12px;">Opens in a new tab — full formatting, print-ready</div>' +
+            '</div></body>';
+        } else {
+          frameLedger.srcdoc = '<body style="font-family:sans-serif;padding:40px;color:#666;">No ledger saved for this case.</body>';
+        }
+      }
     }
     
     function loadIframe(iframeId, html) {
@@ -630,6 +645,14 @@
     }
   
   function closeCase(){document.getElementById("caseToolbar").style.display="none";document.getElementById("emptyState").style.display="flex";document.querySelectorAll(".viewer-pane").forEach(p=>p.style.display="none");document.querySelectorAll(".case-item").forEach(el=>el.classList.remove("active"));const fl=document.getElementById("frameLedger");const fd=document.getElementById("frameDiscussion");if(fl)fl.srcdoc="";if(fd)fd.srcdoc="";document.getElementById("toolbarTitle").textContent="";document.getElementById("toolbarFolder").textContent="";}
-</script>
+
+    window.openCaseLedger = function() {
+      const c = window._selectedCase;
+      if (!c || !c.html) return;
+      localStorage.setItem('efs_ledger_data', c.html);
+      window.open('/efs-discussion-doc.html', '_blank');
+    };
+  
+  </script>
 </body>
 </html>
