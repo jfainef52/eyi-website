@@ -305,25 +305,17 @@ let liveSOFR = 0.037;
 // NY Fed publishes daily at newyorkfed.org — browser CORS blocks direct fetch.
 // We pre-populate with the confirmed current rate and link to the live source.
 // User verifies/updates in one click before calculating.
-async function fetchSOFR() {
-  // Try sofrrate.com JSON endpoint (CORS-permissive aggregator)
-  try {
-    const resp = await fetch('https://www.sofrrate.com/api/current', { signal: AbortSignal.timeout(4000) });
-    if (resp.ok) {
-      const data = await resp.json();
-      const rate90 = parseFloat(data?.avg90 || data?.sofr90 || data?.rate90);
-      if (!isNaN(rate90) && rate90 > 0 && rate90 < 20) {
-        liveSOFR = rate90 / 100;
-        updateSOFRDisplay(liveSOFR, true);
-        return;
-      }
-    }
-  } catch(e) {}
-
-  // Confirmed rate as of April 24, 2026 (NY Fed via sofrrate.com)
-  // Source: https://www.sofrrate.com — 90-Day Avg SOFR = 3.66869%
-  liveSOFR = 0.03669;
-  updateSOFRDisplay(liveSOFR, false);
+function fetchSOFR() {
+  // Pre-populate with last known CME Term SOFR 3-Month rate
+  // Advisor must verify current rate before calculating
+  const LAST_RATE = 4.31;
+  const LAST_DATE = 'May 23, 2026';
+  liveSOFR = LAST_RATE / 100;
+  document.getElementById('sofrInput').value = LAST_RATE.toFixed(2);
+  document.getElementById('sofr-display').textContent = `CME Term SOFR 3M: ${LAST_RATE.toFixed(2)}%`;
+  const statusEl = document.getElementById('sofr-status');
+  statusEl.innerHTML = `As of ${LAST_DATE} — <a href="https://www.cmegroup.com/market-data/cme-group-benchmark-administration/term-sofr.html" target="_blank" style="color:var(--gold)">Verify current rate at CME ↗</a>`;
+  statusEl.className = 'sofr-status';
 }
 
 function updateSOFRDisplay(rate, live) {
