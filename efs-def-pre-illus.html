@@ -2102,6 +2102,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   // Save button
   var btn = document.createElement('button');
   btn.id = 'stl-btn';
+  btn.className = 'no-print';
   btn.innerHTML = '&#128190; Save to Library';
   btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#C8A96E;color:#0B1220;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:12px 22px;cursor:pointer;box-shadow:0 4px 20px rgba(200,169,110,0.35);';
   btn.onclick = function() { window.stlOpen(); };
@@ -2110,6 +2111,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   // Modal overlay
   var overlay = document.createElement('div');
   overlay.id = 'stl-overlay';
+  overlay.className = 'no-print';
   overlay.style.display = 'none';
   overlay.style.cssText = 'display:none;position:fixed;inset:0;z-index:10000;background:rgba(11,18,32,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;';
   overlay.innerHTML = '<div id="stl-modal" style="background:#152640;border:1px solid rgba(200,169,110,0.25);border-radius:6px;padding:40px;width:480px;max-width:95vw;"><h3 style="font-family:Playfair Display,serif;font-size:22px;color:#fff;margin-bottom:8px;">Save to Case Library</h3><p style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:28px;">Captures the current ledger and discussion document.</p><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Folder</label><input type="text" id="stl-folder" placeholder="e.g. M45" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"></div><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Case Name</label><input type="text" id="stl-name" placeholder="e.g. D5 40k Inc A65" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"></div><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Status</label><select id="stl-status" style="width:100%;background:#152640;border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"><option value="sample">Sample</option><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select></div><div style="display:flex;gap:12px;margin-top:28px;"><button id="stl-save" onclick="window.stlSave()" style="flex:1;background:#C8A96E;color:#0B1220;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:13px;cursor:pointer;">Save Case</button><button onclick="window.stlClose()" style="background:transparent;color:rgba(255,255,255,0.4);font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:13px 20px;cursor:pointer;">Cancel</button></div><div id="stl-status-msg" style="margin-top:14px;font-size:12px;min-height:16px;color:rgba(200,169,110,0.8);text-align:center;"></div></div>';
@@ -2181,6 +2183,6 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     }
   };
 })();
-</script>
 // ─── END SAVE TO LIBRARY
+</script>
 </html>
