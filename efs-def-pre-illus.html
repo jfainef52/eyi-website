@@ -1067,6 +1067,7 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
       <button class="lab-btn" onclick="backToCalc()">← Modeler</button>
       <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.3)" id="ledger-id-label"></span>
       <button class="lab-btn" onclick="openDiscussionDoc()" style="border-color:var(--gold);color:var(--gold)">Open Discussion Doc →</button>
+      <button class="lab-btn no-print" id="stl-btn" style="display:none;border-color:rgba(200,169,110,0.5);color:#C8A96E">&#128190; Save to Library</button>
       <button class="lab-btn primary" onclick="window.print()">Print / Save PDF (11×17)</button>
     </div>
     <div class="ledger-page-wrap" id="ledger-rendered"></div>
@@ -2099,14 +2100,12 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   if (hdr) hdr.appendChild(signOutBtn);
   else document.body.appendChild(signOutBtn);
 
-  // Save button
-  var btn = document.createElement('button');
-  btn.id = 'stl-btn';
-  btn.className = 'no-print';
-  btn.innerHTML = '&#128190; Save to Library';
-  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:#C8A96E;color:#0B1220;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:12px 22px;cursor:pointer;box-shadow:0 4px 20px rgba(200,169,110,0.35);';
-  btn.onclick = function() { window.stlOpen(); };
-  document.body.appendChild(btn);
+  // Save button — reveal the inline button in the ledger action bar
+  var btn = document.getElementById('stl-btn');
+  if (btn) {
+    btn.style.display = 'inline-block';
+    btn.onclick = function() { window.stlOpen(); };
+  }
 
   // Modal overlay
   var overlay = document.createElement('div');
