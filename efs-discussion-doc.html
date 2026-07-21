@@ -1580,8 +1580,8 @@
     <div style="font-size:11px;color:rgba(255,255,255,.3);line-height:1.7;margin-top:auto">
       <div style="margin-bottom:10px"><span style="color:var(--gold)" id="doc-sidebar-contrib">$100,000/yr</span><br><span id="doc-sidebar-pay-years">for 5 years</span></div>
       <div style="margin-bottom:10px"><span style="color:var(--gold)">Income Ages</span><br><span id="doc-sidebar-income-ages">65 – 100</span></div>
-      <div style="margin-bottom:10px"><span style="color:var(--gold)">6.75% Gross</span><br>Life Insurance Return</div>
-      <div><span style="color:var(--gold)">6.75% Net</span><br>Investment Return</div>
+      <div style="margin-bottom:10px"><span style="color:var(--gold)" id="doc-life-ins-return">6.75% Gross</span><br>Life Insurance Return</div>
+      <div><span style="color:var(--gold)" id="doc-inv-return">6.75% Net</span><br>Investment Return</div>
     </div>
   </div>
   <div class="main-content">
@@ -1778,9 +1778,9 @@
     if (el) el.textContent = 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge;
     // Left sidebar assumption rates
     el = document.getElementById('doc-life-ins-return');
-    if (el) el.textContent = (r.rate1Label || '6.75%') + ' Gross';
+    if (el) el.textContent = (r.rate1Label ? r.rate1Label + '%' : '6.75%') + ' Gross';
     el = document.getElementById('doc-inv-return');
-    if (el) el.textContent = (r.rate2Label || '6.75%') + ' Net';
+    if (el) el.textContent = (r.rate2Label ? r.rate2Label + '%' : '6.75%') + ' Net';
     // Right sidebar vs Taxable delta
     el = document.getElementById('doc-vs-taxable');
     if (el) { var diff = r.defTotalIncome - r.invTotalNet; var abs = Math.abs(diff); var s = abs >= 1000000 ? (abs/1000000).toFixed(1) + 'M' : Math.round(abs/1000) + 'K'; el.textContent = (diff >= 0 ? '▲ +$' : '▼ -$') + s + ' vs Taxable Account'; }
