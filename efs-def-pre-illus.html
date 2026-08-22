@@ -934,6 +934,8 @@ table.ldg tbody td {
   white-space:nowrap; font-size:10.5px;
 }
 table.ldg tbody td:first-child, table.ldg tbody td:nth-child(2) { text-align:center; font-weight:500; }
+table.ldg tbody td.yr-jump { background:rgba(201,168,76,.22)!important; border-top:2px solid var(--gold)!important; color:var(--navy); font-weight:700; position:relative; }
+table.ldg tbody td.yr-jump:first-child::after { content:"5-yr"; position:absolute; top:-1px; right:1px; font-size:6px; letter-spacing:.3px; color:var(--gold); font-weight:700; }
 table.ldg tbody td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
 table.ldg tbody tr:nth-child(even) { background:var(--off); }
 table.ldg tbody tr:hover { background:rgba(201,168,76,.05); }
@@ -1067,6 +1069,7 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
       <button class="lab-btn" onclick="backToCalc()">← Modeler</button>
       <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.3)" id="ledger-id-label"></span>
       <button class="lab-btn" onclick="openDiscussionDoc()" style="border-color:var(--gold);color:var(--gold)">Open Discussion Doc →</button>
+      <button class="lab-btn" onclick="openOnePager()" style="border-color:var(--gold);color:var(--gold)">Open One-Pager →</button>
       <button class="lab-btn no-print" id="stl-btn" style="display:none;border-color:rgba(200,169,110,0.5);color:#C8A96E">&#128190; Save to Library</button>
       <button class="lab-btn primary" onclick="window.print()">Print / Save PDF (11×17)</button>
     </div>
@@ -1332,8 +1335,16 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
   const totalInvNet = Object.values(invMap).reduce((s, r) => s + (r.netWithdrawal || 0), 0);
   const cumulativeAdvantage = totalIncome1 - totalInvNet;
 
+  // Tranche the displayed rows: every year through policy year 50, then every 5th
+  // year after that (55, 60, 65…), plus the payoff year and the final year, so the
+  // printed ledger doesn't sprawl across extra pages in the later decades.
+  const allDisplayRows = rows1.filter(r => r.age <= 100);
+  const maxLedgerYear = allDisplayRows.length ? Math.max(...allDisplayRows.map(r => r.year)) : 0;
+  const shouldTranche = (yr) => yr <= 50 || yr === payoffYear || yr === maxLedgerYear || (yr - 50) % 5 === 0;
+
   let tbody1 = '';
   let totClientOutlay = 0, totLenderPrem = 0, totPrem = 0, totIncome1 = 0, totIncome2 = 0;
+  let lastShownYr1 = null;
 
   for (const row of rows1.filter(r => r.age <= 100)) {
     const ln = loanMap[row.year] || {};
@@ -1357,26 +1368,32 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     if (isIncome)  totIncome1 += row.annualIncome;
     if (r2Income)  totIncome2 += r2.annualIncome || 0;
 
-    tbody1 += `<tr class="${trClass}">
-      <td>${row.year}</td><td>${row.age}</td>
-      <td>${ln.clientOutlay > 0 ? $f(ln.clientOutlay) : '—'}</td>
-      <td>${ln.equityPrem > 0 ? $f(ln.equityPrem) : '—'}</td>
-      <td>${ln.lenderThisYr > 0 ? $f(ln.lenderThisYr) : '—'}</td>
-      <td>${ln.totalPrem > 0 ? $f(ln.totalPrem) : '—'}</td>
-      <td>${ln.interestAccrued > 0 ? $f(ln.interestAccrued) : '—'}</td>
-      <td>${ln.cumBalance > 0 ? $f(ln.cumBalance) : '—'}</td>
-      <td>${isPayoff ? `<strong style="color:var(--green)">${$f(ln.loanPayoff)}</strong>` : '—'}</td>
-      <td class="sec-div ${isIncome?'income-val':''}">${isIncome ? $f(row.annualIncome) : '—'}</td>
-      <td>${$f(row.accumValue)}</td><td>${$f(row.grossCSV)}</td>
-      <td>${$f(netCSV1)}</td><td>${$f(netDB1)}</td>
-      <td class="sec-div ${r2Income?'income-val':''}">${r2Income ? $f(r2.annualIncome) : '—'}</td>
-      <td>${$f(r2.accumValue)}</td><td>${$f(r2.grossCSV)}</td>
-      <td>${$f(netCSV2)}</td><td>${$f(netDB2)}</td>
-    </tr>`;
+    if (shouldTranche(row.year)) {
+      const isGap = lastShownYr1 !== null && row.year - lastShownYr1 > 1;
+      lastShownYr1 = row.year;
+      const yrCls = isGap ? ' class="yr-jump"' : '';
+      tbody1 += `<tr class="${trClass}">
+        <td${yrCls}>${row.year}</td><td${yrCls}>${row.age}</td>
+        <td>${ln.clientOutlay > 0 ? $f(ln.clientOutlay) : '—'}</td>
+        <td>${ln.equityPrem > 0 ? $f(ln.equityPrem) : '—'}</td>
+        <td>${ln.lenderThisYr > 0 ? $f(ln.lenderThisYr) : '—'}</td>
+        <td>${ln.totalPrem > 0 ? $f(ln.totalPrem) : '—'}</td>
+        <td>${ln.interestAccrued > 0 ? $f(ln.interestAccrued) : '—'}</td>
+        <td>${ln.cumBalance > 0 ? $f(ln.cumBalance) : '—'}</td>
+        <td>${isPayoff ? `<strong style="color:var(--green)">${$f(ln.loanPayoff)}</strong>` : '—'}</td>
+        <td class="sec-div ${isIncome?'income-val':''}">${isIncome ? $f(row.annualIncome) : '—'}</td>
+        <td>${$f(row.accumValue)}</td><td>${$f(row.grossCSV)}</td>
+        <td>${$f(netCSV1)}</td><td>${$f(netDB1)}</td>
+        <td class="sec-div ${r2Income?'income-val':''}">${r2Income ? $f(r2.annualIncome) : '—'}</td>
+        <td>${$f(r2.accumValue)}</td><td>${$f(r2.grossCSV)}</td>
+        <td>${$f(netCSV2)}</td><td>${$f(netDB2)}</td>
+      </tr>`;
+    }
   }
 
   // ── Page 2: combined LIRP + Investment Account ──
   let tbodyCombined = '', totLirpIncomeTbl = 0, totGross = 0, totNet = 0;
+  let lastShownYr2 = null;
   const invRowsArr = Object.values(invMap).filter(r => r.age <= 100);
 
   for (const row of rows1.filter(r => r.age <= 100)) {
@@ -1391,17 +1408,22 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     // Shared contribution column: show client contribution (same for both)
     const sharedContrib = row.year <= payYears ? annualContrib : 0;
 
-    tbodyCombined += `<tr class="${lirpIncome || invIncome ? 'income-yr' : ''}">
-      <td>${row.year}</td><td>${row.age}</td>
-      <td>${sharedContrib > 0 ? $f(sharedContrib) : '—'}</td>
-      <td class="sec-div ${lirpIncome?'income-val':''}">${lirpIncome ? $f(lr.annualIncome) : '—'}</td>
-      <td>${$f(lr.accumValue)}</td>
-      <td>${$f(lr.grossCSV)}</td>
-      <td>${$f(lr.grossDB)}</td>
-      <td class="sec-div ${invIncome?'income-val':''}">${invIncome ? $f(inv.grossWithdrawal) : '—'}</td>
-      <td class="${invIncome?'income-val':''}">${invIncome ? $f(inv.netWithdrawal) : '—'}</td>
-      <td>${inv.balance > 100 ? $f(inv.balance) : inv.age >= incomeStartAge ? '<strong style="color:var(--muted)">$0</strong>' : '—'}</td>
-    </tr>`;
+    if (shouldTranche(row.year)) {
+      const isGap = lastShownYr2 !== null && row.year - lastShownYr2 > 1;
+      lastShownYr2 = row.year;
+      const yrCls = isGap ? ' class="yr-jump"' : '';
+      tbodyCombined += `<tr class="${lirpIncome || invIncome ? 'income-yr' : ''}">
+        <td${yrCls}>${row.year}</td><td${yrCls}>${row.age}</td>
+        <td>${sharedContrib > 0 ? $f(sharedContrib) : '—'}</td>
+        <td class="sec-div ${lirpIncome?'income-val':''}">${lirpIncome ? $f(lr.annualIncome) : '—'}</td>
+        <td>${$f(lr.accumValue)}</td>
+        <td>${$f(lr.grossCSV)}</td>
+        <td>${$f(lr.grossDB)}</td>
+        <td class="sec-div ${invIncome?'income-val':''}">${invIncome ? $f(inv.grossWithdrawal) : '—'}</td>
+        <td class="${invIncome?'income-val':''}">${invIncome ? $f(inv.netWithdrawal) : '—'}</td>
+        <td>${inv.balance > 100 ? $f(inv.balance) : inv.age >= incomeStartAge ? '<strong style="color:var(--muted)">$0</strong>' : '—'}</td>
+      </tr>`;
+    }
   }
 
   const html = `
@@ -1467,6 +1489,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     </div>
 
     <div class="ldg-disc" style="margin-top:0;border-top:1px solid var(--border)">
+      <strong>Years shown annually through policy year 50, then in 5-year increments (55, 60, 65…) through year ${maxLedgerYear}${payoffYear > 50 ? ', plus the loan payoff year' : ''}.</strong> All totals reflect every policy year, not just the rows displayed.<br>
       <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${targetPremiumVal ? ' · Version ' + Math.round(targetPremiumVal).toLocaleString('en-US') : ''} · ${dateStr}
     </div>
 
@@ -1527,13 +1550,14 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
           </tr>
         </thead>
         <tbody>
-          ${invRowsArr.map(r => `<tr class="${r.grossWithdrawal>0?'income-yr':''}">\n            <td>${r.year}</td><td>${r.age}</td>\n            <td>${r.contrib > 0 ? $f(r.contrib) : '\u2014'}</td>\n            <td class="${r.grossWithdrawal>0?'income-val':''}">${r.grossWithdrawal > 0 ? $f(r.grossWithdrawal) : '\u2014'}</td>\n            <td class="${r.netWithdrawal>0?'income-val':''}">${r.netWithdrawal > 0 ? $f(r.netWithdrawal) : '\u2014'}</td>\n            <td>${r.balance > 100 ? $f(r.balance) : r.age >= incomeStartAge ? '<strong style="color:var(--muted)">$0</strong>' : '\u2014'}</td>\n          </tr>`).join('')}
+          ${invRowsArr.filter(r => shouldTranche(r.year)).map((r, i, arr) => { const isGap = i > 0 && r.year - arr[i-1].year > 1; const yrCls = isGap ? ' class="yr-jump"' : ''; return `<tr class="${r.grossWithdrawal>0?'income-yr':''}">\n            <td${yrCls}>${r.year}</td><td${yrCls}>${r.age}</td>\n            <td>${r.contrib > 0 ? $f(r.contrib) : '\u2014'}</td>\n            <td class="${r.grossWithdrawal>0?'income-val':''}">${r.grossWithdrawal > 0 ? $f(r.grossWithdrawal) : '\u2014'}</td>\n            <td class="${r.netWithdrawal>0?'income-val':''}">${r.netWithdrawal > 0 ? $f(r.netWithdrawal) : '\u2014'}</td>\n            <td>${r.balance > 100 ? $f(r.balance) : r.age >= incomeStartAge ? '<strong style="color:var(--muted)">$0</strong>' : '\u2014'}</td>\n          </tr>`; }).join('')}
         </tbody>
       </table>
     </div>
     `}
 
     <div class="ldg-disc" style="display:flex;align-items:center;gap:14px;"><div style="flex:1">
+      <strong>Years shown annually through policy year 50, then in 5-year increments (55, 60, 65…) through year ${maxLedgerYear}.</strong> All totals reflect every policy year, not just the rows displayed.<br>
       <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${targetPremiumVal ? ' · Version ' + Math.round(targetPremiumVal).toLocaleString('en-US') : ''} · ${dateStr}
     </div></div>
   `;
@@ -2057,6 +2081,174 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
   window.open('efs-discussion-doc.html', '_blank');
 }
 
+// ── OPEN ONE-PAGER ──
+function openOnePager() {
+  const r = window._ledgerResults;
+  if (!r) return alert('Generate the ledger first before opening the One-Pager.');
+
+  const $f = (n) => '$' + Math.round(n).toLocaleString('en-US');
+  const $fm = (n) => {
+    if (Math.abs(n) >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    return '$' + Math.round(n/1000).toLocaleString() + 'K';
+  };
+
+  const advantageVsTaxable = r.defTotalIncome - r.invTotalNet;
+  const advantageVsLirp = r.hasLIRP ? r.defTotalIncome - r.lirpTotalIncome : 0;
+
+  const maxVal = r.defTotalIncome;
+  const contribH = Math.round((r.totalClientOutlay / maxVal) * 140);
+  const invH     = Math.round((r.invTotalNet       / maxVal) * 140);
+  const lirpH    = r.hasLIRP ? Math.round((r.lirpTotalIncome / maxVal) * 140) : 0;
+  const defH     = 140;
+
+  const lirpBar = r.hasLIRP ? `
+    <div class="op-bar-group">
+      <div class="op-bar-value">${$fm(r.lirpTotalIncome)}</div>
+      <div class="op-bar-fill" style="height:${lirpH}px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)"></div>
+      <div class="op-bar-label">Self-Funded<br>LIRP</div>
+    </div>` : '';
+
+  const lirpFact = r.hasLIRP ? `
+    <div class="op-fact">
+      <div class="op-fact-label">Advantage vs. Self-Funded LIRP</div>
+      <div class="op-fact-value">+${$fm(advantageVsLirp)}</div>
+    </div>` : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EFS Life — ${r.clientName} — DEF One-Pager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0D1B2E;--navy-2:#142236;--gold:#C8A84B;--gold-lt:#D4B96A;--white:#FFFFFF;--off:#F8F7F4;--text:#1C2B3A;--muted:#6B7C8D;--border:#E2DDD6;--green:#2A6E45;--green-lt:#EBF4EE}
+body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text);font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.op-page{width:11in;height:8.5in;margin:24px auto;background:white;box-shadow:0 8px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;position:relative}
+@media print{body{background:white}.op-page{margin:0;box-shadow:none}@page{size:11in 8.5in landscape;margin:0}.no-print{display:none!important}}
+.op-topbar{height:5px;background:linear-gradient(90deg,var(--gold),var(--gold-lt),var(--gold))}
+.op-header{background:var(--navy);padding:.28in .5in;display:flex;align-items:center;justify-content:space-between}
+.op-header-left .op-eyebrow{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.op-header-left .op-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--white)}
+.op-header-left .op-subtitle{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:rgba(255,255,255,.55);margin-top:2px}
+.op-header-right{text-align:right}
+.op-header-right .op-client{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold)}
+.op-header-right .op-meta{font-size:10px;letter-spacing:1px;color:rgba(255,255,255,.4);margin-top:3px;text-transform:uppercase}
+.op-body{flex:1;display:grid;grid-template-columns:1.15fr .85fr;overflow:hidden}
+.op-left{padding:.3in .5in;display:flex;flex-direction:column;background:var(--off)}
+.op-section-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:10px}
+.op-headline{font-family:'Playfair Display',serif;font-size:21px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:16px;max-width:5.3in}
+.op-headline em{color:var(--gold);font-style:italic}
+.op-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.op-step{display:flex;gap:12px;align-items:flex-start}
+.op-step-num{width:24px;height:24px;background:var(--navy);color:var(--gold);font-family:'Playfair Display',serif;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:50%;margin-top:1px}
+.op-step-title{font-weight:600;font-size:12.5px;color:var(--navy);margin-bottom:2px}
+.op-step-text{font-size:11.5px;color:var(--muted);line-height:1.5;max-width:4.9in}
+.op-chart-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:auto 0 10px}
+.op-bar-chart{display:flex;align-items:flex-end;gap:22px;padding-bottom:8px;border-bottom:2px solid var(--border);min-height:150px}
+.op-bar-group{display:flex;flex-direction:column;align-items:center;gap:6px;width:74px}
+.op-bar-value{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--navy)}
+.op-bar-fill{width:100%;border-radius:3px 3px 0 0}
+.op-bar-label{font-size:9px;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.3;margin-top:4px}
+.op-right{background:var(--navy);padding:.3in .4in;display:flex;flex-direction:column;gap:12px}
+.op-fact{border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:12px}
+.op-fact:last-child{border-bottom:none;padding-bottom:0}
+.op-fact-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px}
+.op-fact-value{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--gold)}
+.op-fact-value.sm{font-size:17px;color:var(--white)}
+.op-fact-sub{font-size:10.5px;color:rgba(255,255,255,.4);margin-top:3px;line-height:1.4}
+.op-footer{padding:.16in .5in;background:var(--off);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:20px}
+.op-footer-disc{font-size:8px;color:var(--muted);line-height:1.5;max-width:8.5in}
+.op-print-btn{position:fixed;top:16px;right:16px;background:var(--navy);color:var(--gold);border:1px solid var(--gold);font-family:'IBM Plex Sans',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 18px;border-radius:3px;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="op-print-btn no-print" onclick="window.print()">Print / Save PDF</button>
+<div class="op-page">
+  <div class="op-topbar"></div>
+  <div class="op-header">
+    <div class="op-header-left">
+      <div class="op-eyebrow">Deferred Enhanced Funding</div>
+      <div class="op-title">Enhanced Roth Alternative</div>
+      <div class="op-subtitle">One-Pager Summary</div>
+    </div>
+    <div class="op-header-right">
+      <div class="op-client">${r.clientName}</div>
+      <div class="op-meta">${r.payYears}-Pay · Age ${r.issueAge} · Income ${r.incomeStartAge}–${r.incomeEndAge}${r.advisorName ? ' · ' + r.advisorName : ''} · ${r.dateStr}</div>
+    </div>
+  </div>
+  <div class="op-body">
+    <div class="op-left">
+      <div class="op-section-label">How It Works</div>
+      <div class="op-headline">A lender-matched permanent life policy that converts <em>${$f(r.annualContrib)}/year</em> into <em>${$fm(r.defTotalIncome)}</em> of lifetime tax-free income.</div>
+      <div class="op-steps">
+        <div class="op-step">
+          <div class="op-step-num">1</div>
+          <div><div class="op-step-title">Fund</div><div class="op-step-text">Contribute ${$f(r.annualContrib)}/year for ${r.payYears} years while a lender matches additional premium into the policy — accelerating cash value from day one.</div></div>
+        </div>
+        <div class="op-step">
+          <div class="op-step-num">2</div>
+          <div><div class="op-step-title">Grow &amp; Repay</div><div class="op-step-text">Cash value accumulates tax-deferred. In policy year ${r.payoffYear}, the lender balance is repaid in a single lump sum from policy value — no out-of-pocket payoff.</div></div>
+        </div>
+        <div class="op-step">
+          <div class="op-step-num">3</div>
+          <div><div class="op-step-title">Distribute</div><div class="op-step-text">Tax-free policy loans provide ${$f(r.defAnnualIncome)}/year in income from age ${r.incomeStartAge} through age ${r.incomeEndAge}.</div></div>
+        </div>
+      </div>
+      <div class="op-chart-title">Total Lifetime Income Comparison — Same Contribution</div>
+      <div class="op-bar-chart">
+        <div class="op-bar-group">
+          <div class="op-bar-value">${$fm(r.totalClientOutlay)}</div>
+          <div class="op-bar-fill" style="height:${contribH}px;background:#4a5568;opacity:.5"></div>
+          <div class="op-bar-label">Client<br>Contribution</div>
+        </div>
+        <div class="op-bar-group">
+          <div class="op-bar-value">${$fm(r.invTotalNet)}</div>
+          <div class="op-bar-fill" style="height:${invH}px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)"></div>
+          <div class="op-bar-label">Taxable<br>Investment</div>
+        </div>
+        ${lirpBar}
+        <div class="op-bar-group">
+          <div class="op-bar-value" style="color:var(--gold)">${$fm(r.defTotalIncome)}</div>
+          <div class="op-bar-fill" style="height:${defH}px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)"></div>
+          <div class="op-bar-label" style="color:var(--navy);font-weight:700">Deferred<br>Enhanced<br>Funding</div>
+        </div>
+      </div>
+    </div>
+    <div class="op-right">
+      <div class="op-fact">
+        <div class="op-fact-label">Total Client Investment</div>
+        <div class="op-fact-value sm">${$f(r.totalClientOutlay)}</div>
+        <div class="op-fact-sub">${$f(r.annualContrib)}/yr · ${r.payYears} years</div>
+      </div>
+      <div class="op-fact">
+        <div class="op-fact-label">DEF Total Lifetime Income</div>
+        <div class="op-fact-value">${$f(r.defTotalIncome)}</div>
+        <div class="op-fact-sub">Ages ${r.incomeStartAge}–${r.incomeEndAge} · Tax-free · ${r.rate1Label}% Gross</div>
+      </div>
+      <div class="op-fact">
+        <div class="op-fact-label">Advantage vs. Taxable Account</div>
+        <div class="op-fact-value sm" style="color:var(--gold)">+${$fm(advantageVsTaxable)}</div>
+        <div class="op-fact-sub">vs. ${$f(r.invTotalNet)} taxable net income at ${r.rate1Label}%</div>
+      </div>
+      ${lirpFact}
+      <div class="op-fact">
+        <div class="op-fact-label">The Core Insight</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:13px;color:rgba(255,255,255,.55);line-height:1.6;margin-top:4px">Life insurance assets distribute at higher rates in retirement — <em style="color:var(--gold)">not in spite of leverage, but because of it.</em></div>
+      </div>
+    </div>
+  </div>
+  <div class="op-footer">
+    <div class="op-footer-disc"><strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model, not a policy illustration. Refer to the insurance carrier full illustration for policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All rates shown are gross illustrated rates before policy charges. Amounts are hypothetical and not guaranteed. Premium finance arrangement offered by Enhanced Funding Solutions LLC.</div>
+    <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--navy);font-weight:700;letter-spacing:1px;white-space:nowrap">EFS LIFE LLC</div>
+  </div>
+</div>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
 
 </script>
 <script>
