@@ -95,6 +95,8 @@ table.ldg tbody td {
   white-space:nowrap; font-size:10.5px;
 }
 table.ldg tbody td:first-child, table.ldg tbody td:nth-child(2) { text-align:center; font-weight:500; }
+table.ldg tbody td.yr-jump { background:rgba(201,168,76,.22)!important; border-top:2px solid var(--gold)!important; color:var(--navy); font-weight:700; position:relative; }
+table.ldg tbody td.yr-jump:first-child::after { content:"5-yr"; position:absolute; top:-1px; right:1px; font-size:6px; letter-spacing:.3px; color:var(--gold); font-weight:700; }
 table.ldg tbody td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
 table.ldg tbody tr:nth-child(even) { background:var(--off); }
 table.ldg tbody tr:hover { background:rgba(201,168,76,.05); }
