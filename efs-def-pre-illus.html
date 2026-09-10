@@ -172,7 +172,7 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
             </div>
             <div class="field">
               <label class="field-label">Issue Age</label>
-              <input type="number" id="issueAge" placeholder="ex. 45" min="25" max="70" />
+              <input type="number" id="issueAge" placeholder="ex. 45" min="18" max="70" />
             </div>
           </div>
         </div>
@@ -490,7 +490,7 @@ function calculate() {
   const sofrBase = sofrPct / 100;
 
   // Validation
-  if (isNaN(issueAge) || issueAge < 25 || issueAge > 70) return alert('Issue age must be 25–70.');
+  if (isNaN(issueAge) || issueAge < 18 || issueAge > 70) return alert('Issue age must be 18–70.');
   if (isNaN(clientContrib) || clientContrib < 10000) return alert('Annual contribution must be at least $10,000.');
   if (isNaN(payYears) || payYears < 5 || payYears > 10) return alert('Pay years must be 5–10.');
   if (isNaN(incomeStartAge)) return alert('Income start age required.');
