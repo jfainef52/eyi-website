@@ -1169,7 +1169,21 @@ function parseCarrierCSV(text) {
     l.toLowerCase().includes('policy year') || l.toLowerCase().includes('year') && l.toLowerCase().includes('age')
   );
   if (headerIdx < 0) return null;
-  
+
+  // Two carrier layouts:
+  //  • 6-col self-funded export: Policy Year, Age, Planned Premium, Accumulated Value, Surrender Value, Net Death Benefit
+  //  • 8-col financed export (positional): Year, Age, Premium, Loan, Annual Income, Accum Value, Gross CSV, Gross DB
+  // The 6-col layout is detected by its header names and mapped by name so the positional read can't misalign.
+  const hdr = lines[headerIdx].split(',').map(v => v.replace(/["\s]/g, '').toLowerCase());
+  const idxOf = name => hdr.findIndex(h => h.includes(name));
+  const sixCol = idxOf('surrendervalue') >= 0 && idxOf('netdeathbenefit') >= 0 &&
+                 !hdr.some(h => h.includes('loan') || h.includes('income'));
+  const map = sixCol
+    ? { premium: idxOf('premium') >= 0 ? idxOf('premium') : 2, loan: -1, income: -1,
+        accum: idxOf('accumulatedvalue'), csv: idxOf('surrendervalue'), db: idxOf('netdeathbenefit') }
+    : { premium: 2, loan: 3, income: 4, accum: 5, csv: 6, db: 7 };
+  const val = (parts, i) => (i >= 0 ? parseFloat(parts[i]) : 0) || 0;
+
   const rows = [];
   for (let i = headerIdx + 1; i < lines.length; i++) {
     const parts = lines[i].split(',').map(v => v.replace(/["\s]/g, ''));
@@ -1179,12 +1193,12 @@ function parseCarrierCSV(text) {
     rows.push({
       year: yr,
       age: parseInt(parts[1]) || 0,
-      premium: parseFloat(parts[2]) || 0,
-      loan: parseFloat(parts[3]) || 0,
-      annualIncome: parseFloat(parts[4]) || 0,
-      accumValue: parseFloat(parts[5]) || 0,
-      grossCSV: parseFloat(parts[6]) || 0,
-      grossDB: parseFloat(parts[7]) || 0,
+      premium: val(parts, map.premium),
+      loan: val(parts, map.loan),
+      annualIncome: val(parts, map.income),
+      accumValue: val(parts, map.accum),
+      grossCSV: val(parts, map.csv),
+      grossDB: val(parts, map.db),
     });
   }
   return rows.length > 0 ? rows : null;
