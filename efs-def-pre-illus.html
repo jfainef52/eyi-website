@@ -225,8 +225,8 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
         <div class="field-group">
           <div class="field-row">
             <div class="field">
-              <label class="field-label">Client Pay Years (5–10)</label>
-              <input type="number" id="payYears" placeholder="ex. 5" min="5" max="10" />
+              <label class="field-label">Client Pay Years (5–15)</label>
+              <input type="number" id="payYears" placeholder="ex. 5" min="5" max="15" />
             </div>
             <div class="field">
               <label class="field-label">Loan Payoff Year</label>
@@ -521,7 +521,7 @@ function calculate() {
   // Validation
   if (isNaN(issueAge) || issueAge < 18 || issueAge > 70) return alert('Issue age must be 18–70.');
   if (isNaN(clientContrib) || clientContrib < 10000) return alert('Annual contribution must be at least $10,000.');
-  if (isNaN(payYears) || payYears < 5 || payYears > 10) return alert('Pay years must be 5–10.');
+  if (isNaN(payYears) || payYears < 5 || payYears > 15) return alert('Pay years must be 5–15.');
   const isDB = outputMode === 'db';
   if (!isDB) {
     if (isNaN(incomeStartAge)) return alert('Income start age required.');
@@ -813,14 +813,14 @@ function buildPayoffDropdown() {
 
   sel.innerHTML = '';
 
-  if (isNaN(issueAge) || isNaN(payYears) || payYears < 5 || payYears > 10) {
+  if (isNaN(issueAge) || isNaN(payYears) || payYears < 5 || payYears > 15) {
     sel.innerHTML = '<option value="">— enter age &amp; pay years first —</option>';
     return;
   }
 
   const totalPremYears = payYears + 2;
   const minPayoff = totalPremYears + 1; // must be at least 1 year after last premium
-  const maxPayoff = 20;
+  const maxPayoff = Math.max(20, totalPremYears + 8); // 20 for 5–10 pay (unchanged); longer pay periods get room past the last premium year
 
   for (let yr = minPayoff; yr <= maxPayoff; yr++) {
     const age = issueAge + yr - 1;
@@ -841,7 +841,7 @@ function buildPayoffDropdown() {
 // ── UPDATE HINT ──
 document.getElementById('payYears').addEventListener('input', function() {
   const v = parseInt(this.value);
-  if (!isNaN(v) && v >= 5 && v <= 10) {
+  if (!isNaN(v) && v >= 5 && v <= 15) {
     document.getElementById('pay-hint').textContent =
       `Total premium years = ${v + 2}  ·  Lender-only years: ${v+1} and ${v+2}`;
   }
