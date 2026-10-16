@@ -1910,6 +1910,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
   document.getElementById('ledger-upload-step').style.display = 'none';
   document.getElementById('ledger-output-content').style.display = 'block';
   setDocButtons(false);
+  document.getElementById('btn-onepager').style.display = '';
   window.scrollTo(0, 0);
 
   window._ledgerResults = {
@@ -1922,8 +1923,170 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
     lowPointDefNetDB: low ? low.defNetDB : null, lowPointNfDB: low ? low.nfDB : null,
     endAge: lastRow ? lastRow.row.age : null,
     endDefNetDB: lastRow ? lastRow.defNetDB : null, endNfDB: lastRow ? lastRow.nfDB : null,
-    defPayoff: payoffAmount
+    defPayoff: payoffAmount,
+    belowCount: belowYears.length,
+    series: withNF.map(c => ({ year: c.row.year, age: c.row.age, def: c.defNetDB, nf: c.nfDB }))
   };
+}
+
+// ── DEATH BENEFIT ONE-PAGER ──
+function openDBOnePager(r) {
+  const $f = n => '$' + Math.round(n).toLocaleString('en-US');
+  const $fm = n => {
+    const a = Math.abs(n), sg = n < 0 ? '−' : '';
+    if (a >= 1000000) return sg + '$' + (a / 1000000).toFixed(a >= 10000000 ? 1 : 2).replace(/\.?0+$/, '') + 'M';
+    return sg + '$' + Math.round(a / 1000).toLocaleString() + 'K';
+  };
+  const sgn = n => (n >= 0 ? '+' : '−') + $fm(Math.abs(n));
+  const S = r.series || [];
+  const outlayDiff = r.nfClientOutlay - r.defClientOutlay;
+  const noBelow = (r.belowCount || 0) === 0;
+
+  // ── Chart: net death benefit by age, DEF vs non-financed ──
+  const W = 520, H = 190, L = 46, R = 12, T = 14, B = 26;
+  const maxV = Math.max(1, ...S.map(p => Math.max(p.def, p.nf)));
+  const minA = S.length ? S[0].age : 0, maxA = S.length ? S[S.length - 1].age : 100;
+  const x = a => L + (a - minA) / Math.max(1, maxA - minA) * (W - L - R);
+  const y = v => T + (1 - v / maxV) * (H - T - B);
+  const line = key => S.map((p, i) => (i ? 'L' : 'M') + x(p.age).toFixed(1) + ' ' + y(p[key]).toFixed(1)).join(' ');
+  const ticks = [0, .5, 1].map(f => ({ v: maxV * f, yy: y(maxV * f) }));
+  const ageTicks = [];
+  for (let a = Math.ceil(minA / 10) * 10; a <= maxA; a += 10) ageTicks.push(a);
+  const lowPt = S.find(p => p.year === r.lowPointYear);
+  const payoffX = r.payoffAge >= minA && r.payoffAge <= maxA ? x(r.payoffAge) : null;
+  const chart = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:5.4in;display:block" role="img" aria-label="Net death benefit by age">
+    ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${t.yy}" y2="${t.yy}" stroke="#E2DDD6" stroke-width="1"/><text x="${L - 6}" y="${t.yy + 3}" text-anchor="end" font-size="9" fill="#6B7C8D" font-family="IBM Plex Sans,sans-serif">${t.v === 0 ? '$0' : $fm(t.v)}</text>`).join('')}
+    ${ageTicks.map(a => `<text x="${x(a)}" y="${H - 8}" text-anchor="middle" font-size="9" fill="#6B7C8D" font-family="IBM Plex Sans,sans-serif">${a}</text>`).join('')}
+    ${payoffX !== null ? `<line x1="${payoffX}" x2="${payoffX}" y1="${T}" y2="${H - B}" stroke="#C8A84B" stroke-width="1" stroke-dasharray="3 3"/><text x="${payoffX + 4}" y="${T + 9}" font-size="8.5" fill="#8a7430" font-family="IBM Plex Sans,sans-serif">Bank loan retired · age ${r.payoffAge}</text>` : ''}
+    <path d="${line('nf')}" fill="none" stroke="#7d8ca0" stroke-width="2"/>
+    <path d="${line('def')}" fill="none" stroke="#0D1B2E" stroke-width="2.6"/>
+    ${lowPt ? `<circle cx="${x(lowPt.age)}" cy="${y(lowPt.def)}" r="4" fill="#C8A84B" stroke="#0D1B2E" stroke-width="1.5"/>` : ''}
+  </svg>
+  <div style="display:flex;gap:18px;margin-top:6px;font-size:10px;color:var(--muted)">
+    <span><span style="display:inline-block;width:18px;height:3px;background:#0D1B2E;vertical-align:middle;margin-right:6px"></span>Deferred Enhanced Funding, net of loan</span>
+    <span><span style="display:inline-block;width:18px;height:3px;background:#7d8ca0;vertical-align:middle;margin-right:6px"></span>Non-financed policy</span>
+    ${lowPt ? `<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#C8A84B;border:1.5px solid #0D1B2E;vertical-align:middle;margin-right:6px"></span>Low point</span>` : ''}
+  </div>`;
+
+  const headline = noBelow
+    ? `A lender-matched permanent life policy that keeps net death benefit at or above a self-funded policy in <em>every year</em> — for <em>${$f(r.annualContrib)}/year</em> over ${r.payYears} years.`
+    : `A lender-matched permanent life policy built for <em>death benefit</em> — funded with <em>${$f(r.annualContrib)}/year</em> over ${r.payYears} years.`;
+
+  const insight = outlayDiff > 0 && noBelow
+    ? `The same protection, funded with <em style="color:var(--gold)">less of your own money</em> — and no outside assets pledged.`
+    : `Permanent protection funded with bank leverage that is <em style="color:var(--gold)">secured by the policy itself</em> — no outside assets pledged.`;
+
+  const outlayFact = r.nfClientOutlay
+    ? `vs. ${$f(r.nfClientOutlay)} self-funded${outlayDiff > 0 ? ' · ' + $f(outlayDiff) + ' less' : outlayDiff < 0 ? ' · ' + $f(-outlayDiff) + ' more' : ''}`
+    : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EFS Life — ${r.clientName} — DEF Death Benefit One-Pager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0D1B2E;--navy-2:#142236;--gold:#C8A84B;--gold-lt:#D4B96A;--white:#FFFFFF;--off:#F8F7F4;--text:#1C2B3A;--muted:#6B7C8D;--border:#E2DDD6;--green:#2A6E45}
+body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text);font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.op-page{width:11in;height:8.5in;margin:24px auto;background:white;box-shadow:0 8px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;position:relative}
+@media print{body{background:white}.op-page{margin:0;box-shadow:none}@page{size:11in 8.5in landscape;margin:0}.no-print{display:none!important}}
+.op-topbar{height:5px;background:linear-gradient(90deg,var(--gold),var(--gold-lt),var(--gold))}
+.op-header{background:var(--navy);padding:.28in .5in;display:flex;align-items:center;justify-content:space-between}
+.op-eyebrow{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.op-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--white)}
+.op-subtitle{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:rgba(255,255,255,.55);margin-top:2px}
+.op-header-right{text-align:right}
+.op-client{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold)}
+.op-meta{font-size:10px;letter-spacing:1px;color:rgba(255,255,255,.4);margin-top:3px;text-transform:uppercase}
+.op-body{flex:1;display:grid;grid-template-columns:1.15fr .85fr;overflow:hidden}
+.op-left{padding:.3in .5in;display:flex;flex-direction:column;background:var(--off)}
+.op-section-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:10px}
+.op-headline{font-family:'Playfair Display',serif;font-size:20px;font-weight:600;color:var(--navy);line-height:1.28;margin-bottom:14px;max-width:5.5in}
+.op-headline em{color:#a8892f;font-style:italic}
+.op-steps{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.op-step{display:flex;gap:12px;align-items:flex-start}
+.op-step-num{width:24px;height:24px;background:var(--navy);color:var(--gold);font-family:'Playfair Display',serif;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:50%;margin-top:1px}
+.op-step-title{font-weight:600;font-size:12.5px;color:var(--navy);margin-bottom:2px}
+.op-step-text{font-size:11.5px;color:var(--muted);line-height:1.5;max-width:5in}
+.op-chart-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:auto 0 8px}
+.op-right{background:var(--navy);padding:.3in .4in;display:flex;flex-direction:column;gap:12px}
+.op-fact{border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:12px}
+.op-fact:last-child{border-bottom:none;padding-bottom:0}
+.op-fact-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px}
+.op-fact-value{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--gold)}
+.op-fact-value.sm{font-size:17px;color:var(--white)}
+.op-fact-sub{font-size:10.5px;color:rgba(255,255,255,.45);margin-top:3px;line-height:1.4}
+.op-footer{padding:.16in .5in;background:var(--off);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:20px}
+.op-footer-disc{font-size:8px;color:var(--muted);line-height:1.5;max-width:8.5in}
+.op-print-btn{position:fixed;top:16px;right:16px;background:var(--navy);color:var(--gold);border:1px solid var(--gold);font-family:'IBM Plex Sans',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 18px;border-radius:3px;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="op-print-btn no-print" onclick="window.print()">Print / Save PDF</button>
+<div class="op-page">
+  <div class="op-topbar"></div>
+  <div class="op-header">
+    <div>
+      <div class="op-eyebrow">Deferred Enhanced Funding</div>
+      <div class="op-title">Death Benefit Focus</div>
+      <div class="op-subtitle">One-Pager Summary</div>
+    </div>
+    <div class="op-header-right">
+      <div class="op-client">${r.clientName}</div>
+      <div class="op-meta">${r.payYears}-Pay · Age ${r.issueAge} · No Income Distributions${r.advisorName ? ' · ' + r.advisorName : ''} · ${r.dateStr}</div>
+    </div>
+  </div>
+  <div class="op-body">
+    <div class="op-left">
+      <div class="op-section-label">How It Works</div>
+      <div class="op-headline">${headline}</div>
+      <div class="op-steps">
+        <div class="op-step"><div class="op-step-num">1</div><div><div class="op-step-title">Fund</div><div class="op-step-text">Contribute ${$f(r.annualContrib)}/year for ${r.payYears} years while a lender matches additional premium into the policy.</div></div></div>
+        <div class="op-step"><div class="op-step-num">2</div><div><div class="op-step-title">Repay</div><div class="op-step-text">In policy year ${r.payoffYear} (age ${r.payoffAge}) the lender balance is repaid in one payoff from policy value. The policy secures the loan, so no outside assets are pledged.</div></div></div>
+        <div class="op-step"><div class="op-step-num">3</div><div><div class="op-step-title">Protect</div><div class="op-step-text">No income is taken. The policy is held for its death benefit, which generally passes to beneficiaries income-tax-free.</div></div></div>
+      </div>
+      <div class="op-chart-title">Net Death Benefit by Age${lowPt ? '' : ''}</div>
+      ${chart}
+    </div>
+    <div class="op-right">
+      <div class="op-fact">
+        <div class="op-fact-label">Your Total Investment</div>
+        <div class="op-fact-value sm">${$f(r.defClientOutlay)}</div>
+        <div class="op-fact-sub">${$f(r.annualContrib)}/yr · ${r.payYears} years${outlayFact ? '<br>' + outlayFact : ''}</div>
+      </div>
+      ${r.lowPointYear ? `<div class="op-fact">
+        <div class="op-fact-label">Net Death Benefit at the Low Point</div>
+        <div class="op-fact-value">${$f(r.lowPointDefNetDB)}</div>
+        <div class="op-fact-sub">Year ${r.lowPointYear} · Age ${r.lowPointAge}, the narrowest margin<br>vs. ${$f(r.lowPointNfDB)} non-financed (${sgn(r.lowPointAdvantage)})</div>
+      </div>` : ''}
+      ${r.endAge ? `<div class="op-fact">
+        <div class="op-fact-label">Net Death Benefit at Age ${r.endAge}</div>
+        <div class="op-fact-value sm" style="color:var(--gold)">${$f(r.endDefNetDB)}</div>
+        <div class="op-fact-sub">vs. ${$f(r.endNfDB)} non-financed (${sgn(r.endDefNetDB - r.endNfDB)}) · ${r.rate1Label} gross</div>
+      </div>` : ''}
+      <div class="op-fact">
+        <div class="op-fact-label">Bank Loan Retired</div>
+        <div class="op-fact-value sm">${$f(r.defPayoff)}</div>
+        <div class="op-fact-sub">Year ${r.payoffYear} · Age ${r.payoffAge}</div>
+      </div>
+      <div class="op-fact">
+        <div class="op-fact-label">The Core Insight</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;margin-top:4px">${insight}</div>
+      </div>
+    </div>
+  </div>
+  <div class="op-footer">
+    <div class="op-footer-disc"><strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model, not a policy illustration. Refer to the insurance carrier full illustration for policy details, charges, guarantees and guidelines. Loan balance projections are based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. Net death benefit equals the illustrated death benefit less the projected bank loan balance. Illustrated rates are gross rates before policy charges. No income or policy distributions are assumed. Tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC.</div>
+    <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--navy);font-weight:700;letter-spacing:1px;white-space:nowrap">EFS LIFE LLC</div>
+  </div>
+</div>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
 }
 
 // ── OPEN DISCUSSION DOC ──
@@ -2426,6 +2589,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
 function openOnePager() {
   const r = window._ledgerResults;
   if (!r) return alert('Generate the ledger first before opening the One-Pager.');
+  if (r.outputMode === 'db') return openDBOnePager(r);
 
   const $f = (n) => '$' + Math.round(n).toLocaleString('en-US');
   const $fm = (n) => {
