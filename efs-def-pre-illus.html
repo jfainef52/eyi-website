@@ -1769,7 +1769,6 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
 
   const withNF = calc.filter(c => c.delta !== null);
   const low = withNF.length ? withNF.reduce((m, c) => c.delta < m.delta ? c : m, withNF[0]) : null;
-  const lowAlt = hasAlt ? withNF.filter(c => c.alt).reduce((m, c) => (!m || c.alt.delta < m.alt.delta) ? c : m, null) : null;
   const lastRow = withNF.length ? withNF[withNF.length - 1] : null;
   const firstRow = calc[0];
   const belowYears = withNF.filter(c => c.delta < 0);
@@ -1901,7 +1900,6 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
         <div class="cstat"><span class="ck">Low-Point Net DB Advantage</span><span class="cv2 ${low && low.delta >= 0 ? 'g' : ''}">${lowTxt}</span></div>
         <div class="cstat"><span class="ck">Net DB Advantage at Age ${lastRow ? lastRow.row.age : 100}</span><span class="cv2 g">${lastRow ? (lastRow.delta >= 0 ? '+' : '') + $fs(lastRow.delta) : '—'}</span></div>
         <div class="cstat"><span class="ck">Client Investment Difference</span><span class="cv2">${outlayDiff === 0 ? 'Same' : $fs(Math.abs(outlayDiff)) + (outlayDiff > 0 ? ' less' : ' more')}</span></div>
-        ${hasAlt && lowAlt ? `<div class="cstat"><span class="ck">Low Point @ ${rate2Label} Return</span><span class="cv2">${lowAlt.alt.delta >= 0 ? '+' : ''}${$fs(lowAlt.alt.delta)} · Yr ${lowAlt.row.year}</span></div>` : ''}
       </div>
     </div>
 
