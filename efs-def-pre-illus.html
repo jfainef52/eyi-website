@@ -67,6 +67,8 @@ body{font-family:'IBM Plex Sans',sans-serif;background:var(--off);color:var(--te
 .rate-env-btns{display:flex;gap:8px;margin-top:8px}
 .rate-btn{flex:1;padding:7px;border:1px solid var(--border);border-radius:3px;background:var(--off);font-family:'IBM Plex Sans',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;color:var(--muted);text-align:center}
 .rate-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+.mode-btn{flex:1;padding:7px;border:1px solid var(--border);border-radius:3px;background:var(--off);font-family:'IBM Plex Sans',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;color:var(--muted);text-align:center}
+.mode-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
 
 .calc-btn{width:100%;background:var(--gold);color:var(--navy);border:none;border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:13px;cursor:pointer;margin-top:6px;transition:all .2s}
 .calc-btn:hover{background:var(--gold-lt)}
@@ -205,6 +207,15 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
         <div class="section-tag">Program Design</div>
 
         <div class="field-group">
+          <label class="field-label">Output Focus</label>
+          <div class="rate-env-btns">
+            <button class="mode-btn active" onclick="setOutputMode('income',this)">Income<br><span style="font-size:9px;opacity:.7">Roth Alternative</span></button>
+            <button class="mode-btn" onclick="setOutputMode('db',this)">Death Benefit<br><span style="font-size:9px;opacity:.7">No Income</span></button>
+          </div>
+          <div class="sofr-status" id="mode-hint">Income ledger compared to a self-funded LIRP and a taxable account</div>
+        </div>
+
+        <div class="field-group">
           <label class="field-label">Annual Client Contribution ($)</label>
           <div class="field">
             <input type="text" id="clientContrib" placeholder="ex. 50,000" inputmode="numeric" autocomplete="off" />
@@ -236,7 +247,7 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
         <div class="sofr-status" id="pay-hint">Total premium years = client pay + 2</div>
         </div>
 
-        <div class="field-group">
+        <div class="field-group" id="income-fields">
           <div class="field-row">
             <div class="field">
               <label class="field-label">Income Start Age</label>
@@ -299,6 +310,7 @@ const LENDER_MULT = 2.079;
 const CSV_RATIO_YR3 = 1.30; // 130% of EOY loan balance
 
 let rateEnv = 'ease';
+let outputMode = 'income';   // 'income' | 'db'
 let liveSOFR = 0.037;
 
 // ── SOFR INIT ──
@@ -330,6 +342,23 @@ function updateSOFRDisplay(rate, live) {
     statusEl.innerHTML = 'Last confirmed: 3.67% (Apr 24, 2026) · Verify at <a href="https://www.sofrrate.com" target="_blank" style="color:var(--gold)">sofrrate.com</a> before calculating';
     statusEl.className = 'sofr-status';
   }
+}
+
+// ── OUTPUT MODE ──
+function setOutputMode(mode, btn) {
+  outputMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const isDB = mode === 'db';
+  document.getElementById('income-fields').style.display = isDB ? 'none' : '';
+  document.getElementById('mode-hint').textContent = isDB
+    ? 'Death benefit only. DEF is compared to a non-financed policy, with no income and no investment account'
+    : 'Income ledger compared to a self-funded LIRP and a taxable account';
+  // Clear any output built under the other mode so the two never get mixed
+  window._defData = null;
+  document.getElementById('output-content').style.display = 'none';
+  document.getElementById('output-content').innerHTML = '';
+  document.getElementById('output-placeholder').style.display = '';
 }
 
 // ── RATE PATH ──
@@ -493,9 +522,12 @@ function calculate() {
   if (isNaN(issueAge) || issueAge < 18 || issueAge > 70) return alert('Issue age must be 18–70.');
   if (isNaN(clientContrib) || clientContrib < 10000) return alert('Annual contribution must be at least $10,000.');
   if (isNaN(payYears) || payYears < 5 || payYears > 10) return alert('Pay years must be 5–10.');
-  if (isNaN(incomeStartAge)) return alert('Income start age required.');
-  if (isNaN(incomeEndAge) || incomeEndAge > 100) return alert('Income end age required (max 100).');
-  if (incomeEndAge <= incomeStartAge) return alert('Income end age must be greater than income start age.');
+  const isDB = outputMode === 'db';
+  if (!isDB) {
+    if (isNaN(incomeStartAge)) return alert('Income start age required.');
+    if (isNaN(incomeEndAge) || incomeEndAge > 100) return alert('Income end age required (max 100).');
+    if (incomeEndAge <= incomeStartAge) return alert('Income end age must be greater than income start age.');
+  }
   if (isNaN(sofrBase)) return alert('SOFR rate required.');
 
   const { rows, lenderPrem, totalPremYears } = buildSchedule(
@@ -572,8 +604,10 @@ function calculate() {
           <div class="instr-item"><span class="instr-key">Death Benefit — Prem Yrs</span><span class="instr-val highlight">INCREASING</span></div>
           <div class="instr-item"><span class="instr-key">Death Benefit — After Prem</span><span class="instr-val highlight">LEVEL (switch Yr ${totalPremYears + 1})</span></div>
           <div class="instr-item"><span class="instr-key">Max Reduce DB</span><span class="instr-val highlight">Year ${totalPremYears + 1}</span></div>
-          <div class="instr-item"><span class="instr-key">Income Start Age</span><span class="instr-val highlight">Age ${incomeStartAge}</span></div>
-          <div class="instr-item"><span class="instr-key">Income End Age</span><span class="instr-val highlight">Age ${incomeEndAge}</span></div>
+          ${isDB
+            ? `<div class="instr-item"><span class="instr-key">Income</span><span class="instr-val highlight">NONE — death benefit focus</span></div>`
+            : `<div class="instr-item"><span class="instr-key">Income Start Age</span><span class="instr-val highlight">Age ${incomeStartAge}</span></div>
+          <div class="instr-item"><span class="instr-key">Income End Age</span><span class="instr-val highlight">Age ${incomeEndAge}</span></div>`}
         </div>
         <div>
           <div class="instr-item"><span class="instr-key">Premium Yr 1</span><span class="instr-val highlight">${$f(rows[0]?.equityPrem)}</span></div>
@@ -584,8 +618,12 @@ function calculate() {
         </div>
       </div>
       <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(201,168,76,.2);font-size:11px;color:var(--muted)">
-        ℹ️ &nbsp;Run two CSV exports: <strong>Primary Rate</strong> and <strong>Alternative Rate</strong>.
-        Loan payoff <strong>${$f(payoffAmount)}</strong> must appear in Year ${payoffYear} (Age ${issueAge + payoffYear - 1}) of the illustration.
+        ${isDB
+          ? `ℹ️ &nbsp;Run the DEF illustration at the <strong>Primary Rate</strong> (an <strong>Alternative Rate</strong> export is optional), plus a <strong>non-financed illustration</strong> of the same policy for the comparison.
+        Loan payoff <strong>${$f(payoffAmount)}</strong> must appear in Year ${payoffYear} (Age ${issueAge + payoffYear - 1}) of the DEF illustration. No income or distributions on either illustration.
+        <br><span style="display:block;margin-top:6px">Confirm the death benefit option and the reduce-DB timing above with the carrier for a death-benefit-focused design — they were set for the income structure.</span>`
+          : `ℹ️ &nbsp;Run two CSV exports: <strong>Primary Rate</strong> and <strong>Alternative Rate</strong>.
+        Loan payoff <strong>${$f(payoffAmount)}</strong> must appear in Year ${payoffYear} (Age ${issueAge + payoffYear - 1}) of the illustration.`}
       </div>
     </div>
 
@@ -638,7 +676,7 @@ function calculate() {
     </div>
 
     <!-- GUARDRAIL FLAGS -->
-    ${buildGuardrails(rows, payYears, totalPremYears, payoffYear, clientContrib, csvTarget, issueAge, incomeStartAge, incomeEndAge)}
+    ${buildGuardrails(rows, payYears, totalPremYears, payoffYear, clientContrib, csvTarget, issueAge, incomeStartAge, incomeEndAge, isDB)}
 
     <div class="disc">
       <strong>EFS LIFE LLC — INTERNAL USE ONLY.</strong> This pre-illustration modeler is a planning tool for agent use in preparing carrier illustration requests. The loan balance projections are estimates based on the current 90-Day Average SOFR (${(sofrBase*100).toFixed(2)}%) plus a spread of 185 basis points, subject to a 4.00% effective floor, projected using a ${rateEnv === 'ease' ? 'modest easing' : rateEnv === 'tight' ? 'tightening' : 'flat'} rate environment assumption. Actual loan balances, interest rates, and payoff amounts will vary. All illustrations must be accompanied by a complete insurance company illustration. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. This document does not constitute investment advice. Confidential — EFS Life LLC · EFSLife.com
@@ -651,7 +689,7 @@ function calculate() {
     payYears, payoffYear, annualContrib: clientContrib,
     totalPremYears, rows, lenderPrem,
     payoffAmount, csvTarget, totalClientOutlay,
-    incomeStartAge, incomeEndAge,
+    outputMode, incomeStartAge: isDB ? null : incomeStartAge, incomeEndAge: isDB ? null : incomeEndAge,
     rate1Label: '', rate2Label: '',
     sofrBase, rateEnvLabel: rateEnv
   };
@@ -662,11 +700,11 @@ function calculate() {
 
   // Only show proceed button if income/payoff guardrail passed
   const payoffAge = issueAge + payoffYear - 1;
-  if (incomeStartAge > payoffAge) {
+  if (isDB || incomeStartAge > payoffAge) {
     const wrap = document.createElement('div');
     wrap.style.cssText = 'text-align:center;margin-top:20px;padding-bottom:24px';
     const btn = document.createElement('button');
-    btn.textContent = 'Proceed to Income Ledger → Upload Carrier CSVs';
+    btn.textContent = isDB ? 'Proceed to Death Benefit Ledger → Upload Carrier CSVs' : 'Proceed to Income Ledger → Upload Carrier CSVs';
     btn.style.cssText = 'background:var(--navy);color:var(--gold);border:1.5px solid var(--gold);border-radius:3px;font-family:IBM Plex Sans,sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:14px 36px;cursor:pointer;transition:all .2s';
     btn.addEventListener('click', proceedToLedger);
     btn.addEventListener('mouseenter', () => btn.style.background = 'var(--navy-3)');
@@ -676,13 +714,13 @@ function calculate() {
   }
 }
 
-function buildGuardrails(rows, payYears, totalPremYears, payoffYear, clientContrib, csvTarget, issueAge, incomeStartAge, incomeEndAge) {
+function buildGuardrails(rows, payYears, totalPremYears, payoffYear, clientContrib, csvTarget, issueAge, incomeStartAge, incomeEndAge, isDB) {
   const flags = [];
   const payoffAge = issueAge + payoffYear - 1;
   const RATE_THRESHOLD = 0.055; // 5.5% effective rate threshold
 
   // ── HARD BLOCK: income cannot start before loan is paid off ──
-  if (incomeStartAge <= payoffAge) {
+  if (!isDB && incomeStartAge <= payoffAge) {
     // This is a hard block — return immediately with only this flag and no proceed button
     return `<div style="background:var(--red-lt);border:1.5px solid rgba(139,32,32,.4);border-radius:5px;padding:16px 20px;margin-bottom:16px">
       <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:10px;font-weight:600">⛔ Cannot Proceed — Income Start Conflict</div>
@@ -834,13 +872,14 @@ function proceedToLedger() {
     ['Contribution', `$${Math.round(d.annualContrib).toLocaleString()} / yr`],
     ['Pay Period', `${d.payYears}-Pay`],
     ['Loan Payoff', `Yr ${d.payoffYear} · $${Math.round(d.payoffAmount).toLocaleString()}`],
-    ['Income Ages', `${d.incomeStartAge} – ${d.incomeEndAge}`],
+    d.outputMode === 'db' ? ['Output', 'Death Benefit Focus'] : ['Income Ages', `${d.incomeStartAge} – ${d.incomeEndAge}`],
   ];
   document.getElementById('l-summary-display').innerHTML = items.map(([label, val]) =>
     `<div><div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:3px">${label}</div>
      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500">${val}</div></div>`
   ).join('');
 
+  configureLedgerUpload(d.outputMode === 'db');
   document.getElementById('intake-panel').style.display = 'none';
   document.getElementById('ledger-panel').style.display = 'block';
   document.getElementById('ledger-upload-step').style.display = 'block';
@@ -988,6 +1027,13 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
 .lab-btn.primary { background:var(--gold); color:var(--navy); font-weight:600; border-color:var(--gold); margin-left:auto; }
 .lab-btn.primary:hover { background:var(--gold-lt); }
 
+.dpos { color:var(--green); font-weight:600; }
+.dneg { color:var(--red); font-weight:600; }
+table.ldg tbody td.db-val { font-weight:600; color:var(--navy); }
+.struct-notes { padding:20px 48px; border-top:1px solid var(--border); }
+.struct-title { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:10px; }
+.struct-line { font-size:12px; color:var(--text); line-height:1.6; margin-bottom:8px; max-width:1100px; }
+.struct-line.flag { background:var(--red-lt); border:1px solid rgba(139,32,32,.3); border-radius:4px; padding:10px 14px; color:var(--red); }
 .ldg-disc { padding:20px 48px; font-size:9px; color:var(--muted); line-height:1.6; border-top:1px solid var(--border); }
 
 @media print {
@@ -1006,8 +1052,8 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
       <button onclick="backToCalc()" class="lab-btn">← Back to Modeler</button>
     </div>
-    <h2>Income Ledger</h2>
-    <div class="sub">Upload carrier illustration CSVs to generate the full year-by-year ledger — to change program parameters, return to the Modeler</div>
+    <h2 id="l-h2">Income Ledger</h2>
+    <div class="sub" id="l-sub">Upload carrier illustration CSVs to generate the full year-by-year ledger — to change program parameters, return to the Modeler</div>
 
     <!-- Read-only program summary — locked from Modeler -->
     <div style="background:var(--navy);border-radius:5px;padding:16px 22px;margin-bottom:28px;display:flex;gap:32px;flex-wrap:wrap;align-items:center">
@@ -1042,23 +1088,23 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
       <div class="upload-zone-lg" id="lzone2" ondragover="lDragOver(event,'lzone2')" ondragleave="lDragLeave('lzone2')" ondrop="lDrop(event,'lcsv2','lzone2')">
         <input type="file" id="lcsv2" accept=".csv" onchange="lFileChosen('lcsv2','lzone2','lname2')" />
         <div class="uz-icon">📊</div>
-        <div class="uz-title">DEF · Alternative Rate</div>
+        <div class="uz-title" id="lz2-title">DEF · Alternative Rate</div>
         <div class="uz-rate" id="l-rate2-display">6.50%</div>
-        <div class="uz-hint">Financed illustration — alternative rate</div>
+        <div class="uz-hint" id="lz2-hint">Financed illustration — alternative rate</div>
         <div class="uz-file" id="lname2"></div>
       </div>
       <div class="upload-zone-lg" id="lzone3" ondragover="lDragOver(event,'lzone3')" ondragleave="lDragLeave('lzone3')" ondrop="lDrop(event,'lcsv3','lzone3')">
         <input type="file" id="lcsv3" accept=".csv" onchange="lFileChosen('lcsv3','lzone3','lname3')" />
         <div class="uz-icon">📋</div>
-        <div class="uz-title">Non-Financed LIRP</div>
-        <div class="uz-rate" style="color:var(--muted);font-size:13px">Optional</div>
-        <div class="uz-hint">Self-funded — Roth alternative comparison</div>
+        <div class="uz-title" id="lz3-title">Non-Financed LIRP</div>
+        <div class="uz-rate" id="lz3-tag" style="color:var(--muted);font-size:13px">Optional</div>
+        <div class="uz-hint" id="lz3-hint">Self-funded — Roth alternative comparison</div>
         <div class="uz-file" id="lname3"></div>
       </div>
     </div>
 
     <div id="ledger-error" style="display:none;background:var(--red-lt);border:1px solid rgba(139,32,32,.3);border-radius:4px;color:var(--red);font-size:13px;padding:12px 16px;margin-bottom:16px;"></div>
-    <button class="gen-ledger-btn" onclick="generateLedger()">Generate Income Ledger →</button>
+    <button class="gen-ledger-btn" id="l-gen-btn" onclick="generateLedger()">Generate Income Ledger →</button>
   </div>
 
   <!-- LEDGER OUTPUT -->
@@ -1067,8 +1113,8 @@ table.ldg tfoot td.sec-div { border-left:2px solid rgba(201,168,76,.3); }
       <button class="lab-btn" onclick="backToUpload()">← Edit</button>
       <button class="lab-btn" onclick="backToCalc()">← Modeler</button>
       <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.3)" id="ledger-id-label"></span>
-      <button class="lab-btn" onclick="openDiscussionDoc()" style="border-color:var(--gold);color:var(--gold)">Open Discussion Doc →</button>
-      <button class="lab-btn" onclick="openOnePager()" style="border-color:var(--gold);color:var(--gold)">Open One-Pager →</button>
+      <button class="lab-btn" id="btn-disc" onclick="openDiscussionDoc()" style="border-color:var(--gold);color:var(--gold)">Open Discussion Doc →</button>
+      <button class="lab-btn" id="btn-onepager" onclick="openOnePager()" style="border-color:var(--gold);color:var(--gold)">Open One-Pager →</button>
       <button class="lab-btn no-print" id="stl-btn" style="display:none;border-color:rgba(200,169,110,0.5);color:#C8A96E">&#128190; Save to Library</button>
       <button class="lab-btn primary" onclick="window.print()">Print / Save PDF (11×17)</button>
     </div>
@@ -1208,6 +1254,7 @@ async function generateLedger() {
   errEl.style.display = 'none';
 
   const d = window._defData;
+  if (d && d.outputMode === 'db') return generateDBLedger();
 
   const rate1Label = document.getElementById('l-rate1').value.trim() || '6.75%';
   const rate2Label = document.getElementById('l-rate2').value.trim() || '6.50%';
@@ -1562,6 +1609,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
   `;
 
   document.getElementById('ledger-rendered').innerHTML = html;
+  setDocButtons(true);
   document.getElementById('ledger-id-label').textContent =
     `${clientName} · DEF ${payYears}-Pay · ${rate1Label} Primary / ${rate2Label} Alternative`;
   document.getElementById('ledger-upload-step').style.display = 'none';
@@ -1581,6 +1629,300 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     invTotalNet: totalInvNet,
     invAnnualNet: annualNetWithdrawal,
     hasLIRP
+  };
+}
+
+// ── LEDGER UPLOAD STEP: labels per output mode ──
+function configureLedgerUpload(isDB) {
+  const set = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+  set('l-h2', isDB ? 'Death Benefit Ledger' : 'Income Ledger');
+  set('l-sub', isDB
+    ? 'Upload the DEF illustration and a non-financed illustration to compare death benefits year by year — to change program parameters, return to the Modeler'
+    : 'Upload carrier illustration CSVs to generate the full year-by-year ledger — to change program parameters, return to the Modeler');
+  set('lz2-title', isDB ? 'DEF · Alternative Rate (Optional)' : 'DEF · Alternative Rate');
+  set('lz2-hint', isDB ? 'Sensitivity at a lower illustrated rate' : 'Financed illustration — alternative rate');
+  set('lz3-title', isDB ? 'Non-Financed Policy' : 'Non-Financed LIRP');
+  set('lz3-tag', isDB ? 'Required' : 'Optional');
+  set('lz3-hint', isDB ? 'Self-funded illustration — death benefit comparison' : 'Self-funded — Roth alternative comparison');
+  set('l-gen-btn', isDB ? 'Generate Death Benefit Ledger →' : 'Generate Income Ledger →');
+  const tag = document.getElementById('lz3-tag');
+  if (tag) tag.style.color = isDB ? 'var(--gold)' : 'var(--muted)';
+}
+
+// ══════════════════════════════════════════════════════════
+// DEATH BENEFIT FOCUS — DEF vs. Non-Financed Policy (no income)
+// ══════════════════════════════════════════════════════════
+function setDocButtons(show) {
+  ['btn-disc', 'btn-onepager'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = show ? '' : 'none';
+  });
+}
+
+function pctLabel(s, fallback) {
+  const c = String(s || '').replace(/%/g, '').trim();
+  return (c || fallback) + '%';
+}
+
+function extractTargetPremiumFromCSV(rawText) {
+  const lines = rawText.split('\n');
+  const headers = (lines[0] || '').split(',').map(v => v.trim().replace(/"/g, ''));
+  const values  = (lines[1] || '').split(',').map(v => v.trim().replace(/"/g, ''));
+  const idx = headers.findIndex(h => h.toLowerCase().includes('target') && h.toLowerCase().includes('prem'));
+  if (idx < 0 || values[idx] === undefined) return null;
+  const n = parseFloat(values[idx].replace(/[^0-9.]/g, ''));
+  return isNaN(n) ? null : n;
+}
+
+async function generateDBLedger() {
+  const d = window._defData;
+  const rate1Label = pctLabel(document.getElementById('l-rate1').value, '6.75');
+  const rate2Label = pctLabel(document.getElementById('l-rate2').value, '6.50');
+  const advisorName = document.getElementById('l-advisor').value.trim();
+  const dateVal = document.getElementById('l-date').value;
+  const dateStr = dateVal
+    ? new Date(dateVal + 'T12:00:00').toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' })
+    : new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+
+  const clientName = document.getElementById('l-client').value.trim() || (d?.clientName || 'Sample Client');
+  const issueAge = parseInt(document.getElementById('l-age').value) || d?.issueAge || 40;
+  const payYears = parseInt(document.getElementById('l-payyears').value) || d?.payYears || 5;
+  const annualContrib = parseFloat(document.getElementById('l-contrib').value.replace(/,/g, '')) || d?.annualContrib || 50000;
+
+  if (!lFiles.lcsv1) return showLedgerError('Primary rate DEF CSV is required.');
+  if (!lFiles.lcsv3) return showLedgerError('Non-financed policy CSV is required for the death benefit comparison.');
+
+  try {
+    const t1 = await readLedgerFile(lFiles.lcsv1);
+    const t3 = await readLedgerFile(lFiles.lcsv3);
+    const rows1 = parseCarrierCSV(t1);
+    const rowsNF = parseCarrierCSV(t3);
+    if (!rows1) return showLedgerError('Could not parse the primary rate DEF CSV. Confirm file format.');
+    if (!rowsNF) return showLedgerError('Could not parse the non-financed policy CSV. Confirm file format.');
+
+    let rows2 = null;
+    if (lFiles.lcsv2) {
+      const t2 = await readLedgerFile(lFiles.lcsv2);
+      rows2 = parseCarrierCSV(t2);
+      if (!rows2) return showLedgerError('Could not parse the alternative rate DEF CSV. Confirm file format.');
+    }
+
+    renderDBLedger({
+      d, rows1, rows2, rowsNF, rate1Label, rate2Label, advisorName, dateStr,
+      targetPremiumVal: extractTargetPremiumFromCSV(t1),
+      clientName, issueAge, payYears, annualContrib, payoffYear: d?.payoffYear || 0
+    });
+  } catch (e) {
+    showLedgerError('Error processing files: ' + e.message);
+  }
+}
+
+function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advisorName, dateStr,
+    targetPremiumVal, clientName, issueAge, payYears, annualContrib, payoffYear }) {
+
+  const $fs = n => n == null || isNaN(n) ? '—' : (n < 0 ? '−$' + Math.abs(Math.round(n)).toLocaleString() : (Math.round(n) === 0 ? '—' : '$' + Math.round(n).toLocaleString()));
+  const hasAlt = !!rows2;
+
+  const loanMap = {};
+  if (d) d.rows.forEach(r => { loanMap[r.yr] = r; });
+  const nfMap = {};  rowsNF.forEach(r => { nfMap[r.year] = r; });
+  const r2Map = {};  if (rows2) rows2.forEach(r => { r2Map[r.year] = r; });
+
+  const dispRows = rows1.filter(r => r.age <= 100);
+  const maxLedgerYear = dispRows.length ? Math.max(...dispRows.map(r => r.year)) : 0;
+  const shouldTranche = yr => yr <= 50 || yr === payoffYear || yr === maxLedgerYear || (yr - 50) % 5 === 0;
+
+  // ── Pass 1: compute every year (totals/low point use ALL years, not just displayed rows) ──
+  const calc = [];
+  for (const row of dispRows) {
+    const ln = loanMap[row.year] || {};
+    const nf = nfMap[row.year];
+    const r2 = r2Map[row.year];
+    const loanBal = ln.cumBalance || 0;               // 0 in payoff year & after — carrier already nets the payoff policy loan
+    const defNetCSV = Math.max(0, row.grossCSV - loanBal);
+    const defNetDB  = Math.max(0, row.grossDB  - loanBal);
+    const nfCSV = nf ? nf.grossCSV : null;
+    const nfDB  = nf ? nf.grossDB  : null;
+    const delta = nf ? defNetDB - nfDB : null;
+    let alt = null;
+    if (r2) {
+      const aCSV = Math.max(0, r2.grossCSV - loanBal);
+      const aDB  = Math.max(0, r2.grossDB  - loanBal);
+      alt = { netCSV: aCSV, netDB: aDB, delta: nf ? aDB - nfDB : null };
+    }
+    calc.push({ row, ln, nf, loanBal, defNetCSV, defNetDB, nfCSV, nfDB, delta, alt, isPayoff: row.year === payoffYear });
+  }
+
+  const withNF = calc.filter(c => c.delta !== null);
+  const low = withNF.length ? withNF.reduce((m, c) => c.delta < m.delta ? c : m, withNF[0]) : null;
+  const lowAlt = hasAlt ? withNF.filter(c => c.alt).reduce((m, c) => (!m || c.alt.delta < m.alt.delta) ? c : m, null) : null;
+  const lastRow = withNF.length ? withNF[withNF.length - 1] : null;
+  const firstRow = calc[0];
+  const belowYears = withNF.filter(c => c.delta < 0);
+
+  const totClientOutlay = (d ? d.rows : []).reduce((s, r) => s + (r.clientOutlay || 0), 0);
+  const totLenderPrem   = (d ? d.rows : []).reduce((s, r) => s + (r.lenderThisYr || 0), 0);
+  const totInterest     = (d ? d.rows : []).reduce((s, r) => s + (r.interestAccrued || 0), 0);
+  const payoffAmount    = d?.payoffAmount || 0;
+  const payoffAge       = issueAge + payoffYear - 1;
+  const nfTotalPrem     = rowsNF.filter(r => r.age <= 100).reduce((s, r) => s + (r.premium || 0), 0);
+  const nfPayYears      = rowsNF.filter(r => r.age <= 100 && r.premium > 0).length;
+  const outlayDiff      = nfTotalPrem - totClientOutlay;   // + means DEF client puts in less
+
+  // ── Pass 2: table body (tranched) ──
+  let tbody = '', lastShown = null;
+  for (const c of calc) {
+    if (!shouldTranche(c.row.year)) continue;
+    const { row, ln } = c;
+    const isGap = lastShown !== null && row.year - lastShown > 1;
+    lastShown = row.year;
+    const yrCls = isGap ? ' class="yr-jump"' : '';
+    const dCls = c.delta === null ? '' : c.delta < 0 ? 'dneg' : 'dpos';
+    tbody += `<tr class="${c.isPayoff ? 'payoff-yr' : ''}">
+      <td${yrCls}>${row.year}</td><td${yrCls}>${row.age}</td>
+      <td class="sec-div">${c.nf && c.nf.premium > 0 ? $f(c.nf.premium) : '—'}</td>
+      <td>${c.nfCSV == null ? '—' : $f(c.nfCSV)}</td>
+      <td>${c.nfDB == null ? '—' : $f(c.nfDB)}</td>
+      <td class="sec-div ${dCls}">${c.delta == null ? '—' : $fs(c.delta)}</td>
+      <td class="sec-div">${ln.clientOutlay > 0 ? $f(ln.clientOutlay) : '—'}</td>
+      <td>${ln.lenderThisYr > 0 ? $f(ln.lenderThisYr) : '—'}</td>
+      <td>${ln.interestAccrued > 0 ? $f(ln.interestAccrued) : '—'}</td>
+      <td>${ln.cumBalance > 0 ? $f(ln.cumBalance) : '—'}</td>
+      <td>${c.isPayoff ? `<strong style="color:var(--green)">${$f(ln.loanPayoff)}</strong>` : '—'}</td>
+      <td class="sec-div">${$f(row.grossCSV)}</td>
+      <td>${$f(c.defNetCSV)}</td>
+      <td class="db-val">${$f(c.defNetDB)}</td>
+      ${hasAlt ? `<td class="sec-div">${c.alt ? $f(c.alt.netCSV) : '—'}</td><td class="db-val">${c.alt ? $f(c.alt.netDB) : '—'}</td>` : ''}
+    </tr>`;
+  }
+
+  // ── Dynamic read-outs (neutral, derived from the numbers — no pre-written claims) ──
+  const lowTxt = low
+    ? `${low.delta >= 0 ? '+' : ''}${$fs(low.delta)} at Year ${low.row.year} (Age ${low.row.age})`
+    : '—';
+  const floorNote = !low ? '' : belowYears.length === 0
+    ? `<div class="struct-line"><strong>Net death benefit is at or above the non-financed policy in every year shown.</strong> The narrowest gap is ${lowTxt}.</div>`
+    : `<div class="struct-line flag"><strong>DEF net death benefit is below the non-financed policy in ${belowYears.length} year${belowYears.length > 1 ? 's' : ''}</strong> (Years ${belowYears[0].row.year}–${belowYears[belowYears.length - 1].row.year}). The widest gap is ${$fs(low.delta)} at Year ${low.row.year} (Age ${low.row.age}).</div>`;
+
+  const outlayLine = outlayDiff > 0
+    ? `DEF client outlay is ${$f(outlayDiff)} less than the non-financed policy.`
+    : outlayDiff < 0
+      ? `DEF client outlay is ${$f(-outlayDiff)} more than the non-financed policy.`
+      : 'Client outlay is the same on both sides.';
+
+  const html = `
+    <div class="ledger-banner">
+      <div class="banner-client">
+        <div class="name">${clientName}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);font-weight:600;letter-spacing:1px;margin-top:3px">Deferred Enhanced Funding</div>
+        <div style="font-family:'Playfair Display',serif;font-size:13px;color:rgba(255,255,255,.5);font-weight:400;letter-spacing:1px;margin-top:2px">Death Benefit Focus</div>
+        <div class="meta" style="margin-top:3px">${payYears}-Pay · Age ${issueAge} · No Income Distributions · ${dateStr}${advisorName ? ' · ' + advisorName : ''}${targetPremiumVal ? ' · Version ' + Math.round(targetPremiumVal).toLocaleString('en-US') : ''}</div>
+      </div>
+      <div class="banner-stats">
+        <div class="bstat"><div class="bl">DEF Client Investment</div><div class="bv">${$f(totClientOutlay)}</div></div>
+        <div class="bstat"><div class="bl">Non-Financed Investment</div><div class="bv">${$f(nfTotalPrem)}</div></div>
+        <div class="bstat"><div class="bl">Low-Point Advantage${low ? ' · Yr ' + low.row.year : ''}</div><div class="bv">${low ? (low.delta >= 0 ? '+' : '') + $fs(low.delta) : '—'}</div></div>
+        <div class="bstat"><div class="bl">Net DB at Age ${lastRow ? lastRow.row.age : 100}</div><div class="bv">${lastRow ? $f(lastRow.defNetDB) : '—'}</div></div>
+      </div>
+    </div>
+
+    <div class="ledger-tbl-wrap">
+      <table class="ldg">
+        <thead>
+          <tr>
+            <th rowspan="2" style="vertical-align:bottom">Yr</th>
+            <th rowspan="2" style="vertical-align:bottom">Age</th>
+            <th colspan="3" class="tbl-section-hdr sec-div">NON-FINANCED POLICY · SELF-FUNDED</th>
+            <th rowspan="2" class="sec-div" style="vertical-align:bottom">Net DB<br>Advantage</th>
+            <th colspan="5" class="tbl-section-hdr sec-div">DEF · INVESTED CAPITAL</th>
+            <th colspan="3" class="tbl-section-hdr sec-div">DEF · ${rate1Label} GROSS RETURN</th>
+            ${hasAlt ? `<th colspan="2" class="tbl-section-hdr sec-div">DEF · ${rate2Label} GROSS RETURN</th>` : ''}
+          </tr>
+          <tr>
+            <th class="sec-div">Annual Contribution</th><th>Net CSV</th><th>Net DB</th>
+            <th class="sec-div">Client Outlay</th><th>Lender Prem</th><th>Interest Accrued</th><th>Cum Loan Bal</th><th>Loan Payoff</th>
+            <th class="sec-div">Gross CSV</th><th>Net CSV</th><th>Net DB</th>
+            ${hasAlt ? `<th class="sec-div">Net CSV</th><th>Net DB</th>` : ''}
+          </tr>
+        </thead>
+        <tbody>${tbody}</tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2">TOTAL</td>
+            <td class="sec-div" style="text-align:right">${$f(nfTotalPrem)}</td><td>—</td><td>—</td>
+            <td class="sec-div">—</td>
+            <td class="sec-div">${$f(totClientOutlay)}</td>
+            <td>${$f(totLenderPrem)}</td>
+            <td>${$f(totInterest)}</td>
+            <td>—</td>
+            <td>${$f(payoffAmount)}</td>
+            <td class="sec-div">—</td><td>—</td><td>—</td>
+            ${hasAlt ? `<td class="sec-div">—</td><td>—</td>` : ''}
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="comp-strip" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="comp-crd">
+        <div class="ct" style="font-size:10px;letter-spacing:1.5px">NON-FINANCED POLICY · SELF-FUNDED</div>
+        <div class="cv">No Bank. No Leverage.</div>
+        <div class="cstat"><span class="ck">Total Client Investment</span><span class="cv2">${$f(nfTotalPrem)}</span></div>
+        <div class="cstat"><span class="ck">Funding Years</span><span class="cv2">${nfPayYears}</span></div>
+        <div class="cstat"><span class="ck">Year 1 Death Benefit</span><span class="cv2">${nfMap[1] ? $f(nfMap[1].grossDB) : '—'}</span></div>
+        <div class="cstat"><span class="ck">Death Benefit at Age ${lastRow ? lastRow.row.age : 100}</span><span class="cv2">${lastRow ? $f(lastRow.nfDB) : '—'}</span></div>
+      </div>
+      <div class="comp-crd hl">
+        <div class="ct" style="font-size:10px;letter-spacing:1.5px">DEFERRED ENHANCED FUNDING · ${rate1Label} GROSS RETURN</div>
+        <div class="cv">Same Policy Type. Bank-Funded Premium.</div>
+        <div class="cstat"><span class="ck">Total Client Investment</span><span class="cv2">${$f(totClientOutlay)}</span></div>
+        <div class="cstat"><span class="ck">Funding Years</span><span class="cv2">${payYears}</span></div>
+        <div class="cstat"><span class="ck">Bank Loan Retired · Yr ${payoffYear} (Age ${payoffAge})</span><span class="cv2">${$f(payoffAmount)}</span></div>
+        <div class="cstat"><span class="ck">Net Death Benefit at Age ${lastRow ? lastRow.row.age : 100}</span><span class="cv2 g">${lastRow ? $f(lastRow.defNetDB) : '—'}</span></div>
+        <div class="cstat"><span class="ck">External Collateral</span><span class="cv2">None required</span></div>
+      </div>
+      <div class="comp-crd">
+        <div class="ct" style="font-size:10px;letter-spacing:1.5px">DEF VS. NON-FINANCED</div>
+        <div class="cv">The Difference</div>
+        <div class="cstat"><span class="ck">Low-Point Net DB Advantage</span><span class="cv2 ${low && low.delta >= 0 ? 'g' : ''}">${lowTxt}</span></div>
+        <div class="cstat"><span class="ck">Net DB Advantage at Age ${lastRow ? lastRow.row.age : 100}</span><span class="cv2 g">${lastRow ? (lastRow.delta >= 0 ? '+' : '') + $fs(lastRow.delta) : '—'}</span></div>
+        <div class="cstat"><span class="ck">Client Investment Difference</span><span class="cv2">${outlayDiff === 0 ? 'Same' : $fs(Math.abs(outlayDiff)) + (outlayDiff > 0 ? ' less' : ' more')}</span></div>
+        ${hasAlt && lowAlt ? `<div class="cstat"><span class="ck">Low Point @ ${rate2Label} Return</span><span class="cv2">${lowAlt.alt.delta >= 0 ? '+' : ''}${$fs(lowAlt.alt.delta)} · Yr ${lowAlt.row.year}</span></div>` : ''}
+      </div>
+    </div>
+
+    <div class="struct-notes">
+      <div class="struct-title">How to read this ledger</div>
+      <div class="struct-line"><strong>Net death benefit</strong> is the policy death benefit less any outstanding bank loan. No income is taken from either policy. ${outlayLine}</div>
+      <div class="struct-line">The bank loan is secured by the policy itself and is retired in Year ${payoffYear} (Age ${payoffAge}) through a policy loan. No outside assets are pledged.${low && Math.abs(low.row.year - payoffYear) <= 2 ? ' The narrowest point falls near the payoff, when the bank balance is at its peak.' : ''}</div>
+      ${floorNote}
+    </div>
+
+    <div class="ldg-disc" style="margin-top:0;border-top:1px solid var(--border)">
+      <strong>Years shown annually through policy year 50, then in 5-year increments (55, 60, 65…) through year ${maxLedgerYear}${payoffYear > 50 ? ', plus the loan payoff year' : ''}.</strong> Totals, the low point and the age-${lastRow ? lastRow.row.age : 100} figures reflect every policy year, not just the rows displayed.<br>
+      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. Net death benefit equals the illustrated death benefit less the projected bank loan balance. No income or policy distributions are assumed. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${targetPremiumVal ? ' · Version ' + Math.round(targetPremiumVal).toLocaleString('en-US') : ''} · ${dateStr}
+    </div>
+  `;
+
+  document.getElementById('ledger-rendered').innerHTML = html;
+  document.getElementById('ledger-id-label').textContent =
+    `${clientName} · DEF ${payYears}-Pay · Death Benefit Focus · ${rate1Label}${hasAlt ? ' / ' + rate2Label : ''}`;
+  document.getElementById('ledger-upload-step').style.display = 'none';
+  document.getElementById('ledger-output-content').style.display = 'block';
+  setDocButtons(false);
+  window.scrollTo(0, 0);
+
+  window._ledgerResults = {
+    outputMode: 'db',
+    clientName, issueAge, payYears, annualContrib, payoffYear, payoffAge,
+    rate1Label, rate2Label, advisorName, dateStr, hasAlt,
+    defClientOutlay: totClientOutlay, nfClientOutlay: nfTotalPrem,
+    lowPointYear: low ? low.row.year : null, lowPointAge: low ? low.row.age : null,
+    lowPointAdvantage: low ? low.delta : null,
+    lowPointDefNetDB: low ? low.defNetDB : null, lowPointNfDB: low ? low.nfDB : null,
+    endAge: lastRow ? lastRow.row.age : null,
+    endDefNetDB: lastRow ? lastRow.defNetDB : null, endNfDB: lastRow ? lastRow.nfDB : null,
+    defPayoff: payoffAmount
   };
 }
 
@@ -2343,12 +2685,15 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
       '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:0!important;}.topbar,.hdr{display:none!important;}.page{padding:24px!important;max-width:none!important;}@media print{.page{padding:8px!important;}@page{size:11in 17in landscape;margin:0.5cm;}}' +
       '</style></head><body>' + el.innerHTML + '</body></html>';
+      var discHtml = '';
+      if (window._ledgerResults.outputMode !== 'db') {
       if (statusMsg) statusMsg.textContent = 'Capturing discussion document…';
       var discResp = await fetch('/efs-discussion-doc.html');
       var dh = await discResp.text();
       var lrJson = JSON.stringify(window._ledgerResults);
       var injectScript = '<scr'+'ipt>try{var d='+JSON.stringify(lrJson)+';localStorage.setItem("efs_ledger_data",d);}catch(e){}</'+'script>';
-      var discHtml = dh.replace('</head>', injectScript + '</head>');
+      discHtml = dh.replace('</head>', injectScript + '</head>');
+      }
       if (statusMsg) statusMsg.textContent = 'Saving…';
       var sbClient = await getSb();
       var dup = await sbClient.from('sample_cases').select('id').eq('folder',folder).eq('name',name);
