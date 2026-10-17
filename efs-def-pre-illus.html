@@ -1438,7 +1438,8 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
         <td>${ln.equityPrem > 0 ? $f(ln.equityPrem) : '—'}</td>
         <td>${ln.lenderThisYr > 0 ? $f(ln.lenderThisYr) : '—'}</td>
         <td>${ln.totalPrem > 0 ? $f(ln.totalPrem) : '—'}</td>
-        <td>${ln.interestAccrued > 0 ? $f(ln.interestAccrued) : '—'}</td>
+        <td>${ln.interestAccrued > 0 ? pf(ln.effectiveRate) : '—'}</td>
+      <td>${ln.interestAccrued > 0 ? $f(ln.interestAccrued) : '—'}</td>
         <td>${ln.cumBalance > 0 ? $f(ln.cumBalance) : '—'}</td>
         <td>${isPayoff ? `<strong style="color:var(--green)">${$f(ln.loanPayoff)}</strong>` : '—'}</td>
         <td class="sec-div ${isIncome?'income-val':''}">${isIncome ? $f(row.annualIncome) : '—'}</td>
@@ -1509,13 +1510,13 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
           <tr>
             <th rowspan="2" style="vertical-align:bottom">Yr</th>
             <th rowspan="2" style="vertical-align:bottom">Age</th>
-            <th colspan="7" class="tbl-section-hdr">INVESTED CAPITAL</th>
+            <th colspan="8" class="tbl-section-hdr">INVESTED CAPITAL</th>
             <th colspan="5" class="tbl-section-hdr sec-div">DEFERRED ENHANCED FUNDING · ${rate1Label}% GROSS RETURN</th>
             <th colspan="5" class="tbl-section-hdr sec-div">DEFERRED ENHANCED FUNDING · ${rate2Label}% GROSS RETURN</th>
           </tr>
           <tr>
             <th>Client Outlay</th><th>Equity Prem</th><th>Lender Prem</th>
-            <th>Total Prem</th><th>Interest Accrued</th><th>Cum Loan Bal</th><th>Loan Payoff</th>
+            <th>Total Prem</th><th>Loan Rate</th><th>Interest Accrued</th><th>Cum Loan Bal</th><th>Loan Payoff</th>
             <th class="sec-div">Annual Income</th><th>Accum Value</th><th>Gross CSV</th><th>Net CSV</th><th>Net DB</th>
             <th class="sec-div">Annual Income</th><th>Accum Value</th><th>Gross CSV</th><th>Net CSV</th><th>Net DB</th>
           </tr>
@@ -1799,6 +1800,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
       <td class="sec-div ${dCls}">${c.delta == null ? '—' : $fs(c.delta)}</td>
       <td class="sec-div">${ln.clientOutlay > 0 ? $f(ln.clientOutlay) : '—'}</td>
       <td>${ln.lenderThisYr > 0 ? $f(ln.lenderThisYr) : '—'}</td>
+      <td>${ln.interestAccrued > 0 ? pf(ln.effectiveRate) : '—'}</td>
       <td>${ln.interestAccrued > 0 ? $f(ln.interestAccrued) : '—'}</td>
       <td>${ln.cumBalance > 0 ? $f(ln.cumBalance) : '—'}</td>
       <td>${c.isPayoff ? `<strong style="color:var(--green)">${$f(ln.loanPayoff)}</strong>` : '—'}</td>
@@ -1847,13 +1849,13 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
             <th rowspan="2" style="vertical-align:bottom">Age</th>
             <th colspan="3" class="tbl-section-hdr sec-div">NON-FINANCED POLICY · SELF-FUNDED</th>
             <th rowspan="2" class="sec-div" style="vertical-align:bottom">Net DB<br>Advantage</th>
-            <th colspan="5" class="tbl-section-hdr sec-div">DEF · INVESTED CAPITAL</th>
+            <th colspan="6" class="tbl-section-hdr sec-div">DEF · INVESTED CAPITAL</th>
             <th colspan="3" class="tbl-section-hdr sec-div">DEF · ${rate1Label} GROSS RETURN</th>
             ${hasAlt ? `<th colspan="2" class="tbl-section-hdr sec-div">DEF · ${rate2Label} GROSS RETURN</th>` : ''}
           </tr>
           <tr>
             <th class="sec-div">Annual Contribution</th><th>Net CSV</th><th>Net DB</th>
-            <th class="sec-div">Client Outlay</th><th>Lender Prem</th><th>Interest Accrued</th><th>Cum Loan Bal</th><th>Loan Payoff</th>
+            <th class="sec-div">Client Outlay</th><th>Lender Prem</th><th>Loan Rate</th><th>Interest Accrued</th><th>Cum Loan Bal</th><th>Loan Payoff</th>
             <th class="sec-div">Gross CSV</th><th>Net CSV</th><th>Net DB</th>
             ${hasAlt ? `<th class="sec-div">Net CSV</th><th>Net DB</th>` : ''}
           </tr>
@@ -1866,6 +1868,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
             <td class="sec-div">—</td>
             <td class="sec-div">${$f(totClientOutlay)}</td>
             <td>${$f(totLenderPrem)}</td>
+            <td>—</td>
             <td>${$f(totInterest)}</td>
             <td>—</td>
             <td>${$f(payoffAmount)}</td>
