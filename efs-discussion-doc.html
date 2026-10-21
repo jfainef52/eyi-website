@@ -1745,7 +1745,7 @@
     if (el) el.textContent = fa(r.totalClientOutlay);
     // Contribution description
     el = document.getElementById('doc-contrib-desc');
-    if (el) el.textContent = fa(r.annualContrib) + '/yr · ' + r.payYears + ' years · Ages ' + r.issueAge + '–' + (r.issueAge + r.payYears - 1);
+    if (el) el.textContent = fa(r.annualContrib) + '/yr · ' + r.payYears + ' years · Ages ' + r.issueAge + '–' + (r.issueAge + r.payYears - 1) + (r.exchValue > 0 ? ' · plus ' + fa(r.exchValue) + ' 1035 exchange' : '');
     // Total income
     el = document.getElementById('doc-total-income');
     if (el) el.textContent = fa(r.defTotalIncome);
@@ -1757,7 +1757,7 @@
     el = document.getElementById('doc-sidebar-contrib');
     if (el) el.textContent = '$' + Math.round(r.annualContrib).toLocaleString() + '/yr';
     el = document.getElementById('doc-sidebar-pay-years');
-    if (el) el.textContent = 'for ' + r.payYears + ' years';
+    if (el) el.textContent = 'for ' + r.payYears + ' years' + (r.exchValue > 0 ? ' + ' + fa(r.exchValue) + ' 1035 exchange' : '');
     // Sidebar income ages
     el = document.getElementById('doc-sidebar-income-ages');
     if (el) el.textContent = r.incomeStartAge + ' – ' + r.incomeEndAge;
