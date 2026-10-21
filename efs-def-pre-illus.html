@@ -223,6 +223,14 @@ table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:ce
         </div>
 
         <div class="field-group">
+          <label class="field-label">1035 Exchange Value In ($) <span style="opacity:.6;font-weight:400;text-transform:none;letter-spacing:0">· optional</span></label>
+          <div class="field">
+            <input type="text" id="exch1035" placeholder="ex. 250,000" inputmode="numeric" autocomplete="off" />
+          </div>
+          <div class="sofr-status" id="exch-hint">Net value from an existing policy being replaced. Enters in Year 1 on top of the premium schedule. It is not borrowed against and does not change the lender premium, fees or loan.</div>
+        </div>
+
+        <div class="field-group">
           <div class="field-row">
             <div class="field">
               <label class="field-label">Client Pay Years (5–15)</label>
@@ -409,7 +417,9 @@ function isLeapYear(y) {
 }
 
 // ── YEAR-BY-YEAR SCHEDULE ──
-function buildSchedule(clientContrib, payYears, payoffYear, sofrBase, issueAge) {
+// exchValue = 1035 exchange value in. Carried on Year 1 as its own field (exchPrem) and NEVER touches
+// equityPrem / lenderThisYr / totalPrem / loan balance, so the premium formula is unchanged.
+function buildSchedule(clientContrib, payYears, payoffYear, sofrBase, issueAge, exchValue = 0) {
     const _compEl = document.getElementById('companionApp'); const feeSplit = (_compEl && _compEl.checked) ? 0.5 : 1.0;
   const totalPremYears = payYears + 2;
   const lenderPrem = calcLenderPrem(clientContrib);
@@ -491,6 +501,7 @@ function buildSchedule(clientContrib, payYears, payoffYear, sofrBase, issueAge) 
 
     rows.push({
       yr, age, clientOutlay, equityPrem, lenderThisYr, totalPrem,
+      exchPrem: yr === 1 ? (exchValue || 0) : 0,
       effectiveRate, interestAccrued, cumBalance, loanPayoff, isPayoff,
       phase: yr <= 2 ? 'client' : yr <= payYears ? 'client-lender' : yr <= totalPremYears ? 'lender' : yr < payoffYear ? 'maint' : 'payoff'
     });
@@ -510,6 +521,8 @@ function calculate() {
   const gender = document.getElementById('gender').value;
   const health = document.getElementById('health').value;
   const clientContrib = parseContrib();
+  const exchValue = parseExch();
+  const hasExch = exchValue > 0;
   const payYears = parseInt(document.getElementById('payYears').value);
   const payoffYear = parseInt(document.getElementById('payoffYear').value);
   if (isNaN(payoffYear)) return alert('Please select a loan payoff year.');
@@ -531,7 +544,7 @@ function calculate() {
   if (isNaN(sofrBase)) return alert('SOFR rate required.');
 
   const { rows, lenderPrem, totalPremYears } = buildSchedule(
-    clientContrib, payYears, payoffYear, sofrBase, issueAge
+    clientContrib, payYears, payoffYear, sofrBase, issueAge, exchValue
   );
 
   const payoffRow = rows.find(r => r.isPayoff);
@@ -564,6 +577,7 @@ function calculate() {
       <td>${r.equityPrem > 0 ? $f(r.equityPrem) : '—'}</td>
       <td>${r.lenderThisYr > 0 ? $f(r.lenderThisYr) : '—'}</td>
       <td>${r.totalPrem > 0 ? $f(r.totalPrem) : '—'}</td>
+      ${hasExch ? `<td>${r.exchPrem > 0 ? $f(r.exchPrem) : '—'}</td>` : ''}
       <td>${pf(r.effectiveRate)}</td>
       <td>${r.interestAccrued > 0 ? $f(r.interestAccrued) : '—'}</td>
       <td>${r.cumBalance > 0 ? $f(r.cumBalance) : '—'}</td>
@@ -589,7 +603,7 @@ function calculate() {
       <div class="ko-card">
         <div class="ko-label">Total Client Investment</div>
         <div class="ko-value">${$f(totalClientOutlay)}</div>
-        <div class="ko-sub">${payYears} × ${$f(clientContrib)}</div>
+        <div class="ko-sub">${payYears} × ${$f(clientContrib)}${hasExch ? ` · plus ${$f(exchValue)} 1035 exchange` : ''}</div>
       </div>
     </div>
 
@@ -613,6 +627,7 @@ function calculate() {
           <div class="instr-item"><span class="instr-key">Premium Yr 1</span><span class="instr-val highlight">${$f(rows[0]?.equityPrem)}</span></div>
           <div class="instr-item"><span class="instr-key">Premium Yr 2</span><span class="instr-val highlight">${$f(rows[1]?.equityPrem)}</span></div>
           <div class="instr-item"><span class="instr-key">Premium Yrs 3–${totalPremYears}</span><span class="instr-val highlight">${$f(rows[2]?.totalPrem)} / yr</span></div>
+          ${hasExch ? `<div class="instr-item"><span class="instr-key">1035 Exchange In · Yr 1</span><span class="instr-val highlight">${$f(exchValue)}</span></div>` : ''}
           <div class="instr-item"><span class="instr-key">Loan Payoff in Yr ${payoffYear} · Age ${issueAge + payoffYear - 1}</span><span class="instr-val highlight">${$f(payoffAmount)}</span></div>
           <div class="instr-item"><span class="instr-key">Net CSV Needed in Yr 3</span><span class="instr-val highlight">${$f(csvTarget)}</span></div>
         </div>
@@ -649,6 +664,7 @@ function calculate() {
               <th>Equity Prem</th>
               <th>Lender Prem</th>
               <th>Total Prem</th>
+              ${hasExch ? '<th>1035 Exch</th>' : ''}
               <th>Eff. Rate</th>
               <th>Interest Accrued</th>
               <th>Cum Loan Balance</th>
@@ -663,6 +679,7 @@ function calculate() {
               <td>—</td>
               <td>${$f(totalLenderPrem)}</td>
               <td>${$f(totalPremium)}</td>
+              ${hasExch ? `<td>${$f(exchValue)}</td>` : ''}
               <td colspan="3">—</td>
               <td>${$f(payoffAmount)}</td>
             </tr>
@@ -677,6 +694,18 @@ function calculate() {
 
     <!-- GUARDRAIL FLAGS -->
     ${buildGuardrails(rows, payYears, totalPremYears, payoffYear, clientContrib, csvTarget, issueAge, incomeStartAge, incomeEndAge, isDB)}
+    ${hasExch ? `<div style="background:#fffbf0;border:1px solid rgba(201,168,76,.3);border-radius:5px;padding:14px 18px;margin-bottom:16px">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px">1035 Exchange — ${$f(exchValue)} in at issue</div>
+      ${[
+        ['NOTE', `Premium structure is unchanged. Lender premium stays at ${$f(lenderPrem)}/yr, set by the client contribution alone. Fees, loan balance, interest and payoff all exclude the exchange.`],
+        ['NOTE', `Enter the ${$f(exchValue)} in the carrier illustration as a 1035 exchange in Year 1, in addition to the planned premiums above. Do not reduce the planned or lender premium to offset it.`],
+        ['NOTE', `The Yr 3 net CSV target above is still 130% of the loan balance. The exchange adds cash value on top of that, so confirm the carrier design is still hitting the target with the full scheduled premiums.`],
+        ['NOTE', `Run the ${isDB ? 'non-financed policy' : 'non-financed LIRP'} with the same ${$f(exchValue)} 1035 in Year 1 so the comparison stays like-for-like.${isDB ? '' : ' The taxable account comparison also starts with this amount.'}`],
+        ['WARN', `Confirm with the carrier that Year 1 premium plus the exchange stays non-MEC (or that a MEC is intended). Use the net exchange value after any surrender charge and any loan on the old policy, and make sure the transfer is carrier to carrier, not a surrender and re-deposit.`]
+      ].map(([lvl, msg], i, a) => `<div style="display:flex;gap:10px;margin-bottom:${i === a.length - 1 ? '0' : '10px'};font-size:12px;align-items:baseline">
+        <span style="background:${lvl === 'WARN' ? '#7a5500' : '#4a4a00'};color:#fff;font-size:9px;padding:2px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0">${lvl}</span>
+        <span style="color:var(--text);line-height:1.5">${msg}</span></div>`).join('')}
+    </div>` : ''}
 
     <div class="disc">
       <strong>EFS LIFE LLC — INTERNAL USE ONLY.</strong> This pre-illustration modeler is a planning tool for agent use in preparing carrier illustration requests. The loan balance projections are estimates based on the current 90-Day Average SOFR (${(sofrBase*100).toFixed(2)}%) plus a spread of 185 basis points, subject to a 4.00% effective floor, projected using a ${rateEnv === 'ease' ? 'modest easing' : rateEnv === 'tight' ? 'tightening' : 'flat'} rate environment assumption. Actual loan balances, interest rates, and payoff amounts will vary. All illustrations must be accompanied by a complete insurance company illustration. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. This document does not constitute investment advice. Confidential — EFS Life LLC · EFSLife.com
@@ -687,7 +716,7 @@ function calculate() {
   window._defData = {
     clientName, advisorName: '', issueAge, gender, health,
     payYears, payoffYear, annualContrib: clientContrib,
-    totalPremYears, rows, lenderPrem,
+    totalPremYears, rows, lenderPrem, exchValue,
     payoffAmount, csvTarget, totalClientOutlay,
     outputMode, incomeStartAge: isDB ? null : incomeStartAge, incomeEndAge: isDB ? null : incomeEndAge,
     rate1Label: '', rate2Label: '',
@@ -801,6 +830,17 @@ document.getElementById('clientContrib').addEventListener('input', function() {
   this.value = parseInt(raw, 10).toLocaleString('en-US');
 });
 
+document.getElementById('exch1035').addEventListener('input', function() {
+  const raw = this.value.replace(/[^0-9]/g, '');
+  if (raw === '') { this.value = ''; return; }
+  this.value = parseInt(raw, 10).toLocaleString('en-US');
+});
+// 1035 exchange value (0 when blank). Never feeds the premium formula.
+function parseExch() {
+  const v = parseFloat((document.getElementById('exch1035').value || '').replace(/,/g, ''));
+  return isNaN(v) || v < 0 ? 0 : v;
+}
+
 // Helper to parse formatted contribution back to number
 function parseContrib() {
   return parseFloat(document.getElementById('clientContrib').value.replace(/,/g, ''));
@@ -872,6 +912,7 @@ function proceedToLedger() {
     ['Contribution', `$${Math.round(d.annualContrib).toLocaleString()} / yr`],
     ['Pay Period', `${d.payYears}-Pay`],
     ['Loan Payoff', `Yr ${d.payoffYear} · $${Math.round(d.payoffAmount).toLocaleString()}`],
+    ...(d.exchValue > 0 ? [['1035 Exchange', `$${Math.round(d.exchValue).toLocaleString()}`]] : []),
     d.outputMode === 'db' ? ['Output', 'Death Benefit Focus'] : ['Income Ages', `${d.incomeStartAge} – ${d.incomeEndAge}`],
   ];
   document.getElementById('l-summary-display').innerHTML = items.map(([label, val]) =>
@@ -880,6 +921,8 @@ function proceedToLedger() {
   ).join('');
 
   configureLedgerUpload(d.outputMode === 'db');
+  const exchOpt = document.getElementById('l-exch-opt');
+  if (exchOpt) exchOpt.style.display = (d.outputMode === 'db' && d.exchValue > 0) ? 'block' : 'none';
   document.getElementById('intake-panel').style.display = 'none';
   document.getElementById('ledger-panel').style.display = 'block';
   document.getElementById('ledger-upload-step').style.display = 'block';
@@ -1103,6 +1146,12 @@ table.ldg tbody td.db-val { font-weight:600; color:var(--navy); }
       </div>
     </div>
 
+    <div id="l-exch-opt" style="display:none;margin-bottom:16px;padding:10px 14px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:4px;font-size:12px;color:var(--navy)">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="l-exch-incl" checked style="accent-color:#C8973A">
+        <span>The non-financed CSV shows the 1035 exchange inside its Year 1 premium. Uncheck if the carrier reports it outside the premium column.</span>
+      </label>
+    </div>
     <div id="ledger-error" style="display:none;background:var(--red-lt);border:1px solid rgba(139,32,32,.3);border-radius:4px;color:var(--red);font-size:13px;padding:12px 16px;margin-bottom:16px;"></div>
     <button class="gen-ledger-btn" id="l-gen-btn" onclick="generateLedger()">Generate Income Ledger →</button>
   </div>
@@ -1205,7 +1254,8 @@ function parseCarrierCSV(text) {
 }
 
 // ── INVESTMENT ACCOUNT (solved to zero, 15% cap gains on withdrawals) ──
-function calcInvAccount(annualContrib, payYears, netRate, issueAge, incomeStartAge, incomeEndAge, defRows, capGainsRate) {
+// exchValue: 1035 exchange value, treated as an extra Year 1 deposit so the taxable comparison starts with the same dollars.
+function calcInvAccount(annualContrib, payYears, netRate, issueAge, incomeStartAge, incomeEndAge, defRows, capGainsRate, exchValue = 0) {
   const issueYear = new Date().getFullYear();
   const incomeYears = incomeEndAge - incomeStartAge + 1;
 
@@ -1214,7 +1264,7 @@ function calcInvAccount(annualContrib, payYears, netRate, issueAge, incomeStartA
   let balance = 0;
   for (const row of defRows) {
     if (row.age >= incomeStartAge) break; // stop BEFORE income start age
-    const contrib = row.year <= payYears ? annualContrib : 0;
+    const contrib = (row.year <= payYears ? annualContrib : 0) + (row.year === 1 ? exchValue : 0);
     const calYr = issueYear + row.year - 1;
     const isLeap = (calYr % 4 === 0 && calYr % 100 !== 0) || calYr % 400 === 0;
     balance = (balance + contrib) * (1 + netRate * (isLeap ? 366/365 : 1));
@@ -1237,7 +1287,7 @@ function calcInvAccount(annualContrib, payYears, netRate, issueAge, incomeStartA
   let runBal = 0;
   for (const row of defRows) {
     if (row.age > 100) break;
-    const contrib = row.year <= payYears ? annualContrib : 0;
+    const contrib = (row.year <= payYears ? annualContrib : 0) + (row.year === 1 ? exchValue : 0);
     const calYr = issueYear + row.year - 1;
     const isLeap = (calYr % 4 === 0 && calYr % 100 !== 0) || calYr % 400 === 0;
     const growthRate = netRate * (isLeap ? 366/365 : 1);
@@ -1326,7 +1376,7 @@ const [t1, t2] = await Promise.all([readLedgerFile(lFiles.lcsv1), readLedgerFile
     // Investment account calc with 15% cap gains on withdrawals
     const { invRows, annualGrossWithdrawal, annualNetWithdrawal } = calcInvAccount(
       annualContrib, payYears, netRate, issueAge,
-      incomeStartAge, incomeEndAge, rows1, CAP_GAINS_RATE
+      incomeStartAge, incomeEndAge, rows1, CAP_GAINS_RATE, d?.exchValue || 0
     );
 
     const invMap = {};
@@ -1374,6 +1424,10 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
     payoffYear, hasLIRP }) {
 
   const totalClientOutlay = payYears * annualContrib;
+  const exchValue = d?.exchValue || 0;
+  const hasExch = exchValue > 0;
+  const exchLine = hasExch ? `<div class="cstat"><span class="ck">1035 Exchange In (Yr 1)</span><span class="cv2">${$f(exchValue)}</span></div>` : '';
+  const exchNote = hasExch ? `<strong>1035 EXCHANGE.</strong> ${$f(exchValue)} of value from an existing policy is included in Year 1 of the DEF, the self-funded LIRP and the taxable account. It is not borrowed against and is not part of the premium formula. The taxable account assumes the full amount is deposited, with no tax on any gain in the replaced policy.<br>` : '';
 
   // Identify payoff row — large one-time loan equal to bank payoff, NOT recurring income
   // In CSV: payoff year has annualIncome = loan = large amount matching payoffYear
@@ -1438,6 +1492,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
         <td>${ln.equityPrem > 0 ? $f(ln.equityPrem) : '—'}</td>
         <td>${ln.lenderThisYr > 0 ? $f(ln.lenderThisYr) : '—'}</td>
         <td>${ln.totalPrem > 0 ? $f(ln.totalPrem) : '—'}</td>
+        ${hasExch ? `<td>${ln.exchPrem > 0 ? $f(ln.exchPrem) : '—'}</td>` : ''}
         <td>${ln.interestAccrued > 0 ? pf(ln.effectiveRate) : '—'}</td>
       <td>${ln.interestAccrued > 0 ? $f(ln.interestAccrued) : '—'}</td>
         <td>${ln.cumBalance > 0 ? $f(ln.cumBalance) : '—'}</td>
@@ -1476,6 +1531,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
       tbodyCombined += `<tr class="${lirpIncome || invIncome ? 'income-yr' : ''}">
         <td${yrCls}>${row.year}</td><td${yrCls}>${row.age}</td>
         <td>${sharedContrib > 0 ? $f(sharedContrib) : '—'}</td>
+        ${hasExch ? `<td>${row.year === 1 ? $f(exchValue) : '—'}</td>` : ''}
         <td class="sec-div ${lirpIncome?'income-val':''}">${lirpIncome ? $f(lr.annualIncome) : '—'}</td>
         <td>${$f(lr.accumValue)}</td>
         <td>${$f(lr.grossCSV)}</td>
@@ -1498,6 +1554,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
       </div>
       <div class="banner-stats">
         <div class="bstat"><div class="bl">Total Client Investment</div><div class="bv">${$f(totalClientOutlay)}</div></div>
+        ${hasExch ? `<div class="bstat"><div class="bl">1035 Exchange In</div><div class="bv">${$f(exchValue)}</div></div>` : ''}
         <div class="bstat"><div class="bl">Total Income @ ${rate1Label}% Gross</div><div class="bv">${$f(totalIncome1)}</div></div>
         <div class="bstat"><div class="bl">Total Income @ ${rate2Label}% Gross</div><div class="bv">${$f(totalIncome2)}</div></div>
         <div class="bstat"><div class="bl">Income Ages</div><div class="bv">${incomeStartAge}–${incomeEndAge}</div></div>
@@ -1510,13 +1567,13 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
           <tr>
             <th rowspan="2" style="vertical-align:bottom">Yr</th>
             <th rowspan="2" style="vertical-align:bottom">Age</th>
-            <th colspan="8" class="tbl-section-hdr">INVESTED CAPITAL</th>
+            <th colspan="${hasExch ? 9 : 8}" class="tbl-section-hdr">INVESTED CAPITAL</th>
             <th colspan="5" class="tbl-section-hdr sec-div">DEFERRED ENHANCED FUNDING · ${rate1Label}% GROSS RETURN</th>
             <th colspan="5" class="tbl-section-hdr sec-div">DEFERRED ENHANCED FUNDING · ${rate2Label}% GROSS RETURN</th>
           </tr>
           <tr>
             <th>Client Outlay</th><th>Equity Prem</th><th>Lender Prem</th>
-            <th>Total Prem</th><th>Loan Rate</th><th>Interest Accrued</th><th>Cum Loan Bal</th><th>Loan Payoff</th>
+            <th>Total Prem</th>${hasExch ? '<th>1035 Exch</th>' : ''}<th>Loan Rate</th><th>Interest Accrued</th><th>Cum Loan Bal</th><th>Loan Payoff</th>
             <th class="sec-div">Annual Income</th><th>Accum Value</th><th>Gross CSV</th><th>Net CSV</th><th>Net DB</th>
             <th class="sec-div">Annual Income</th><th>Accum Value</th><th>Gross CSV</th><th>Net CSV</th><th>Net DB</th>
           </tr>
@@ -1532,6 +1589,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
         <div class="cstat"><span class="ck">Income Ages</span><span class="cv2">${incomeStartAge}–${incomeEndAge}</span></div>
         <div class="cstat"><span class="ck">Total Lifetime Income</span><span class="cv2 g">${$f(totIncome1)}</span></div>
         <div class="cstat"><span class="ck">Total Client Investment</span><span class="cv2">${$f(totalClientOutlay)}</span></div>
+        ${exchLine}
       </div>
       <div class="comp-crd">
         <div class="ct" style="font-size:10px;letter-spacing:1.5px">DEFERRED ENHANCED FUNDING · ${rate2Label}% GROSS RETURN</div>
@@ -1549,7 +1607,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
       </div>
     </div>
 
-    <div class="ldg-disc" style="margin-top:0;border-top:1px solid var(--border)">
+    <div class="ldg-disc" style="margin-top:0;border-top:1px solid var(--border)">${exchNote}
       <strong>Years shown annually through policy year 50, then in 5-year increments (55, 60, 65…) through year ${maxLedgerYear}${payoffYear > 50 ? ', plus the loan payoff year' : ''}.</strong> All totals reflect every policy year, not just the rows displayed.<br>
       <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${targetPremiumVal ? ' · Version ' + Math.round(targetPremiumVal).toLocaleString('en-US') : ''} · ${dateStr}
     </div>
@@ -1567,6 +1625,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
             <th rowspan="2" style="vertical-align:bottom">Yr</th>
             <th rowspan="2" style="vertical-align:bottom">Age</th>
             <th rowspan="2" style="vertical-align:bottom">Client<br>Contribution</th>
+            ${hasExch ? '<th rowspan="2" style="vertical-align:bottom">1035<br>Exchange</th>' : ''}
             <th colspan="4" class="tbl-section-hdr sec-div">ROTH ALTERNATIVE — SELF-FUNDED LIRP · ${rate1Label}% GROSS RETURN</th>
             <th colspan="3" class="tbl-section-hdr sec-div">TAXABLE INVESTMENT ACCOUNT · ${rate1Label}% Net Return · 15% CG</th>
           </tr>
@@ -1585,6 +1644,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
         <div class="cstat"><span class="ck">Total Lifetime Income</span><span class="cv2">${$f(totalLirpIncome)}</span></div>
         <div class="cstat"><span class="ck">Income Ages</span><span class="cv2">${incomeStartAge}\u2013${incomeEndAge}</span></div>
         <div class="cstat"><span class="ck">Total Client Investment</span><span class="cv2">${$f(totalClientOutlay)}</span></div>
+        ${exchLine}
       </div>
       <div class="comp-crd">
         <div class="ct" style="font-size:10px;letter-spacing:1.5px">TAXABLE INVESTMENT ACCOUNT · ${rate1Label}% NET RETURN</div>
@@ -1592,6 +1652,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
         <div class="cstat"><span class="ck">Total Lifetime Net Income</span><span class="cv2">${$f(totalInvNet)}</span></div>
         <div class="cstat"><span class="ck">Income Ages</span><span class="cv2">${incomeStartAge}\u2013${incomeEndAge}</span></div>
         <div class="cstat"><span class="ck">Total Client Investment</span><span class="cv2">${$f(totalClientOutlay)}</span></div>
+        ${exchLine}
       </div>
       <div class="comp-crd hl">
         <div class="ct" style="font-size:10px;letter-spacing:1.5px">SAME CONTRIBUTION · DIFFERENT OUTCOMES</div>
@@ -1606,18 +1667,18 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
       <table class="ldg">
         <thead>
           <tr>
-            <th>Yr</th><th>Age</th><th>Client Contribution</th>
+            <th>Yr</th><th>Age</th><th>Client Contribution</th>${hasExch ? '<th>1035 Exchange</th>' : ''}
             <th>Gross Withdrawal</th><th>Net After 15% CG</th><th>EOY Balance</th>
           </tr>
         </thead>
         <tbody>
-          ${invRowsArr.filter(r => shouldTranche(r.year)).map((r, i, arr) => { const isGap = i > 0 && r.year - arr[i-1].year > 1; const yrCls = isGap ? ' class="yr-jump"' : ''; return `<tr class="${r.grossWithdrawal>0?'income-yr':''}">\n            <td${yrCls}>${r.year}</td><td${yrCls}>${r.age}</td>\n            <td>${r.contrib > 0 ? $f(r.contrib) : '\u2014'}</td>\n            <td class="${r.grossWithdrawal>0?'income-val':''}">${r.grossWithdrawal > 0 ? $f(r.grossWithdrawal) : '\u2014'}</td>\n            <td class="${r.netWithdrawal>0?'income-val':''}">${r.netWithdrawal > 0 ? $f(r.netWithdrawal) : '\u2014'}</td>\n            <td>${r.balance > 100 ? $f(r.balance) : r.age >= incomeStartAge ? '<strong style="color:var(--muted)">$0</strong>' : '\u2014'}</td>\n          </tr>`; }).join('')}
+          ${invRowsArr.filter(r => shouldTranche(r.year)).map((r, i, arr) => { const isGap = i > 0 && r.year - arr[i-1].year > 1; const yrCls = isGap ? ' class="yr-jump"' : ''; return `<tr class="${r.grossWithdrawal>0?'income-yr':''}">\n            <td${yrCls}>${r.year}</td><td${yrCls}>${r.age}</td>\n            <td>${(r.contrib - (r.year === 1 ? exchValue : 0)) > 0 ? $f(r.contrib - (r.year === 1 ? exchValue : 0)) : '\u2014'}</td>${hasExch ? `<td>${r.year === 1 ? $f(exchValue) : '\\u2014'}</td>` : ''}\n            <td class="${r.grossWithdrawal>0?'income-val':''}">${r.grossWithdrawal > 0 ? $f(r.grossWithdrawal) : '\u2014'}</td>\n            <td class="${r.netWithdrawal>0?'income-val':''}">${r.netWithdrawal > 0 ? $f(r.netWithdrawal) : '\u2014'}</td>\n            <td>${r.balance > 100 ? $f(r.balance) : r.age >= incomeStartAge ? '<strong style="color:var(--muted)">$0</strong>' : '\u2014'}</td>\n          </tr>`; }).join('')}
         </tbody>
       </table>
     </div>
     `}
 
-    <div class="ldg-disc" style="display:flex;align-items:center;gap:14px;"><div style="flex:1">
+    <div class="ldg-disc" style="display:flex;align-items:center;gap:14px;"><div style="flex:1">${exchNote}
       <strong>Years shown annually through policy year 50, then in 5-year increments (55, 60, 65…) through year ${maxLedgerYear}.</strong> All totals reflect every policy year, not just the rows displayed.<br>
       <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. The investment account comparison assumes a ${rate1Label}% net return and a 15% capital gains tax rate on all distributions — a simplified assumption. Actual tax treatment varies by individual circumstances. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${targetPremiumVal ? ' · Version ' + Math.round(targetPremiumVal).toLocaleString('en-US') : ''} · ${dateStr}
     </div></div>
@@ -1633,7 +1694,7 @@ function renderLedger({ d, rows1, r2Map, loanMap, invMap, lirpMap,
 
   // Store results globally for discussion doc
   window._ledgerResults = {
-    clientName, issueAge, payYears, annualContrib, payoffYear,
+    clientName, issueAge, payYears, annualContrib, payoffYear, exchValue,
     incomeStartAge, incomeEndAge, totalClientOutlay,
     rate1Label, rate2Label, advisorName, dateStr,
     defTotalIncome: totIncome1,
@@ -1735,6 +1796,11 @@ async function generateDBLedger() {
 function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advisorName, dateStr,
     targetPremiumVal, clientName, issueAge, payYears, annualContrib, payoffYear }) {
 
+  const exchValue = d?.exchValue || 0;
+  const hasExch = exchValue > 0;
+  const exchInNF = (hasExch && document.getElementById('l-exch-incl')?.checked !== false) ? exchValue : 0;
+  const exchLine = hasExch ? `<div class="cstat"><span class="ck">1035 Exchange In (Yr 1)</span><span class="cv2">${$f(exchValue)}</span></div>` : '';
+  const exchNote = hasExch ? `<strong>1035 EXCHANGE.</strong> ${$f(exchValue)} of value from an existing policy is included in Year 1 of both the DEF and the non-financed policy. It is not borrowed against and is not part of the premium formula. Client investment is shown before the exchange on both sides.<br>` : '';
   const $fs = n => n == null || isNaN(n) ? '—' : (n < 0 ? '−$' + Math.abs(Math.round(n)).toLocaleString() : (Math.round(n) === 0 ? '—' : '$' + Math.round(n).toLocaleString()));
   const hasAlt = !!rows2;
 
@@ -1779,7 +1845,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
   const totInterest     = (d ? d.rows : []).reduce((s, r) => s + (r.interestAccrued || 0), 0);
   const payoffAmount    = d?.payoffAmount || 0;
   const payoffAge       = issueAge + payoffYear - 1;
-  const nfTotalPrem     = rowsNF.filter(r => r.age <= 100).reduce((s, r) => s + (r.premium || 0), 0);
+  const nfTotalPrem     = Math.max(0, rowsNF.filter(r => r.age <= 100).reduce((s, r) => s + (r.premium || 0), 0) - exchInNF);
   const nfPayYears      = rowsNF.filter(r => r.age <= 100 && r.premium > 0).length;
   const outlayDiff      = nfTotalPrem - totClientOutlay;   // + means DEF client puts in less
 
@@ -1794,7 +1860,8 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
     const dCls = c.delta === null ? '' : c.delta < 0 ? 'dneg' : 'dpos';
     tbody += `<tr class="${c.isPayoff ? 'payoff-yr' : ''}">
       <td${yrCls}>${row.year}</td><td${yrCls}>${row.age}</td>
-      <td class="sec-div">${c.nf && c.nf.premium > 0 ? $f(c.nf.premium) : '—'}</td>
+      ${hasExch ? `<td class="sec-div">${row.year === 1 ? $f(exchValue) : '—'}</td>` : ''}
+      <td class="sec-div">${c.nf && (c.nf.premium - (row.year === 1 ? exchInNF : 0)) > 0 ? $f(c.nf.premium - (row.year === 1 ? exchInNF : 0)) : '—'}</td>
       <td>${c.nfCSV == null ? '—' : $f(c.nfCSV)}</td>
       <td>${c.nfDB == null ? '—' : $f(c.nfDB)}</td>
       <td class="sec-div ${dCls}">${c.delta == null ? '—' : $fs(c.delta)}</td>
@@ -1836,6 +1903,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
       <div class="banner-stats">
         <div class="bstat"><div class="bl">DEF Client Investment</div><div class="bv">${$f(totClientOutlay)}</div></div>
         <div class="bstat"><div class="bl">Non-Financed Investment</div><div class="bv">${$f(nfTotalPrem)}</div></div>
+        ${hasExch ? `<div class="bstat"><div class="bl">1035 Exchange In</div><div class="bv">${$f(exchValue)}</div></div>` : ''}
         <div class="bstat"><div class="bl">Low-Point Advantage${low ? ' · Yr ' + low.row.year : ''}</div><div class="bv">${low ? (low.delta >= 0 ? '+' : '') + $fs(low.delta) : '—'}</div></div>
         <div class="bstat"><div class="bl">Net DB at Age ${lastRow ? lastRow.row.age : 100}</div><div class="bv">${lastRow ? $f(lastRow.defNetDB) : '—'}</div></div>
       </div>
@@ -1847,6 +1915,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
           <tr>
             <th rowspan="2" style="vertical-align:bottom">Yr</th>
             <th rowspan="2" style="vertical-align:bottom">Age</th>
+            ${hasExch ? '<th rowspan="2" class="sec-div" style="vertical-align:bottom">1035 Exchange<br>Both Policies</th>' : ''}
             <th colspan="3" class="tbl-section-hdr sec-div">NON-FINANCED POLICY · SELF-FUNDED</th>
             <th rowspan="2" class="sec-div" style="vertical-align:bottom">Net DB<br>Advantage</th>
             <th colspan="6" class="tbl-section-hdr sec-div">DEF · INVESTED CAPITAL</th>
@@ -1864,6 +1933,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
         <tfoot>
           <tr>
             <td colspan="2">TOTAL</td>
+            ${hasExch ? `<td class="sec-div">${$f(exchValue)}</td>` : ''}
             <td class="sec-div" style="text-align:right">${$f(nfTotalPrem)}</td><td>—</td><td>—</td>
             <td class="sec-div">—</td>
             <td class="sec-div">${$f(totClientOutlay)}</td>
@@ -1884,6 +1954,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
         <div class="ct" style="font-size:10px;letter-spacing:1.5px">NON-FINANCED POLICY · SELF-FUNDED</div>
         <div class="cv">No Bank. No Leverage.</div>
         <div class="cstat"><span class="ck">Total Client Investment</span><span class="cv2">${$f(nfTotalPrem)}</span></div>
+        ${exchLine}
         <div class="cstat"><span class="ck">Funding Years</span><span class="cv2">${nfPayYears}</span></div>
         <div class="cstat"><span class="ck">Year 1 Death Benefit</span><span class="cv2">${nfMap[1] ? $f(nfMap[1].grossDB) : '—'}</span></div>
         <div class="cstat"><span class="ck">Death Benefit at Age ${lastRow ? lastRow.row.age : 100}</span><span class="cv2">${lastRow ? $f(lastRow.nfDB) : '—'}</span></div>
@@ -1892,6 +1963,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
         <div class="ct" style="font-size:10px;letter-spacing:1.5px">DEFERRED ENHANCED FUNDING · ${rate1Label} GROSS RETURN</div>
         <div class="cv">Same Policy Type. Bank-Funded Premium.</div>
         <div class="cstat"><span class="ck">Total Client Investment</span><span class="cv2">${$f(totClientOutlay)}</span></div>
+        ${exchLine}
         <div class="cstat"><span class="ck">Funding Years</span><span class="cv2">${payYears}</span></div>
         <div class="cstat"><span class="ck">Bank Loan Retired · Yr ${payoffYear} (Age ${payoffAge})</span><span class="cv2">${$f(payoffAmount)}</span></div>
         <div class="cstat"><span class="ck">Net Death Benefit at Age ${lastRow ? lastRow.row.age : 100}</span><span class="cv2 g">${lastRow ? $f(lastRow.defNetDB) : '—'}</span></div>
@@ -1911,9 +1983,10 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
       <div class="struct-line"><strong>Net death benefit</strong> is the policy death benefit less any outstanding bank loan. No income is taken from either policy. ${outlayLine}</div>
       <div class="struct-line">The bank loan is secured by the policy itself and is retired in Year ${payoffYear} (Age ${payoffAge}) through a policy loan. No outside assets are pledged.${low && Math.abs(low.row.year - payoffYear) <= 2 ? ' The narrowest point falls near the payoff, when the bank balance is at its peak.' : ''}</div>
       ${floorNote}
+      ${hasExch ? `<div class="struct-line"><strong>1035 exchange.</strong> ${$f(exchValue)} moves into both policies in Year 1 and is excluded from the client investment figures above, so the outlay comparison is unchanged by it.</div>` : ''}
     </div>
 
-    <div class="ldg-disc" style="margin-top:0;border-top:1px solid var(--border)">
+    <div class="ldg-disc" style="margin-top:0;border-top:1px solid var(--border)">${exchNote}
       <strong>Years shown annually through policy year 50, then in 5-year increments (55, 60, 65…) through year ${maxLedgerYear}${payoffYear > 50 ? ', plus the loan payoff year' : ''}.</strong> Totals, the low point and the age-${lastRow ? lastRow.row.age : 100} figures reflect every policy year, not just the rows displayed.<br>
       <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections based on 90-Day Avg SOFR plus spread, subject to a 4.00% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. Net death benefit equals the illustrated death benefit less the projected bank loan balance. No income or policy distributions are assumed. All amounts are hypothetical and not guaranteed. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC · EFSLife.com${advisorName ? ' · ' + advisorName : ''}${targetPremiumVal ? ' · Version ' + Math.round(targetPremiumVal).toLocaleString('en-US') : ''} · ${dateStr}
     </div>
@@ -1930,7 +2003,7 @@ function renderDBLedger({ d, rows1, rows2, rowsNF, rate1Label, rate2Label, advis
 
   window._ledgerResults = {
     outputMode: 'db',
-    clientName, issueAge, payYears, annualContrib, payoffYear, payoffAge,
+    clientName, issueAge, payYears, annualContrib, payoffYear, payoffAge, exchValue,
     rate1Label, rate2Label, advisorName, dateStr, hasAlt,
     defClientOutlay: totClientOutlay, nfClientOutlay: nfTotalPrem,
     lowPointYear: low ? low.row.year : null, lowPointAge: low ? low.row.age : null,
@@ -2058,7 +2131,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       <div class="op-section-label">How It Works</div>
       <div class="op-headline">${headline}</div>
       <div class="op-steps">
-        <div class="op-step"><div class="op-step-num">1</div><div><div class="op-step-title">Fund</div><div class="op-step-text">Contribute ${$f(r.annualContrib)}/year for ${r.payYears} years while a lender matches additional premium into the policy.</div></div></div>
+        <div class="op-step"><div class="op-step-num">1</div><div><div class="op-step-title">Fund</div><div class="op-step-text">Contribute ${$f(r.annualContrib)}/year for ${r.payYears} years while a lender matches additional premium into the policy.${r.exchValue > 0 ? ' A ' + $f(r.exchValue) + ' 1035 exchange from an existing policy also moves in at issue.' : ''}</div></div></div>
         <div class="op-step"><div class="op-step-num">2</div><div><div class="op-step-title">Repay</div><div class="op-step-text">In policy year ${r.payoffYear} (age ${r.payoffAge}) the lender balance is repaid in one payoff from policy value. The policy secures the loan, so no outside assets are pledged.</div></div></div>
         <div class="op-step"><div class="op-step-num">3</div><div><div class="op-step-title">Protect</div><div class="op-step-text">No income is taken. The policy is held for its death benefit, which generally passes to beneficiaries income-tax-free.</div></div></div>
       </div>
@@ -2069,7 +2142,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       <div class="op-fact">
         <div class="op-fact-label">Your Total Investment</div>
         <div class="op-fact-value sm">${$f(r.defClientOutlay)}</div>
-        <div class="op-fact-sub">${$f(r.annualContrib)}/yr · ${r.payYears} years${outlayFact ? '<br>' + outlayFact : ''}</div>
+        <div class="op-fact-sub">${$f(r.annualContrib)}/yr · ${r.payYears} years${r.exchValue > 0 ? '<br>+ ' + $f(r.exchValue) + ' 1035 exchange' : ''}${outlayFact ? '<br>' + outlayFact : ''}</div>
       </div>
       ${r.lowPointYear ? `<div class="op-fact">
         <div class="op-fact-label">Net Death Benefit at the Low Point</div>
@@ -2489,7 +2562,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
     <div class="sidebar-subtitle">SAME<br>CONTRIBUTION<br>DIFFERENT<br>OUTCOMES</div>
     <div class="sidebar-divider"></div>
     <div style="font-size:11px;color:rgba(255,255,255,.3);line-height:1.8;margin-top:auto">
-      <div style="margin-bottom:10px"><span style="color:var(--gold)">${$f(r.annualContrib)}/yr</span><br>for ${r.payYears} years</div>
+      <div style="margin-bottom:10px"><span style="color:var(--gold)">${$f(r.annualContrib)}/yr</span><br>for ${r.payYears} years${r.exchValue > 0 ? '<br>+ ' + $f(r.exchValue) + ' 1035 exchange' : ''}</div>
       <div style="margin-bottom:10px"><span style="color:var(--gold)">Income Ages</span><br>${r.incomeStartAge} – ${r.incomeEndAge}</div>
       <div style="margin-bottom:10px"><span style="color:var(--gold)">${r.rate1Label}% Gross</span><br>Life Insurance Return</div>
       <div><span style="color:var(--gold)">${r.rate1Label}% Net</span><br>Investment Return</div>
@@ -2531,7 +2604,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
           <div class="fact-block">
             <div class="fact-label">Total Client Investment</div>
             <div class="fact-value">${$f(r.totalClientOutlay)}</div>
-            <div class="fact-sub">${$f(r.annualContrib)}/yr · ${r.payYears} years</div>
+            <div class="fact-sub">${$f(r.annualContrib)}/yr · ${r.payYears} years${r.exchValue > 0 ? '<br>+ ' + $f(r.exchValue) + ' 1035 exchange' : ''}</div>
           </div>
           <div class="fact-block">
             <div class="fact-label">DEF Total Lifetime Income</div>
@@ -2704,7 +2777,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       <div class="op-steps">
         <div class="op-step">
           <div class="op-step-num">1</div>
-          <div><div class="op-step-title">Fund</div><div class="op-step-text">Contribute ${$f(r.annualContrib)}/year for ${r.payYears} years while a lender matches additional premium into the policy — accelerating cash value from day one.</div></div>
+          <div><div class="op-step-title">Fund</div><div class="op-step-text">Contribute ${$f(r.annualContrib)}/year for ${r.payYears} years while a lender matches additional premium into the policy — accelerating cash value from day one.${r.exchValue > 0 ? ' A ' + $f(r.exchValue) + ' 1035 exchange from an existing policy also moves in at issue.' : ''}</div></div>
         </div>
         <div class="op-step">
           <div class="op-step-num">2</div>
@@ -2739,7 +2812,7 @@ body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text)
       <div class="op-fact">
         <div class="op-fact-label">Total Client Investment</div>
         <div class="op-fact-value sm">${$f(r.totalClientOutlay)}</div>
-        <div class="op-fact-sub">${$f(r.annualContrib)}/yr · ${r.payYears} years</div>
+        <div class="op-fact-sub">${$f(r.annualContrib)}/yr · ${r.payYears} years${r.exchValue > 0 ? '<br>+ ' + $f(r.exchValue) + ' 1035 exchange' : ''}</div>
       </div>
       <div class="op-fact">
         <div class="op-fact-label">DEF Total Lifetime Income</div>
