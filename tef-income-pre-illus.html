@@ -325,7 +325,7 @@ table.ldg tbody tr.income-yr td.income-val{color:var(--green);font-weight:600}
             </div>
             <div>
               <label class="field-label">Age</label>
-              <div class="field"><input type="number" id="insured1Age" placeholder="55" min="25" max="80"></div>
+              <div class="field"><input type="number" id="insured1Age" placeholder="55" min="18" max="80"></div>
             </div>
           </div>
         </div>
@@ -1128,7 +1128,7 @@ function calculate() {
   const sofr     = parseFloat(document.getElementById('sofrInput').value) || liveSOFR || 5;
   const illustrationRate = _tefData?.illustrationRate || null;
 
-  if (!age1 || age1 < 25 || age1 > 80) return alert('Issue age must be 25–80.');
+  if (!age1 || age1 < 18 || age1 > 80) return alert('Issue age must be 18–80.');
   if (!carrier) return alert('Please select a carrier.');
   if (!totalDB) return alert('Total death benefit is required.');
   const incomeStartAge = parseInt(document.getElementById('incomeStartAge').value);
