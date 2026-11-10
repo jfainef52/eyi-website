@@ -457,8 +457,8 @@ table.ldg tbody tr.income-yr td.income-val{color:var(--green);font-weight:600}
           <div class="hint" id="blendHint" style="display:none;color:var(--red)">⚠ Term exceeds 3× Base limit</div>
         </div>
 
-        <!-- Target net benefit -->
-        <div class="field">
+        <!-- Target net benefit: not used for the income focus -->
+        <div class="field" style="display:none">
           <label class="field-label">Target Net / Low Point DB ($)</label>
           <input type="text" id="targetDB" placeholder="ex. 10,000,000" inputmode="numeric" autocomplete="off">
           <div class="hint">Net-of-loans floor — must hold in every illustrated year</div>
@@ -736,19 +736,27 @@ table.ldg tbody tr.income-yr td.income-val{color:var(--green);font-weight:600}
     </div>
 
     <div class="section-tag" style="margin-bottom:12px">Carrier Illustration Files <span id="upload-carrier-label" style="letter-spacing:0;text-transform:none;color:var(--muted);margin-left:8px"></span></div>
-    <div class="upload-grid" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="upload-grid" style="grid-template-columns:1fr 1fr">
       <div class="upload-zone" id="zone-i1" ondragover="dzOver(event,'zone-i1')" ondragleave="dzLeave('zone-i1','i1')" ondrop="dzDrop(event,'i1','zone-i1','fname-i1')">
         <input type="file" id="file-i1" accept=".csv" onchange="fileChosen('file-i1','i1','zone-i1','fname-i1')">
         <div class="uz-icon">📊</div>
-        <div class="uz-title">TEF Income · Primary Rate</div>
+        <div class="uz-title">Income Illustration · Primary Rate</div>
         <div class="uz-carrier">Required</div>
-        <div class="uz-hint">Financed policy with payoff and policy-loan income</div>
+        <div class="uz-hint">Shows Loan and Annual Income columns</div>
         <div class="uz-file" id="fname-i1"></div>
+      </div>
+      <div class="upload-zone" id="zone-d1" ondragover="dzOver(event,'zone-d1')" ondragleave="dzLeave('zone-d1','d1')" ondrop="dzDrop(event,'d1','zone-d1','fname-d1')">
+        <input type="file" id="file-d1" accept=".csv" onchange="fileChosen('file-d1','d1','zone-d1','fname-d1')">
+        <div class="uz-icon">🧾</div>
+        <div class="uz-title">Charges &amp; Credits · Primary Rate</div>
+        <div class="uz-carrier">Needed for Gap Collateral</div>
+        <div class="uz-hint">Detailed export with Total Credits; used for the 0% low point</div>
+        <div class="uz-file" id="fname-d1"></div>
       </div>
       <div class="upload-zone" id="zone-i2" ondragover="dzOver(event,'zone-i2')" ondragleave="dzLeave('zone-i2','i2')" ondrop="dzDrop(event,'i2','zone-i2','fname-i2')">
         <input type="file" id="file-i2" accept=".csv" onchange="fileChosen('file-i2','i2','zone-i2','fname-i2')">
         <div class="uz-icon">📉</div>
-        <div class="uz-title">TEF Income · Alternative Rate</div>
+        <div class="uz-title">Income Illustration · Alternative Rate</div>
         <div class="uz-carrier">Required</div>
         <div class="uz-hint">Same policy re-run at the lower rate</div>
         <div class="uz-file" id="fname-i2"></div>
@@ -1298,7 +1306,7 @@ function calculate() {
         </div>
       </div>
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(201,168,76,.2);font-size:11px;color:var(--muted)">
-        ℹ️ Run the <strong>TEF policy</strong> (financed, loan payoff of ${$f(payoffAmount)} in Year ${payoffYear}, then policy-loan income ages ${incomeStartAge}–${incomeEndAge}) at your primary and alternative rates, and export each as CSV.
+        ℹ️ Run the <strong>TEF policy</strong> (financed, loan payoff of ${$f(payoffAmount)} in Year ${payoffYear}, then policy-loan income ages ${incomeStartAge}–${incomeEndAge}) at your primary and alternative rates. Export the <strong>income illustration</strong> (Loan and Annual Income columns) for each rate, and for the primary rate also export the <strong>detailed charges &amp; credits</strong> file, which the gap-collateral low point is built from.
         Optionally run a <strong>self-funded LIRP</strong> (non-financed) at the same client contribution and income ages for comparison. Loan payoff must appear in policy Year ${payoffYear}; income must begin the year after.
       </div>
     </div>
@@ -1348,7 +1356,7 @@ function calculate() {
         </table>
         <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-top:none;padding:10px 14px;font-size:12px;color:var(--navy);line-height:1.6;border-radius:0 0 4px 4px">
           <strong style="color:var(--gold);letter-spacing:1px;font-size:10px;text-transform:uppercase">Next Step →</strong>&nbsp;
-          Run the carrier illustrations using the parameters above and export each as CSV. Upload them in the Income Ledger to generate the year-by-year income comparison.
+          Run the carrier illustrations using the parameters above. Upload the income illustration at each rate, plus the charges &amp; credits file at the primary rate, in the Income Ledger.
         </div>
       </div>
     </div>
@@ -1458,9 +1466,15 @@ function parseNLGCSV(text) {
   const headers = allLines[hIdx].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
 
   // Flexible column finder — checks multiple possible names
+  // Exact header matches win over partial ones, so "accumulated value" does not
+  // grab the "accumulated value charge" column in the detailed export.
   const col = (...names) => {
     for (const name of names) {
-      const idx = headers.findIndex(h => h === name || h.includes(name));
+      const idx = headers.findIndex(h => h === name);
+      if (idx >= 0) return idx;
+    }
+    for (const name of names) {
+      const idx = headers.findIndex(h => h.includes(name));
       if (idx >= 0) return idx;
     }
     return -1;
@@ -1824,16 +1838,29 @@ async function generateLedger() {
     const p1 = parseIncomeCSV(t1), p2 = parseIncomeCSV(t2);
     if (!p1) return showUploadError('Could not parse the primary-rate file. Confirm it is a National Life Group CSV export.');
     if (!p2) return showUploadError('Could not parse the alternative-rate file. Confirm it is a National Life Group CSV export.');
+    let pD = null;
+    if (uploadedFiles.d1) {
+      pD = parseIncomeCSV(await readFile(uploadedFiles.d1));
+      if (!pD) return showUploadError('Could not parse the charges & credits file. Confirm it is the detailed National Life Group CSV export.');
+    }
     let pL = null;
     if (uploadedFiles.lirp) {
       pL = parseIncomeCSV(await readFile(uploadedFiles.lirp));
       if (!pL) return showUploadError('Could not parse the self-funded LIRP file. Confirm it is a National Life Group CSV export.');
     }
 
-    const rows1 = p1.rows;
+    // Merge: income file supplies loan / income; the charges & credits file supplies Total Credits by policy year
+    let rows1 = p1.rows;
+    let hasCredits = p1.hasCredits;
+    const dMap = {};
+    if (pD) {
+      pD.rows.forEach(r => { dMap[r.year] = r; });
+      rows1 = p1.rows.map(r => Object.assign({}, r, { totalCredits: (dMap[r.year] || {}).totalCredits || 0 }));
+      hasCredits = pD.rows.some(r => r.totalCredits > 0);
+    }
     const payoffYear = d.payoffYear;
     const recurring1 = rows1.filter(r => r.year !== payoffYear && r.annualIncome > 0 && r.age <= 100);
-    if (!recurring1.length) return showUploadError('No annual income was found in the primary-rate file after the payoff year. Confirm it is the income illustration (financed policy with policy-loan income).');
+    if (!recurring1.length) return showUploadError('No annual income was found in the primary-rate income file after the payoff year (policy year ' + payoffYear + '). Confirm it is the income illustration, that it is not the charges & credits file, and that the loan payoff year matches the Modeler.');
     if (pL && !pL.rows.some(r => r.annualIncome > 0)) return showUploadError('No annual income was found in the self-funded LIRP file. Confirm it includes the income schedule, or remove it to show the taxable comparison only.');
 
     // Advisor-only check: does the income window in the carrier file match the modeler?
@@ -1842,8 +1869,19 @@ async function generateLedger() {
     if (firstAge !== d.incomeStartAge || lastAge !== d.incomeEndAge) {
       warns.push(`Carrier file income runs ages ${firstAge}–${lastAge}; the modeler specified ${d.incomeStartAge}–${d.incomeEndAge}. The taxable comparison uses the modeler ages. Re-run the illustration or update the Modeler so they match.`);
     }
-    if (!p1.hasCredits) {
-      warns.push('Total Credits were not found in the primary file, so the 0% gap-collateral stress test could not be computed exactly. Gap figures below reflect actual CSV versus required collateral.');
+    if (!hasCredits) {
+      warns.push(pD
+        ? 'No Total Credits were found in the charges & credits file, so the 0% gap-collateral stress test could not be computed exactly. Gap figures below reflect actual CSV versus required collateral.'
+        : 'No charges & credits file was uploaded, so the 0% gap-collateral stress test could not be computed exactly. Gap figures below reflect actual CSV versus required collateral. Upload the detailed export to get the low point.');
+    }
+    if (pD) {
+      const mism = p1.rows.find(r => dMap[r.year] && Math.abs((dMap[r.year].accValue || 0) - (r.accValue || 0)) > 1);
+      if (mism) warns.push('The charges & credits file does not match the income file: Accumulated Value differs in policy year ' + mism.year + '. They should come from the same illustration run, so the gap collateral may be wrong.');
+    }
+    const payoffRowCarrier = rows1.find(r => r.year === payoffYear);
+    if (payoffRowCarrier && d.payoffAmount > 0 && payoffRowCarrier.loan > 0) {
+      const dev = Math.abs(payoffRowCarrier.loan - d.payoffAmount) / d.payoffAmount;
+      if (dev > 0.05) warns.push('The carrier loan in the payoff year (' + $f(payoffRowCarrier.loan) + ') differs from the Modeler payoff estimate (' + $f(d.payoffAmount) + ') by ' + (dev * 100).toFixed(1) + '%. Confirm the premium schedule and loan rate used in the illustration.');
     }
 
     const loanMap = {};
@@ -2334,6 +2372,22 @@ const $f = n => (!n && n !== 0) ? '—' : '$' + Math.round(n).toLocaleString();
     document.getElementById('portal-link').style.display = 'inline-flex';
   } catch(e) {}
 })();
+
+// ── PAYOFF DROPDOWN LABELS (year · age) ──
+function updatePayoffLabels() {
+  const age = parseInt(document.getElementById('insured1Age').value);
+  ['payoffYear', 'payoffYearNoCol'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    Array.from(sel.options).forEach(o => {
+      const yr = parseInt(o.value);
+      o.textContent = 'Year ' + yr + (age ? ' · Age ' + (age + yr - 1) : '');
+    });
+  });
+}
+document.getElementById('insured1Age').addEventListener('input', updatePayoffLabels);
+document.getElementById('insured1Age').addEventListener('change', updatePayoffLabels);
+updatePayoffLabels();
 
 // ── INCOME HINT ──
 function updateIncomeHint() {
