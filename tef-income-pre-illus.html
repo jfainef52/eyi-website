@@ -1,0 +1,2494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEF Income Modeler — EnhanceYourIncome · EFS Life</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --navy:      #0d1b2e;
+  --navy-2:    #152640;
+  --navy-3:    #1e3558;
+  --gold:      #c9a84c;
+  --gold-lt:   #dfc278;
+  --gold-pale: #f7f0e0;
+  --white:     #ffffff;
+  --off:       #f5f3ee;
+  --border:    #ddd8ce;
+  --muted:     #8a8070;
+  --green:     #2a6e45;
+  --green-lt:  #e6f2ec;
+  --red:       #8b2020;
+  --red-lt:    #fdf0f0;
+  --text:      #1a1a2a;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--off);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+.hdr{background:var(--navy);padding:16px 40px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,168,76,.2)}
+.hdr-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--white);font-weight:500}
+.hdr-sub{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-top:2px}
+.sofr-live{display:flex;align-items:center;gap:8px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:3px;padding:5px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gold);margin-left:auto}
+.sofr-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hdr-link{font-family:'IBM Plex Sans',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-decoration:none;border:1px solid rgba(201,168,76,.35);padding:5px 14px;border-radius:2px;transition:background .15s}
+.hdr-link:hover{background:rgba(201,168,76,.12)}
+
+/* ── LAYOUT ── */
+.page{max-width:1200px;margin:0 auto;padding:36px 32px}
+.two-col{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:start}
+
+/* ── CARD ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.card-hdr{background:var(--navy-2);padding:13px 22px;display:flex;align-items:center;gap:10px}
+.card-hdr h2{font-family:'Playfair Display',serif;font-size:15px;color:var(--white);font-weight:500}
+.step-badge{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);padding:2px 8px;border-radius:2px}
+.card-body{padding:22px}
+
+/* ── FORM ── */
+.section-tag{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;padding-bottom:5px;border-bottom:1px solid rgba(201,168,76,.2)}
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.field-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block}
+.field input,.field select,.field textarea{width:100%;background:var(--off);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 11px;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--gold);background:rgba(201,168,76,.04)}
+.field select option{background:white}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.sep{height:1px;background:var(--border);margin:18px 0}
+.hint{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
+.hint a{color:var(--gold);text-decoration:none}
+
+/* Toggle (single/survivorship) */
+.toggle-row{display:flex;gap:6px;margin-bottom:4px}
+.toggle-btn{flex:1;padding:7px;border:1px solid var(--border);border-radius:3px;background:var(--off);font-family:'IBM Plex Sans',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;color:var(--muted);text-align:center}
+.toggle-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+
+/* Format cards */
+.format-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.format-card{border:1px solid var(--border);border-radius:4px;padding:12px 14px;cursor:pointer;transition:all .15s}
+.format-card:hover{border-color:var(--gold);background:rgba(201,168,76,.04)}
+.format-card.selected{border-color:var(--gold);background:rgba(201,168,76,.06)}
+.format-card .fc-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.format-card .fc-desc{font-size:10px;color:var(--muted);line-height:1.4}
+
+/* Rate env buttons */
+.rate-env-btns{display:flex;gap:6px;margin-top:6px}
+.rate-btn{flex:1;padding:7px;border:1px solid var(--border);border-radius:3px;background:var(--off);font-family:'IBM Plex Sans',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;color:var(--muted);text-align:center}
+.rate-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+
+/* Calc button */
+.calc-btn{width:100%;background:var(--gold);color:var(--navy);border:none;border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:13px;cursor:pointer;margin-top:6px;transition:all .2s}
+.calc-btn:hover{background:var(--gold-lt)}
+.calc-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Sofr status */
+.sofr-status{font-size:10px;color:var(--muted);font-style:italic;margin-top:4px}
+.sofr-status.loaded{color:var(--green)}
+.sofr-status.error{color:var(--red)}
+
+/* ── OUTPUT PANEL ── */
+.output-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;color:var(--muted);font-size:13px;gap:12px;border:1.5px dashed var(--border);border-radius:6px;background:rgba(255,255,255,.5)}
+.output-placeholder .icon{font-size:36px;opacity:.3}
+
+/* Key outputs */
+.key-outputs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px}
+.ko-card{background:var(--navy);border-radius:5px;padding:15px 16px}
+.ko-card.hl{background:var(--navy-3);border:1px solid rgba(201,168,76,.3)}
+.ko-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px}
+.ko-value{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);font-weight:500;line-height:1}
+.ko-sub{font-size:10px;color:rgba(255,255,255,.3);margin-top:3px}
+
+/* Carrier instructions box */
+.carrier-box{background:var(--gold-pale);border:1px solid rgba(201,168,76,.3);border-radius:5px;padding:16px 18px;margin-bottom:18px}
+.carrier-box h4{font-family:'Playfair Display',serif;font-size:14px;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.carrier-box h4 .tag{font-size:9px;background:var(--navy);color:var(--gold);padding:2px 8px;border-radius:2px;letter-spacing:1px;font-family:'IBM Plex Sans',sans-serif;font-weight:600}
+.instr-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.instr-item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(201,168,76,.15);font-size:11px}
+.instr-item:last-child{border-bottom:none}
+.instr-key{color:var(--muted)}
+.instr-val{font-family:'IBM Plex Mono',monospace;font-weight:500;color:var(--navy)}
+.instr-val.hl{color:var(--green);font-weight:600}
+
+/* Schedule table */
+table.sched{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:11px}
+table.sched thead th{background:var(--navy);color:rgba(255,255,255,.65);font-size:8px;letter-spacing:1px;text-transform:uppercase;padding:7px 9px;text-align:right;border-right:1px solid rgba(255,255,255,.08)}
+table.sched thead th:first-child,table.sched thead th:nth-child(2){text-align:center}
+table.sched tbody td{padding:5px 9px;text-align:right;border-bottom:1px solid var(--border);border-right:1px solid #eee}
+table.sched tbody td:first-child,table.sched tbody td:nth-child(2){text-align:center;font-weight:500}
+table.sched tbody tr:nth-child(even){background:var(--off)}
+table.sched tbody tr:hover{background:rgba(201,168,76,.05)}
+table.sched tbody tr.client-phase{background:rgba(13,27,46,.02)}
+table.sched tbody tr.bank-phase{background:rgba(42,110,69,.04)}
+table.sched tbody tr.payoff-yr{background:rgba(201,168,76,.12)!important;font-weight:600}
+table.sched tfoot td{padding:7px 9px;text-align:right;border-top:2px solid var(--navy);font-weight:600;font-size:11px;background:var(--off)}
+table.sched tfoot td:first-child,table.sched tfoot td:nth-child(2){text-align:center}
+
+/* Legend */
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+
+/* Gap collateral box */
+.gap-box{background:var(--red-lt);border:1px solid rgba(139,32,32,.2);border-radius:5px;padding:16px 18px;margin-bottom:18px}
+.gap-box h4{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:12px;font-weight:600}
+.gap-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(139,32,32,.1);font-size:12px}
+.gap-row:last-child{border-bottom:none}
+.gap-label{color:var(--muted)}
+.gap-val{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--red)}
+.gap-note{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5;font-style:italic;border-top:1px solid rgba(139,32,32,.1);padding-top:8px}
+
+/* Guardrail */
+.guardrail-ok{background:var(--green-lt);border:1px solid rgba(42,110,69,.2);border-radius:5px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--green)}
+.guardrail-warn{background:#fffbf0;border:1px solid rgba(201,168,76,.3);border-radius:5px;padding:12px 16px;margin-bottom:14px}
+
+/* Disclaimer */
+.disc{font-size:9px;color:var(--muted);line-height:1.6;border-top:1px solid var(--border);padding-top:14px;margin-top:18px}
+
+/* Proceed button */
+.proceed-wrap{text-align:center;margin-top:18px;padding-bottom:20px}
+.proceed-btn{background:var(--navy);color:var(--gold);border:1.5px solid var(--gold);border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:13px 32px;cursor:pointer;transition:all .2s}
+.proceed-btn:hover{background:var(--navy-3)}
+
+/* ── LEDGER PANEL ── */
+#ledger-panel{display:none}
+
+.upload-step{max-width:920px;margin:0 auto;padding:36px 28px}
+.upload-step h2{font-family:'Playfair Display',serif;font-size:26px;color:var(--navy);margin-bottom:4px}
+.upload-step .sub{font-size:13px;color:var(--muted);margin-bottom:28px;letter-spacing:.3px}
+.summary-bar{background:var(--navy);border-radius:5px;padding:14px 20px;margin-bottom:24px;display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.sb-item{display:flex;flex-direction:column;gap:3px}
+.sb-label{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.sb-value{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);font-weight:500}
+
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+.upload-zone{border:1.5px dashed rgba(13,27,46,.2);border-radius:6px;padding:24px 20px;text-align:center;cursor:pointer;position:relative;background:var(--off);transition:all .2s}
+.upload-zone:hover,.upload-zone.has-file{border-color:var(--gold);background:rgba(201,168,76,.05)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-icon{font-size:26px;margin-bottom:8px}
+.uz-title{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--navy);font-weight:600;margin-bottom:3px}
+.uz-carrier{font-family:'IBM Plex Mono',monospace;font-size:16px;color:var(--gold);font-weight:500;margin-bottom:3px}
+.uz-hint{font-size:10px;color:var(--muted)}
+.uz-file{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--green);margin-top:6px}
+
+.meta-fields{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+.gen-btn{background:var(--gold);color:var(--navy);border:none;border-radius:3px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:13px 36px;cursor:pointer;transition:all .2s;display:block;margin:0 auto}
+.gen-btn:hover{background:var(--gold-lt)}
+.upload-error{display:none;background:var(--red-lt);border:1px solid rgba(139,32,32,.3);border-radius:4px;color:var(--red);font-size:12px;padding:10px 14px;margin-bottom:14px}
+
+/* ── LEDGER OUTPUT ── */
+.ledger-action-bar{background:var(--navy-2);padding:12px 36px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(201,168,76,.2)}
+.lab-btn{border:1px solid rgba(201,168,76,.3);color:var(--gold);background:transparent;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:3px;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .2s}
+.lab-btn:hover{border-color:var(--gold);background:rgba(201,168,76,.1)}
+.lab-btn.primary{background:var(--gold);color:var(--navy);font-weight:600;border-color:var(--gold);margin-left:auto}
+.lab-btn.primary:hover{background:var(--gold-lt)}
+
+/* Ledger table */
+.ledger-banner{background:var(--navy);padding:24px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.banner-name{font-family:'Playfair Display',serif;font-size:26px;color:var(--white)}
+.banner-sub{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-top:2px}
+.banner-stats{display:flex;gap:24px;flex-wrap:wrap}
+.bstat .bl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px}
+.bstat .bv{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold)}
+
+.ldg-wrap{overflow-x:auto}
+table.ldg{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12px;min-width:1800px}
+table.ldg thead th{background:var(--navy);color:rgba(255,255,255,.65);font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;padding:8px 8px;text-align:center;white-space:nowrap;border-right:1px solid rgba(255,255,255,.07)}
+
+table.ldg thead th.sec-div{border-left:2px solid rgba(201,168,76,.4)}
+table.ldg thead th.contrib-col{}
+.tbl-sec-hdr{background:var(--navy-2);color:var(--gold);font-size:10.5px!important;letter-spacing:1.5px;text-transform:uppercase;text-align:center;padding:8px 8px;border-right:2px solid rgba(255,255,255,.1)}
+table.ldg tbody td{padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);border-right:1px solid #eee;white-space:nowrap;font-size:11.5px}
+table.ldg tbody td:first-child,table.ldg tbody td:nth-child(2){font-weight:500}
+table.ldg tbody td.sec-div{border-left:2px solid rgba(201,168,76,.3)}
+table.ldg tbody td.contrib-col{background:rgba(201,168,76,.07);font-weight:600;color:var(--navy)}
+table.ldg tbody tr:nth-child(even){background:var(--off)}
+table.ldg tbody tr:nth-child(even) td.contrib-col{background:rgba(201,168,76,.12)}
+table.ldg tbody tr:hover{background:rgba(201,168,76,.05)}
+table.ldg tbody tr:hover td.contrib-col{background:rgba(201,168,76,.18)}
+table.ldg tbody tr.payoff-yr td{background:rgba(42,110,69,.08)!important}
+table.ldg tbody tr.payoff-yr td.contrib-col{background:rgba(42,110,69,.14)!important}
+table.ldg tbody tr.gap-warn td{background:rgba(139,32,32,.04)}
+table.ldg tbody tr.gap-warn td.gap-cell{color:var(--red);font-weight:600}
+table.ldg tfoot td{padding:8px 8px;text-align:center;font-weight:600;border-top:2px solid var(--navy);background:var(--off);font-size:12px}
+
+
+/* Gap collateral box in ledger */
+.ledger-gap-box{background:var(--white);border-top:3px solid var(--red);padding:20px 40px;display:flex;gap:40px;align-items:flex-start}
+.lgb-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:10px;font-weight:600}
+.lgb-row{display:flex;justify-content:space-between;gap:40px;margin-bottom:6px;font-size:12px}
+.lgb-label{color:var(--muted)}
+.lgb-val{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--red)}
+.lgb-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px;font-style:italic}
+.sig-line{flex:1;border-top:1px solid var(--border);margin-top:40px;padding-top:6px;font-size:10px;color:var(--muted)}
+.sig-block{display:flex;gap:32px;flex-wrap:wrap}
+
+/* Comparison strip */
+.comp-strip{padding:20px 40px;display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1px solid var(--border)}
+.comp-crd{border:1px solid var(--border);border-radius:5px;padding:16px 18px}
+.comp-crd.hl{border-color:var(--gold);background:rgba(201,168,76,.03)}
+.comp-crd .ct{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.comp-crd.hl .ct{color:var(--gold)}
+.comp-crd .cv{font-family:'Playfair Display',serif;font-size:16px;color:var(--navy);font-weight:600;margin-bottom:10px}
+.cstat{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px}
+.cstat:last-child{border-bottom:none}
+.cstat .ck{color:var(--muted)}
+.cstat .cv2{font-family:'IBM Plex Mono',monospace;font-weight:500}
+.cstat .cv2.g{color:var(--green);font-weight:600}
+.cstat .cv2.r{color:var(--red)}
+
+.ldg-disc{padding:16px 40px;font-size:9px;color:var(--muted);line-height:1.6;border-top:1px solid var(--border)}
+
+/* Navigation back button */
+.back-btn-wrap{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.back-btn{background:transparent;border:1px solid rgba(13,27,46,.2);color:var(--muted);font-family:'IBM Plex Sans',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:3px;cursor:pointer;transition:all .15s}
+.back-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+@media print{
+  .hdr,.ledger-action-bar,#intake-panel,#ledger-upload-step,.gen-btn,.calc-btn{display:none!important}
+  #ledger-panel{display:block!important}
+  #ledger-output{display:block!important}
+  @page{size:17in 11in landscape;margin:0.4in}
+  body{background:white}
+  .ldg-wrap{overflow:visible}
+}
+
+.animate-in{animation:fadeUp .35s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── INCOME LEDGER ADDITIONS ── */
+.mf-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block}
+.mf-in{width:100%;background:var(--off);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 11px;outline:none}
+.mf-in:focus{border-color:var(--gold)}
+.mf-hint{font-size:10px;color:var(--muted);margin-top:4px}
+table.ldg tbody td.yr-jump{background:var(--navy)!important;color:var(--white);font-weight:700}
+table.ldg tbody tr.income-yr td{background:rgba(13,27,46,.02)}
+table.ldg tbody tr.income-yr td.income-val{color:var(--green);font-weight:600}
+.pg2-header{background:var(--navy-2);padding:18px 40px;display:flex;align-items:center;gap:14px;margin-top:40px;border-top:3px solid var(--gold);print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.pg2-header h3{font-family:'Playfair Display',serif;font-size:18px;color:var(--white);font-weight:500}
+@media print{.no-print{display:none!important}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <a href="/income-program-select.html" style="font-family:'IBM Plex Sans','Barlow',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c9a84c;text-decoration:none;border:1px solid rgba(201,168,76,0.35);padding:5px 14px;border-radius:2px;margin-right:16px;white-space:nowrap">&larr; Change Program</a>
+  <div>
+    <div class="hdr-title">TEF Income Modeler</div>
+    <div class="hdr-sub">Traditional Enhanced Funding · Income Focus · EnhanceYourIncome</div>
+  </div>
+  <div class="sofr-live" id="sofr-badge">
+    <span class="sofr-dot"></span>
+    <span id="sofr-display">Fetching SOFR…</span>
+  </div>
+  <a href="/advisor-portal.html" class="hdr-link" id="portal-link" style="display:none">Case Library</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     INTAKE PANEL
+═══════════════════════════════════════ -->
+<div class="page" id="intake-panel">
+  <div class="two-col">
+
+    <!-- LEFT: INPUT PANEL -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="step-badge">Step 1</div>
+        <h2>Program Parameters</h2>
+      </div>
+      <div class="card-body">
+
+        <!-- Case Type (single life only for the income version) -->
+        <div class="field" style="display:none">
+          <label class="field-label">Case Type</label>
+          <div class="toggle-row">
+            <button class="toggle-btn active" id="toggleSingle" onclick="setCaseType('single',this)">Single Life</button>
+            <button class="toggle-btn" id="toggleSurv" onclick="setCaseType('survivorship',this)">Survivorship (2nd-to-Die)</button>
+          </div>
+        </div>
+
+        <!-- Client Profile -->
+        <div class="section-tag" style="margin-top:4px">Client Profile</div>
+
+        <div class="field">
+          <div class="field-row">
+            <div>
+              <label class="field-label">Insured 1 — Name</label>
+              <div class="field"><input type="text" id="insured1Name" placeholder="Full Name"></div>
+            </div>
+            <div>
+              <label class="field-label">Age</label>
+              <div class="field"><input type="number" id="insured1Age" placeholder="55" min="25" max="80"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-row">
+            <div>
+              <label class="field-label">Gender</label>
+              <div class="field">
+                <select id="insured1Gender">
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Health Rating</label>
+              <div class="field">
+                <select id="healthRating">
+                  <option value="Standard NT">Standard NT</option>
+                  <option value="Standard">Standard</option>
+                  <option value="Preferred NT" selected>Preferred NT</option>
+                  <option value="Preferred">Preferred</option>
+                  <option value="Preferred Best NT">Preferred Best NT</option>
+                  <option value="Preferred Best">Preferred Best</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Second insured (survivorship) -->
+        <div id="insured2Wrap" style="display:none">
+          <div class="field">
+            <div class="field-row">
+              <div>
+                <label class="field-label">Insured 2 — Name</label>
+                <div class="field"><input type="text" id="insured2Name" placeholder="Full Name"></div>
+              </div>
+              <div>
+                <label class="field-label">Age</label>
+                <div class="field"><input type="number" id="insured2Age" placeholder="50" min="25" max="80"></div>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Gender</label>
+            <div class="field" style="width:50%">
+              <select id="insured2Gender">
+                <option value="F">Female</option>
+                <option value="M">Male</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-row">
+            <div>
+              <label class="field-label">State</label>
+              <div class="field">
+                <select id="stateSelect">
+                  <option value="">Select</option>
+                  <option>AL</option><option>AK</option><option>AZ</option><option>AR</option>
+                  <option>CA</option><option>CO</option><option>CT</option><option>DE</option>
+                  <option>FL</option><option>GA</option><option>HI</option><option>ID</option>
+                  <option>IL</option><option>IN</option><option>IA</option><option>KS</option>
+                  <option>KY</option><option>LA</option><option>ME</option><option>MD</option>
+                  <option>MA</option><option>MI</option><option>MN</option><option>MS</option>
+                  <option>MO</option><option>MT</option><option>NE</option><option>NV</option>
+                  <option>NH</option><option>NJ</option><option>NM</option><option>NY</option>
+                  <option>NC</option><option>ND</option><option>OH</option><option>OK</option>
+                  <option>OR</option><option>PA</option><option>RI</option><option>SC</option>
+                  <option>SD</option><option>TN</option><option>TX</option><option>UT</option>
+                  <option>VT</option><option>VA</option><option>WA</option><option>WV</option>
+                  <option>WI</option><option>WY</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="field-label">Carrier</label>
+              <div class="field">
+                <select id="carrier" onchange="onCarrierChange()">
+                  <option value="">Select</option>
+                  <option value="nlg">National Life Group</option>
+                  <option value="pacific">Pacific Life</option>
+                  <option value="symetra" disabled>Symetra (Coming Soon)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="section-tag">Case Format</div>
+
+        <div class="field">
+          <div class="format-cards">
+            <div class="format-card selected" id="fmtStandard" onclick="setCaseFormat('standard')">
+              <div class="fc-title">Standard</div>
+              <div class="fc-desc">7–20 yr contribution · External collateral may be required · 6× leverage standard</div>
+            </div>
+            <div class="format-card" id="fmtNoCol" onclick="setCaseFormat('no_collateral')">
+              <div class="fc-title">Capital-Intensive</div>
+              <div class="fc-desc">4-yr equity phase eliminates external collateral · CSV ≥ 105% loan balance</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="section-tag">Design Parameters</div>
+
+        <!-- Death benefit blend -->
+        <div class="field">
+          <label class="field-label">Total Death Benefit ($)</label>
+          <input type="text" id="totalDB" placeholder="ex. 19,000,000" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="field">
+          <div class="field-row">
+            <div>
+              <label class="field-label">Base Coverage ($)</label>
+              <input type="text" id="baseDB" placeholder="ex. 9,500,000" inputmode="numeric" autocomplete="off" oninput="calcBlend()">
+            </div>
+            <div>
+              <label class="field-label">Term Coverage (Auto)</label>
+              <input type="text" id="termDB" readonly style="background:rgba(201,168,76,.06);color:var(--muted)">
+            </div>
+          </div>
+          <div class="hint" id="blendHint" style="display:none;color:var(--red)">⚠ Term exceeds 3× Base limit</div>
+        </div>
+
+        <!-- Target net benefit -->
+        <div class="field">
+          <label class="field-label">Target Net / Low Point DB ($)</label>
+          <input type="text" id="targetDB" placeholder="ex. 10,000,000" inputmode="numeric" autocomplete="off">
+          <div class="hint">Net-of-loans floor — must hold in every illustrated year</div>
+        </div>
+
+        <!-- Leverage -->
+        <div class="field">
+          <div class="field-row">
+            <div>
+              <label class="field-label">Leverage Ratio</label>
+              <select id="leverageRatio" onchange="onLeverageChange()">
+                <option value="5">5× Leverage</option>
+                <option value="6" selected>6× (Standard)</option>
+                <option value="7">7× Leverage</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div id="customLevWrap" style="display:none">
+              <label class="field-label">Custom Ratio</label>
+              <input type="number" id="customLev" placeholder="6.5" step="0.1" min="1" max="20">
+            </div>
+          </div>
+        </div>
+
+        <!-- Solve Mode Toggle -->
+        <div id="standardParams">
+          <div class="field">
+            <label class="field-label">Solve Mode</label>
+            <div class="toggle-row">
+              <button class="toggle-btn active" id="modeA" onclick="setSolveMode('A',this)">
+                Mode A — Contribution → Premium
+              </button>
+              <button class="toggle-btn" id="modeB" onclick="setSolveMode('B',this)">
+                Mode B — Premium → Contribution
+              </button>
+            </div>
+            <div class="hint" id="solveHint" style="margin-top:6px">
+              Enter client budget → calculates total premium for the carrier illustrator
+            </div>
+          </div>
+
+          <!-- Mode A: Client Contribution → Total Premium -->
+          <div id="modeAFields">
+            <div class="field">
+              <label class="field-label">Client Annual Contribution ($)</label>
+              <input type="text" id="clientContrib" placeholder="ex. 225,985" inputmode="numeric" autocomplete="off" oninput="onContribInput()">
+            </div>
+            <div class="field" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:10px 12px">
+              <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Solved → Carrier Illustration Inputs</div>
+              <div class="field-row-3" style="gap:8px">
+                <div>
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Bank Premium</div>
+                  <div id="solvedBankPrem" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500">—</div>
+                </div>
+                <div>
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Total Annual Premium</div>
+                  <div id="solvedTotalPrem" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:600">—</div>
+                </div>
+                <div>
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Leverage</div>
+                  <div id="solvedLev" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--white);font-weight:500">—</div>
+                </div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">
+                ↑ Enter this total premium into the carrier illustrator. Solve for GLP or Max Non-MEC at the selected DB to get the minimum achievable death benefit.
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode B: Total Premium → Client Contribution -->
+          <div id="modeBFields" style="display:none">
+            <div class="field">
+              <label class="field-label">Total Annual Premium ($) — From Carrier Illustrator</label>
+              <input type="text" id="totalPremInput" placeholder="ex. 1,581,895" inputmode="numeric" autocomplete="off" oninput="onTotalPremInput()">
+              <div class="hint">Enter the GLP or Max Non-MEC total premium from the carrier illustration</div>
+            </div>
+            <div class="field" style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);border-radius:4px;padding:10px 12px">
+              <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Solved → Program Parameters</div>
+              <div class="field-row-3" style="gap:8px">
+                <div>
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Client Contribution</div>
+                  <div id="solvedContrib" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:600">—</div>
+                </div>
+                <div>
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Bank Premium</div>
+                  <div id="solvedBankPremB" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);font-weight:500">—</div>
+                </div>
+                <div>
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Leverage</div>
+                  <div id="solvedLevB" style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--white);font-weight:500">—</div>
+                </div>
+              </div>
+              <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">
+                ↑ Use this client contribution in your planning conversation. The client funds this amount annually; the bank funds the remainder.
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-row">
+              <div>
+                <label class="field-label">Contribution Duration (yrs)</label>
+                <select id="contribDuration">
+                  <option value="7">7 Years</option>
+                  <option value="8">8 Years</option>
+                  <option value="9">9 Years</option>
+                  <option value="10" selected>10 Years</option>
+                  <option value="11">11 Years</option><option value="12">12 Years</option>
+                  <option value="13">13 Years</option><option value="14">14 Years</option>
+                  <option value="15">15 Years</option><option value="16">16 Years</option>
+                  <option value="17">17 Years</option><option value="18">18 Years</option>
+                  <option value="19">19 Years</option><option value="20">20 Years</option>
+                </select>
+              </div>
+              <div>
+                <label class="field-label">Loan Payoff Year</label>
+                <select id="payoffYear">
+                  <option value="10">Year 10</option><option value="11">Year 11</option>
+                  <option value="12">Year 12</option><option value="13">Year 13</option>
+                  <option value="14">Year 14</option><option value="15">Year 15</option>
+                  <option value="16">Year 16</option><option value="17">Year 17</option>
+                  <option value="18">Year 18</option><option value="19">Year 19</option>
+                  <option value="20" selected>Year 20</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No-collateral params -->
+        <div id="noColParams" style="display:none">
+          <div class="field">
+            <label class="field-label">Standard Equivalent Contribution ($)</label>
+            <input type="text" id="noColBaseContrib" placeholder="ex. 225,985" inputmode="numeric" autocomplete="off" oninput="calcNoColSchedule()">
+            <div class="hint" id="noColMultHint">Auto-calculates no-collateral contribution using carrier constants</div>
+          </div>
+          <div class="field">
+            <label class="field-label">No-Collateral Contribution (Computed)</label>
+            <input type="text" id="noColContrib" readonly style="background:rgba(201,168,76,.06);color:var(--gold)">
+          </div>
+          <div class="field">
+            <label class="field-label">Yrs 1–4 Bank Leverage Multiplier</label>
+            <div style="display:flex;align-items:center;gap:10px">
+              <input type="range" id="noColLevMult" min="0" max="2" step="0.05" value="1.5"
+                style="flex:1" oninput="document.getElementById('noColLevMultVal').textContent=parseFloat(this.value).toFixed(2)+'×';calcNoColSchedule()">
+              <span id="noColLevMultVal" style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--gold);min-width:40px">1.50×</span>
+            </div>
+            <div class="hint">Bank premium in years 1–4 = client contribution × multiplier · Default 1.5× · Range 0–2×</div>
+          </div>
+          <div class="field">
+            <label class="field-label">Total Funding Period (Years)</label>
+            <select id="noColFundingPeriod" onchange="calcNoColSchedule()">
+              <option value="4">4 years (client only)</option>
+              <option value="5">5 years</option><option value="6">6 years</option>
+              <option value="7">7 years</option><option value="8">8 years</option>
+              <option value="9">9 years</option><option value="10" selected>10 years</option>
+              <option value="11">11 years</option><option value="12">12 years</option>
+              <option value="13">13 years</option><option value="14">14 years</option>
+              <option value="15">15 years</option>
+            </select>
+            <div class="hint">Total years premium goes in · Years 1–4 client + bank · Years 5–N bank only</div>
+          </div>
+          <div class="field" id="noColBankOnlyField">
+            <label class="field-label">Bank-Only Annual Premium, Yrs 5–<span id="noColFundingPeriodLabel">10</span> ($)</label>
+            <input type="text" id="noColBankOnlyPrem" placeholder="From carrier illustration" inputmode="numeric" autocomplete="off" oninput="calcNoColSchedule()">
+            <div class="hint">Max allowable premium from carrier illustration · Bank funds 100% in years 5–N</div>
+          </div>
+          <div class="field">
+            <label class="field-label">Loan Payoff Year</label>
+            <select id="payoffYearNoCol" onchange="calcNoColSchedule()">
+              <option value="10">Year 10</option><option value="11">Year 11</option>
+              <option value="12">Year 12</option><option value="13">Year 13</option>
+              <option value="14">Year 14</option><option value="15">Year 15</option>
+              <option value="16">Year 16</option><option value="17">Year 17</option>
+              <option value="18">Year 18</option><option value="19">Year 19</option>
+              <option value="20" selected>Year 20</option>
+            </select>
+          </div>
+          <div id="noColScheduleDisplay" style="margin-bottom:14px"></div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="section-tag">Income Plan</div>
+        <div class="field">
+          <div class="field-row">
+            <div>
+              <label class="field-label">Income Start Age</label>
+              <input type="number" id="incomeStartAge" placeholder="ex. 67" min="50" max="99" oninput="updateIncomeHint()">
+            </div>
+            <div>
+              <label class="field-label">Income End Age</label>
+              <input type="number" id="incomeEndAge" placeholder="ex. 95" min="51" max="100">
+            </div>
+          </div>
+          <div class="hint" id="incomeHint">Income is taken as policy loans after the bank loan is retired, so the start age must be after the payoff age</div>
+        </div>
+
+        <div class="sep"></div>
+        <div class="section-tag">Interest Rate Environment</div>
+
+        <div class="field">
+          <label class="field-label">Rate Path Assumption</label>
+          <div class="rate-env-btns">
+            <button class="rate-btn" onclick="setRateEnv('level',this)">Level<br><span style="font-size:9px;opacity:.7">Stable</span></button>
+            <button class="rate-btn active" onclick="setRateEnv('easing',this)">Easing<br><span style="font-size:9px;opacity:.7">Declining</span></button>
+            <button class="rate-btn" onclick="setRateEnv('tightening',this)">Tightening<br><span style="font-size:9px;opacity:.7">Stress Test</span></button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">
+            90-Day Avg SOFR (%)
+            <span id="sofrStatusLabel" style="font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);margin-left:6px"></span>
+          </label>
+          <input type="number" id="sofrInput" step="0.01" placeholder="—">
+          <div class="sofr-status" id="sofr-status">Fetching live rate…</div>
+        </div>
+
+        <button class="calc-btn" id="calcBtn" onclick="calculate()">Calculate → Generate Output</button>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: OUTPUT PANEL -->
+    <div id="output-wrap">
+      <div class="output-placeholder" id="output-placeholder">
+        <div class="icon">📐</div>
+        <div>Enter parameters and calculate to generate<br>carrier illustration instructions</div>
+      </div>
+      <div id="output-content" style="display:none"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     LEDGER PANEL
+═══════════════════════════════════════ -->
+<div id="ledger-panel">
+
+  <!-- UPLOAD STEP -->
+  <div class="upload-step" id="ledger-upload-step">
+    <div class="back-btn-wrap">
+      <button class="back-btn" onclick="backToModeler()">← Back to Modeler</button>
+    </div>
+    <h2>Income Ledger</h2>
+    <div class="sub">Upload carrier illustration files to generate the year-by-year income comparison</div>
+
+    <!-- Read-only program summary -->
+    <div class="summary-bar" id="summaryBar">
+      <div id="summaryBarContent" style="display:flex;gap:24px;flex-wrap:wrap;flex:1"></div>
+      <button onclick="backToModeler()" style="background:transparent;border:1px solid rgba(201,168,76,.4);color:var(--gold);font-family:'IBM Plex Sans',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">← Modeler</button>
+    </div>
+
+    <div class="section-tag" style="margin-bottom:12px">Illustration Details</div>
+    <div class="meta-fields">
+      <div>
+        <label class="mf-label">Advisor Name</label>
+        <input type="text" id="l-advisor" class="mf-in" placeholder="ex. Jeffrey Faine">
+      </div>
+      <div>
+        <label class="mf-label">Proposal Date</label>
+        <input type="date" id="l-date" class="mf-in">
+      </div>
+      <div>
+        <label class="mf-label">Primary Illustrated Rate (%)</label>
+        <input type="number" id="l-rate1" class="mf-in" step="0.01" placeholder="ex. 6.84">
+        <div class="mf-hint">Also used as the taxable account net return</div>
+      </div>
+      <div>
+        <label class="mf-label">Alternative Illustrated Rate (%)</label>
+        <input type="number" id="l-rate2" class="mf-in" step="0.01" placeholder="ex. 6.50">
+        <div class="mf-hint">Lower-rate scenario</div>
+      </div>
+    </div>
+
+    <div class="section-tag" style="margin-bottom:12px">Carrier Illustration Files <span id="upload-carrier-label" style="letter-spacing:0;text-transform:none;color:var(--muted);margin-left:8px"></span></div>
+    <div class="upload-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="upload-zone" id="zone-i1" ondragover="dzOver(event,'zone-i1')" ondragleave="dzLeave('zone-i1','i1')" ondrop="dzDrop(event,'i1','zone-i1','fname-i1')">
+        <input type="file" id="file-i1" accept=".csv" onchange="fileChosen('file-i1','i1','zone-i1','fname-i1')">
+        <div class="uz-icon">📊</div>
+        <div class="uz-title">TEF Income · Primary Rate</div>
+        <div class="uz-carrier">Required</div>
+        <div class="uz-hint">Financed policy with payoff and policy-loan income</div>
+        <div class="uz-file" id="fname-i1"></div>
+      </div>
+      <div class="upload-zone" id="zone-i2" ondragover="dzOver(event,'zone-i2')" ondragleave="dzLeave('zone-i2','i2')" ondrop="dzDrop(event,'i2','zone-i2','fname-i2')">
+        <input type="file" id="file-i2" accept=".csv" onchange="fileChosen('file-i2','i2','zone-i2','fname-i2')">
+        <div class="uz-icon">📉</div>
+        <div class="uz-title">TEF Income · Alternative Rate</div>
+        <div class="uz-carrier">Required</div>
+        <div class="uz-hint">Same policy re-run at the lower rate</div>
+        <div class="uz-file" id="fname-i2"></div>
+      </div>
+      <div class="upload-zone" id="zone-lirp" ondragover="dzOver(event,'zone-lirp')" ondragleave="dzLeave('zone-lirp','lirp')" ondrop="dzDrop(event,'lirp','zone-lirp','fname-lirp')">
+        <input type="file" id="file-lirp" accept=".csv" onchange="fileChosen('file-lirp','lirp','zone-lirp','fname-lirp')">
+        <div class="uz-icon">📋</div>
+        <div class="uz-title">Self-Funded LIRP · Income</div>
+        <div class="uz-carrier">Optional</div>
+        <div class="uz-hint">Non-financed, same client contribution, same income ages</div>
+        <div class="uz-file" id="fname-lirp"></div>
+      </div>
+    </div>
+
+    <div class="upload-error" id="upload-error"></div>
+    <button class="gen-btn" onclick="generateLedger()">Generate Income Ledger →</button>
+
+  </div>
+
+  <!-- LEDGER OUTPUT -->
+  <div id="ledger-output" style="display:none">
+    <div class="ledger-action-bar">
+      <button class="lab-btn" onclick="backToUpload()">← Edit Files</button>
+      <button class="lab-btn" onclick="backToModeler()">← Modeler</button>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.3)" id="ledger-id-label"></span>
+      <button class="lab-btn no-print" onclick="openDiscussionDoc()" style="border-color:var(--gold);color:var(--gold)">Discussion Doc →</button>
+      <button class="lab-btn no-print" onclick="openOnePager()" style="border-color:var(--gold);color:var(--gold)">One-Pager →</button>
+      <button class="lab-btn no-print" id="stl-btn" style="display:none;border-color:rgba(200,169,110,0.5);color:#C8A96E">&#128190; Save to Library</button>
+      <button class="lab-btn primary" onclick="window.print()">Print / Save PDF (11×17)</button>
+    </div>
+    <div id="ledger-rendered"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════ -->
+<script>
+// ── SUPABASE ──
+const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
+const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
+function getSb() {
+  if (!window.__eyi_sb) window.__eyi_sb = supabase.createClient(SB_URL, SB_KEY);
+  return window.__eyi_sb;
+}
+
+// ── CARRIER CONSTANTS ──
+const CARRIER = {
+  nlg: {
+    name: 'National Life Group',
+    noCol: { contributionMultiplier: 2.25, premiumRatio: 2.55 },
+    spreadOver: 200, spreadUnder: 225, premThreshold: 1000000
+  },
+  pacific: {
+    name: 'Pacific Life',
+    noCol: { contributionMultiplier: 2.375, premiumRatio: 2.25 },
+    spreadOver: 200, spreadUnder: 225, premThreshold: 1000000
+  }
+};
+
+const FLOOR_RATE = 4.0;
+const LTV = 0.95;
+
+// ── STATE ──
+let caseType = 'single';
+let caseFormat = 'standard';
+let rateEnv = 'easing';
+let liveSOFR = 0;
+let scheduleRows = [];
+let uploadedFiles = { sf: null, tef: null };
+let _tefData = null;
+let _ledgerResults = null;
+
+// ── SOFR INIT ──
+// Manual entry — verify current rate at CME Term SOFR before calculating
+function initSOFR() {
+  // Pre-populate with last known rate — advisor must verify before use
+  const LAST_RATE = '4.31';
+  const LAST_DATE = 'May 23, 2026';
+  document.getElementById('sofrInput').value = LAST_RATE;
+  document.getElementById('sofr-status').innerHTML =
+    `As of ${LAST_DATE} (CME Term SOFR 3-Month) — <a href="https://www.cmegroup.com/market-data/cme-group-benchmark-administration/term-sofr.html" target="_blank" style="color:var(--gold)">Verify current rate ↗</a>`;
+  document.getElementById('sofr-status').className = 'sofr-status';
+  document.getElementById('sofrStatusLabel').textContent = 'Verify before use';
+  document.getElementById('sofr-display').textContent = `CME Term SOFR 3M: ${LAST_RATE}%`;
+}
+
+// ── SOLVE MODE ──
+let solveMode = 'A'; // 'A' = contribution→premium, 'B' = premium→contribution
+
+function setSolveMode(mode, btn) {
+  solveMode = mode;
+  document.querySelectorAll('#modeA,#modeB').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('modeAFields').style.display = mode === 'A' ? 'block' : 'none';
+  document.getElementById('modeBFields').style.display = mode === 'B' ? 'block' : 'none';
+  document.getElementById('solveHint').textContent = mode === 'A'
+    ? 'Enter client budget → calculates total premium for the carrier illustrator'
+    : 'Enter total premium from carrier illustrator → calculates client contribution';
+  // Re-solve with current values
+  if (mode === 'A') onContribInput();
+  else onTotalPremInput();
+}
+
+function onContribInput() {
+  fmtCurrency(document.getElementById('clientContrib'));
+  const contrib = parseCurrency('clientContrib');
+  const lev = getLev();
+  if (!contrib || !lev) {
+    document.getElementById('solvedBankPrem').textContent = '—';
+    document.getElementById('solvedTotalPrem').textContent = '—';
+    document.getElementById('solvedLev').textContent = '—';
+    return;
+  }
+  const bank  = Math.round(contrib * lev);
+  const total = contrib + bank;
+  document.getElementById('solvedBankPrem').textContent  = $f(bank);
+  document.getElementById('solvedTotalPrem').textContent = $f(total);
+  document.getElementById('solvedLev').textContent       = lev + '×';
+}
+
+function onTotalPremInput() {
+  fmtCurrency(document.getElementById('totalPremInput'));
+  const total = parseCurrency('totalPremInput');
+  const lev = getLev();
+  if (!total || !lev) {
+    document.getElementById('solvedContrib').textContent   = '—';
+    document.getElementById('solvedBankPremB').textContent = '—';
+    document.getElementById('solvedLevB').textContent      = '—';
+    return;
+  }
+  // contribution = total / (1 + lev), bank = total - contribution
+  const contrib = Math.round(total / (1 + lev));
+  const bank    = total - contrib;
+  document.getElementById('solvedContrib').textContent   = $f(contrib);
+  document.getElementById('solvedBankPremB').textContent = $f(bank);
+  document.getElementById('solvedLevB').textContent      = lev + '×';
+}
+
+
+function setCaseType(type, btn) {
+  caseType = type;
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('insured2Wrap').style.display = type === 'survivorship' ? 'block' : 'none';
+}
+
+// ── CASE FORMAT ──
+function setCaseFormat(fmt) {
+  caseFormat = fmt;
+  document.getElementById('fmtStandard').classList.toggle('selected', fmt === 'standard');
+  document.getElementById('fmtNoCol').classList.toggle('selected', fmt === 'no_collateral');
+  document.getElementById('standardParams').style.display  = fmt === 'standard'      ? 'block' : 'none';
+  document.getElementById('noColParams').style.display     = fmt === 'no_collateral' ? 'block' : 'none';
+}
+
+// ── CARRIER CHANGE ──
+function onCarrierChange() {
+  const c = document.getElementById('carrier').value;
+  if (!c || !CARRIER[c]) return;
+  const hint = document.getElementById('noColMultHint');
+  hint.textContent = `Carrier: ${CARRIER[c].name} · Contribution × ${CARRIER[c].noCol.contributionMultiplier}`;
+  calcNoColSchedule();
+}
+
+// ── LEVERAGE ──
+function onLeverageChange() {
+  const v = document.getElementById('leverageRatio').value;
+  document.getElementById('customLevWrap').style.display = v === 'custom' ? 'block' : 'none';
+  // Re-solve whichever mode is active
+  if (solveMode === 'A') onContribInput();
+  else onTotalPremInput();
+  calcNoColSchedule();
+}
+
+function getLev() {
+  const v = document.getElementById('leverageRatio').value;
+  return v === 'custom' ? (parseFloat(document.getElementById('customLev').value) || 6) : parseFloat(v);
+}
+
+// ── DB BLEND ──
+['totalDB','baseDB'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function() {
+    fmtCurrency(this);
+    calcBlend();
+  });
+});
+
+function calcBlend() {
+  const total = parseCurrency('totalDB');
+  const base  = parseCurrency('baseDB');
+  const term  = total - base;
+  const hint  = document.getElementById('blendHint');
+  document.getElementById('termDB').value = term > 0 ? '$' + Math.round(term).toLocaleString() : '';
+  hint.style.display = (term > base * 3 && base > 0) ? 'block' : 'none';
+}
+
+// ── NO-COLLATERAL SCHEDULE ──
+function calcNoColSchedule() {
+  const carrier = document.getElementById('carrier').value;
+  const baseContrib = parseCurrency('noColBaseContrib');
+  if (!baseContrib || !carrier || !CARRIER[carrier]) return;
+  const C = CARRIER[carrier].noCol;
+  const noColContrib = Math.round(baseContrib * C.contributionMultiplier);
+  document.getElementById('noColContrib').value = '$' + noColContrib.toLocaleString();
+
+  // New inputs
+  const levMult       = parseFloat(document.getElementById('noColLevMult').value ?? 1.5);
+  const fundingPeriod = parseInt(document.getElementById('noColFundingPeriod').value) || 10;
+  const bankOnlyPrem  = parseCurrency('noColBankOnlyPrem') || 0;
+  const payoffYr      = parseInt(document.getElementById('payoffYearNoCol').value) || 20;
+
+  // Update funding period label
+  document.getElementById('noColFundingPeriodLabel').textContent = fundingPeriod;
+  // Show/hide bank-only field
+  document.getElementById('noColBankOnlyField').style.display = fundingPeriod > 4 ? 'block' : 'none';
+  document.querySelector('#noColBankOnlyField label').innerHTML =
+    `Bank-Only Annual Premium, Yrs 5–<span id="noColFundingPeriodLabel">${fundingPeriod}</span> ($)`;
+
+  // Phase 1 (yrs 1–4): client contribution + bank at leverage multiplier
+  const bankPremYr14  = Math.round(noColContrib * levMult);
+  const totalPremYr14 = noColContrib + bankPremYr14;
+
+  let rows = '';
+  for (let yr = 1; yr <= payoffYr; yr++) {
+    if (yr <= 4) {
+      // Phase 1: client + bank
+      rows += `<tr><td style="text-align:center">${yr}</td>
+        <td style="text-align:right;color:var(--gold)">${$f(noColContrib)}</td>
+        <td style="text-align:right">${$f(bankPremYr14)}</td>
+        <td style="text-align:right">${$f(totalPremYr14)}</td></tr>`;
+    } else if (yr <= fundingPeriod) {
+      // Phase 2: bank only — max allowable from carrier
+      const bankDisplay = bankOnlyPrem > 0 ? $f(bankOnlyPrem) : '<span style="color:var(--muted)">—  enter above</span>';
+      const totalDisplay = bankOnlyPrem > 0 ? $f(bankOnlyPrem) : '<span style="color:var(--muted)">—</span>';
+      rows += `<tr><td style="text-align:center">${yr}</td>
+        <td style="text-align:right">$0</td>
+        <td style="text-align:right">${bankDisplay}</td>
+        <td style="text-align:right">${totalDisplay}</td></tr>`;
+    } else {
+      // Phase 3: interest-only, no premium
+      rows += `<tr style="opacity:.5"><td style="text-align:center">${yr}</td>
+        <td style="text-align:right">$0</td>
+        <td style="text-align:right">$0</td>
+        <td style="text-align:right;color:var(--muted)">Interest only</td></tr>`;
+    }
+  }
+  document.getElementById('noColScheduleDisplay').innerHTML = `
+    <table class="sched" style="margin-top:10px">
+      <thead><tr><th>Yr</th><th>Client</th><th>Bank</th><th>Total</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── RATE ENVIRONMENT ──
+function setRateEnv(env, btn) {
+  rateEnv = env;
+  document.querySelectorAll('.rate-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Returns all-in nominal annual rate (%) for a given policy year
+// sofrBase = SOFR in percent (e.g. 4.31), spreadBps = integer (e.g. 200)
+function getRateForYear(yr, sofrBase, spreadBps) {
+  const spread = spreadBps / 100;
+  let sofr;
+  if (rateEnv === 'level') {
+    sofr = sofrBase;
+  } else if (rateEnv === 'easing') {
+    // Ease down 0.25% every year, floor at 4%
+    sofr = Math.max(sofrBase - (yr - 1) * 0.25, FLOOR_RATE - spread);
+  } else {
+    // Tighten up 0.25% every 2 years, cap at +2%
+    sofr = Math.min(sofrBase + Math.floor((yr - 1) / 2) * 0.25, sofrBase + 2.0);
+  }
+  // All-in = SOFR + spread, subject to floor
+  return Math.max(sofr + spread, FLOOR_RATE);
+}
+
+// Returns effective rate for a policy year using actual/360 day count convention
+// Commercial lenders use: interest = principal × (nominal rate / 360) × actual days
+function getEffectiveRate(yr, sofrBase, spreadBps, issueYear) {
+  const nominalRate = getRateForYear(yr, sofrBase, spreadBps) / 100;
+  // Policy year spans calendar year (issueYear + yr - 1)
+  const calYear = issueYear + yr - 1;
+  const isLeap = (calYear % 4 === 0 && calYear % 100 !== 0) || calYear % 400 === 0;
+  const actualDays = isLeap ? 366 : 365;
+  // Actual/360: effective = nominal × actualDays / 360
+  return nominalRate * actualDays / 360;
+}
+
+// ── BUILD SCHEDULE ──
+// premSchedule (optional): array of {clientOutlay, bankThisYr, totalPrem} per year for Capital-Intensive
+function buildSchedule(clientContrib, contribDuration, payoffYear, sofrBase, lev, spreadBps, premSchedule, explicitTotalPrem) {
+  // If an explicit total premium was supplied (Mode B: solved from the
+  // carrier's total premium), back out the bank premium from it directly
+  // so the schedule matches what was entered exactly, rather than
+  // re-deriving it from the already-rounded client contribution.
+  const totalPremPerYr = explicitTotalPrem != null ? explicitTotalPrem : clientContrib + Math.round(clientContrib * lev);
+  const bankPremPerYr  = totalPremPerYr - clientContrib;
+  const rows = [];
+  let cumBalance = 0;
+  const issueYear = new Date().getFullYear();
+
+  for (let yr = 1; yr <= payoffYear; yr++) {
+    const nominalRate   = getRateForYear(yr, sofrBase, spreadBps);
+    const effectiveRate = getEffectiveRate(yr, sofrBase, spreadBps, issueYear);
+    let clientOutlay = 0, bankThisYr = 0, totalPrem = 0;
+    let interestAccrued = 0, loanPayoff = 0;
+    let isPayoff = false;
+
+    if (yr === payoffYear) {
+      // Payoff year — loan retired BOY, no interest accrues
+      loanPayoff = cumBalance;
+      cumBalance = 0;
+      isPayoff = true;
+    } else if (premSchedule && premSchedule[yr - 1]) {
+      // Capital-Intensive: use per-year schedule
+      const ps = premSchedule[yr - 1];
+      clientOutlay = ps.clientOutlay;
+      bankThisYr   = ps.bankThisYr;
+      totalPrem    = ps.totalPrem;
+      if (bankThisYr > 0) {
+        const boyBal = cumBalance + bankThisYr;
+        interestAccrued = boyBal * effectiveRate;
+        cumBalance = boyBal + interestAccrued;
+      } else {
+        // Interest-only phase (no new bank premium)
+        interestAccrued = cumBalance * effectiveRate;
+        cumBalance = cumBalance + interestAccrued;
+      }
+    } else if (yr <= contribDuration) {
+      // Standard: flat client + bank through contribDuration
+      clientOutlay = clientContrib;
+      bankThisYr   = bankPremPerYr;
+      totalPrem    = totalPremPerYr;
+      const boyBal = cumBalance + bankThisYr;
+      interestAccrued = boyBal * effectiveRate;
+      cumBalance = boyBal + interestAccrued;
+    } else {
+      // Standard: interest-only maintenance
+      interestAccrued = cumBalance * effectiveRate;
+      cumBalance = cumBalance + interestAccrued;
+    }
+
+    rows.push({
+      yr, clientOutlay, bankThisYr, totalPrem,
+      nominalRate, effectiveRate,
+      interestAccrued,
+      cumBalance: isPayoff ? 0 : cumBalance,
+      loanPayoff, isPayoff
+    });
+  }
+  return { rows, bankPremPerYr, totalPremPerYr };
+}
+
+// ── SPREAD CALC ──
+function calcSpread(clientContrib, lev, carrier) {
+  const financedPrem = clientContrib * lev;
+  const C = CARRIER[carrier] || { spreadOver: 200, spreadUnder: 225, premThreshold: 1000000 };
+  return financedPrem >= C.premThreshold ? C.spreadOver : C.spreadUnder;
+}
+
+// ── MAIN CALCULATE ──
+function calculate() {
+  const name1    = document.getElementById('insured1Name').value.trim() || 'Sample Client';
+  const age1     = parseInt(document.getElementById('insured1Age').value) || 0;
+  const gender1  = document.getElementById('insured1Gender').value;
+  const health   = document.getElementById('healthRating').value;
+  const carrier  = document.getElementById('carrier').value;
+  const totalDB  = parseCurrency('totalDB');
+  const baseDB   = parseCurrency('baseDB');
+  const termDB   = totalDB - baseDB;
+  const targetDB = parseCurrency('targetDB');
+  const lev      = getLev();
+  const sofr     = parseFloat(document.getElementById('sofrInput').value) || liveSOFR || 5;
+  const illustrationRate = _tefData?.illustrationRate || null;
+
+  if (!age1 || age1 < 25 || age1 > 80) return alert('Issue age must be 25–80.');
+  if (!carrier) return alert('Please select a carrier.');
+  if (!totalDB) return alert('Total death benefit is required.');
+  const incomeStartAge = parseInt(document.getElementById('incomeStartAge').value);
+  const incomeEndAge   = parseInt(document.getElementById('incomeEndAge').value);
+  if (isNaN(incomeStartAge)) return alert('Income start age is required.');
+  if (isNaN(incomeEndAge) || incomeEndAge > 100) return alert('Income end age is required (max 100).');
+  if (incomeEndAge <= incomeStartAge) return alert('Income end age must be greater than income start age.');
+
+  let clientContrib, contribDuration, payoffYear, explicitTotalPrem = null;
+
+  if (caseFormat === 'standard') {
+    // Resolve contribution from whichever solve mode is active
+    if (solveMode === 'A') {
+      clientContrib = parseCurrency('clientContrib');
+      if (!clientContrib) return alert('Client annual contribution is required.');
+    } else {
+      // Mode B: back-calculate from total premium
+      const totalPrem = parseCurrency('totalPremInput');
+      if (!totalPrem) return alert('Total annual premium is required.');
+      clientContrib = Math.round(totalPrem / (1 + lev));
+      // Carry the client's actual entered total through so the schedule
+      // reflects it exactly, instead of re-deriving bank premium from the
+      // already-rounded contribution (which reintroduces rounding error).
+      explicitTotalPrem = totalPrem;
+    }
+    contribDuration = parseInt(document.getElementById('contribDuration').value) || 10;
+    payoffYear      = parseInt(document.getElementById('payoffYear').value) || 20;
+  } else {
+    const baseContrib = parseCurrency('noColBaseContrib');
+    if (!baseContrib) return alert('Standard equivalent contribution is required.');
+    clientContrib   = Math.round(baseContrib * CARRIER[carrier].noCol.contributionMultiplier);
+    contribDuration = 4;
+    payoffYear      = parseInt(document.getElementById('payoffYearNoCol').value) || 20;
+  }
+
+  // Spread / all-in rate
+  const spreadBps = calcSpread(clientContrib, lev, carrier);
+  const allInRate = Math.max(sofr + spreadBps / 100, FLOOR_RATE);
+
+  // Build Capital-Intensive 3-phase premium schedule
+  let premSchedule = null;
+  if (caseFormat === 'no_collateral') {
+    const levMult       = parseFloat(document.getElementById('noColLevMult').value ?? 1.5);
+    const fundingPeriod = parseInt(document.getElementById('noColFundingPeriod').value) || 10;
+    const bankOnlyPrem  = parseCurrency('noColBankOnlyPrem') || 0;
+    const bankPremYr14  = Math.round(clientContrib * levMult);
+    const totalPremYr14 = clientContrib + bankPremYr14;
+    premSchedule = [];
+    for (let yr = 1; yr < payoffYear; yr++) {
+      if (yr <= 4) {
+        // Phase 1: client + bank at leverage multiplier
+        premSchedule.push({ clientOutlay: clientContrib, bankThisYr: bankPremYr14, totalPrem: totalPremYr14 });
+      } else if (yr <= fundingPeriod) {
+        // Phase 2: bank only at max allowable premium
+        premSchedule.push({ clientOutlay: 0, bankThisYr: bankOnlyPrem, totalPrem: bankOnlyPrem });
+      } else {
+        // Phase 3: interest-only, no new premium
+        premSchedule.push({ clientOutlay: 0, bankThisYr: 0, totalPrem: 0 });
+      }
+    }
+  }
+
+  const { rows, bankPremPerYr, totalPremPerYr } = buildSchedule(clientContrib, contribDuration, payoffYear, sofr, lev, spreadBps, premSchedule, explicitTotalPrem);
+
+  const payoffRow = rows.find(r => r.isPayoff);
+  const payoffAmount = payoffRow?.loanPayoff || 0;
+  const totalClientOutlay = rows.reduce((s, r) => s + r.clientOutlay, 0);
+  const totalBankPrem = rows.filter(r => r.bankThisYr > 0).reduce((s, r) => s + r.bankThisYr, 0);
+
+  // Gap collateral low point (estimated — requires carrier CSV for exact 0% stress test)
+  const yr1Row = rows[0];
+  const yr2Row = rows[1];
+  const yr3Row = rows[2];
+  const gap1 = yr1Row ? (yr1Row.cumBalance / LTV) : 0;
+  const gap2 = yr2Row ? (yr2Row.cumBalance / LTV) : 0;
+  const gap3 = yr3Row ? (yr3Row.cumBalance / LTV) : 0;
+
+  // Store for ledger step
+  scheduleRows = rows;
+  _tefData = {
+    name1, age1, gender1, health, carrier, caseType, caseFormat,
+    insured2Name: document.getElementById('insured2Name').value.trim(),
+    insured2Age: parseInt(document.getElementById('insured2Age').value) || 0,
+    insured2Gender: document.getElementById('insured2Gender').value,
+    totalDB, baseDB, termDB, targetDB, lev,
+    clientContrib, contribDuration, payoffYear, payoffAmount,
+    totalClientOutlay, totalBankPrem, totalPremPerYr, bankPremPerYr,
+    spreadBps, allInRate, sofr, illustrationRate, rateEnv,
+    gap1, gap2, gap3, rows,
+    incomeStartAge, incomeEndAge, outputMode: 'income'
+  };
+
+  // Build schedule table
+  let tableRows = '';
+  let totClient = 0, totBank = 0, totPrem = 0;
+  for (const r of rows) {
+    totClient += r.clientOutlay;
+    totBank   += r.bankThisYr;
+    totPrem   += r.totalPrem;
+    const cls = r.isPayoff ? 'payoff-yr' : r.clientOutlay > 0 ? 'client-phase' : r.bankThisYr > 0 ? 'bank-phase' : '';
+    tableRows += `<tr class="${cls}">
+      <td>${r.yr}</td>
+      <td>${age1 + r.yr - 1}</td>
+      <td>${r.clientOutlay > 0 ? $f(r.clientOutlay) : '—'}</td>
+      <td>${r.bankThisYr > 0 ? $f(r.bankThisYr) : '—'}</td>
+      <td>${r.totalPrem > 0 ? $f(r.totalPrem) : '—'}</td>
+      <td>${r.nominalRate.toFixed(2)}%</td>
+      <td>${r.interestAccrued > 0 ? $f(r.interestAccrued) : '—'}</td>
+      <td>${r.cumBalance > 0 ? $f(r.cumBalance) : '—'}</td>
+      <td>${r.isPayoff ? `<strong style="color:var(--green)">${$f(r.loanPayoff)}</strong>` : '—'}</td>
+    </tr>`;
+  }
+
+  const payoffAge = age1 + payoffYear - 1;
+  const incomeOK  = incomeStartAge > payoffAge;
+  const conflictHtml = incomeOK ? '' : `<div class="gap-box" style="margin-bottom:18px">
+      <h4>⛔ Cannot Proceed — Income Start Conflict</h4>
+      <div class="gap-note" style="border-top:none;padding-top:0;margin-top:0;font-style:normal;font-size:12px;color:var(--text)">
+        Income start age <strong>${incomeStartAge}</strong> is at or before loan payoff age <strong>${payoffAge}</strong> (Year ${payoffYear}). Income cannot begin until the loan is retired.<br><br>
+        <strong>Fix:</strong> move the loan payoff year earlier, or set the income start age to at least <strong>${payoffAge + 1}</strong>.
+      </div></div>`;
+  const html = `<div class="animate-in">
+    ${conflictHtml}
+    <div class="key-outputs">
+      <div class="ko-card hl">
+        <div class="ko-label">Est. Loan Payoff (Year ${payoffYear})</div>
+        <div class="ko-value">${$f(payoffAmount)}</div>
+        <div class="ko-sub">Age ${age1 + payoffYear - 1} · ${CARRIER[carrier]?.name || carrier}</div>
+      </div>
+      <div class="ko-card">
+        <div class="ko-label">Total Client Outlay</div>
+        <div class="ko-value">${$f(totalClientOutlay)}</div>
+        <div class="ko-sub">${contribDuration} × ${$f(clientContrib)}/yr</div>
+      </div>
+      <div class="ko-card">
+        <div class="ko-label">Annual Premium to Carrier</div>
+        <div class="ko-value">${$f(totalPremPerYr)}</div>
+        <div class="ko-sub">Client ${$f(clientContrib)} + Bank ${$f(bankPremPerYr)}</div>
+      </div>
+    </div>
+
+    <div class="carrier-box">
+      <h4>Carrier Illustration Instructions <span class="tag">Advisor Notes</span></h4>
+      <div class="instr-grid">
+        <div>
+          <div class="instr-item"><span class="instr-key">Insured</span><span class="instr-val">${name1} · Age ${age1} ${gender1}</span></div>
+          ${caseType === 'survivorship' ? `<div class="instr-item"><span class="instr-key">Insured 2</span><span class="instr-val">${_tefData.insured2Name || '—'} · Age ${_tefData.insured2Age} ${_tefData.insured2Gender}</span></div>` : ''}
+          <div class="instr-item"><span class="instr-key">Health Rating</span><span class="instr-val">${health}</span></div>
+          <div class="instr-item"><span class="instr-key">Total Death Benefit</span><span class="instr-val hl">${$f(totalDB)}</span></div>
+          <div class="instr-item"><span class="instr-key">Base Coverage</span><span class="instr-val hl">${$f(baseDB)}</span></div>
+          <div class="instr-item"><span class="instr-key">Term Coverage</span><span class="instr-val hl">${termDB > 0 ? $f(termDB) : 'None'}</span></div>
+          <div class="instr-item"><span class="instr-key">Leverage Ratio</span><span class="instr-val">${lev}×</span></div>
+        </div>
+        <div>
+          <div class="instr-item"><span class="instr-key">Annual Premium (Carrier)</span><span class="instr-val hl">${$f(totalPremPerYr)}</span></div>
+          <div class="instr-item"><span class="instr-key">Client Contribution / Yr</span><span class="instr-val hl">${$f(clientContrib)}</span></div>
+          <div class="instr-item"><span class="instr-key">Bank Premium / Yr</span><span class="instr-val hl">${$f(bankPremPerYr)}</span></div>
+          <div class="instr-item"><span class="instr-key">Contribution Period</span><span class="instr-val hl">${contribDuration} Years</span></div>
+          <div class="instr-item"><span class="instr-key">Loan Payoff Year</span><span class="instr-val hl">Year ${payoffYear} · Age ${age1 + payoffYear - 1}</span></div>
+          <div class="instr-item"><span class="instr-key">Est. Loan Payoff Amount</span><span class="instr-val hl">${$f(payoffAmount)}</span></div>
+          <div class="instr-item"><span class="instr-key">Income Start Age</span><span class="instr-val hl">Age ${incomeStartAge} · Year ${incomeStartAge - age1 + 1}</span></div>
+          <div class="instr-item"><span class="instr-key">Income End Age</span><span class="instr-val hl">Age ${incomeEndAge}</span></div>
+          <div class="instr-item"><span class="instr-key">Income Method</span><span class="instr-val">Policy loans only · level, solved to end age</span></div>
+          <div class="instr-item"><span class="instr-key">All-In Rate Year 1 (Nominal)</span><span class="instr-val">${allInRate.toFixed(2)}% (SOFR ${sofr.toFixed(2)}% + ${spreadBps}bps)</span></div>
+          <div class="instr-item"><span class="instr-key">Day Count Convention</span><span class="instr-val">Actual / 360</span></div>
+          ${illustrationRate ? `<div class="instr-item"><span class="instr-key">Illustration Assumption Rate</span><span class="instr-val hl">${illustrationRate.toFixed(2)}% Gross Static Return</span></div>` : ''}
+        </div>
+      </div>
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(201,168,76,.2);font-size:11px;color:var(--muted)">
+        ℹ️ Run the <strong>TEF policy</strong> (financed, loan payoff of ${$f(payoffAmount)} in Year ${payoffYear}, then policy-loan income ages ${incomeStartAge}–${incomeEndAge}) at your primary and alternative rates, and export each as CSV.
+        Optionally run a <strong>self-funded LIRP</strong> (non-financed) at the same client contribution and income ages for comparison. Loan payoff must appear in policy Year ${payoffYear}; income must begin the year after.
+      </div>
+    </div>
+
+    <div class="gap-box">
+      <h4>⚠ Gap Collateral Low Point — 0% Return Stress Test</h4>
+      <div class="gap-row"><span class="gap-label">Year 1 Required Collateral (Loan ÷ ${(LTV*100).toFixed(0)}% LTV)</span><span class="gap-val">${$f(gap1)}</span></div>
+      <div class="gap-row"><span class="gap-label">Year 2 Required Collateral</span><span class="gap-val">${$f(gap2)}</span></div>
+      <div class="gap-row"><span class="gap-label">Year 3 Required Collateral</span><span class="gap-val">${$f(gap3)}</span></div>
+      <div class="gap-note">
+        <strong>These are estimated loan exposure figures only.</strong> Exact gap collateral requires the carrier illustration CSV to compute the 0% return CSV (stripping Total Credits from years 1–3).
+        Upload carrier files in the Benefit Ledger to generate the precise stress test. The client must review and sign the gap collateral acknowledgment before proceeding.
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-hdr">
+        <div class="step-badge">Schedule</div>
+        <h2>Year-by-Year Premium &amp; Loan Schedule</h2>
+      </div>
+      <div style="padding:12px 14px 0">
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot" style="background:rgba(13,27,46,.06)"></div>Client + Bank Phase</div>
+          <div class="leg-item"><div class="leg-dot" style="background:rgba(42,110,69,.12)"></div>Bank-Only / Maintenance</div>
+          <div class="leg-item"><div class="leg-dot" style="background:rgba(201,168,76,.3)"></div>Loan Payoff Year</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;padding:0 0 14px">
+        <table class="sched">
+          <thead>
+            <tr>
+              <th>Yr</th><th>Age</th><th>Client Outlay</th><th>Bank Premium</th><th>Total Premium</th>
+              <th>Int. Rate</th><th>Interest Accrued</th><th>Cum Loan Balance</th><th>Loan Payoff</th>
+            </tr>
+          </thead>
+          <tbody>${tableRows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">TOTAL</td>
+              <td>${$f(totClient)}</td>
+              <td>${$f(totBank)}</td>
+              <td>${$f(totPrem)}</td>
+              <td colspan="3">—</td>
+              <td>${$f(payoffAmount)}</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-top:none;padding:10px 14px;font-size:12px;color:var(--navy);line-height:1.6;border-radius:0 0 4px 4px">
+          <strong style="color:var(--gold);letter-spacing:1px;font-size:10px;text-transform:uppercase">Next Step →</strong>&nbsp;
+          Run the carrier illustrations using the parameters above and export each as CSV. Upload them in the Income Ledger to generate the year-by-year income comparison.
+        </div>
+      </div>
+    </div>
+
+    <div class="disc">
+      <strong>EFS LIFE LLC — INTERNAL USE ONLY.</strong> This pre-illustration modeler is a planning tool for advisor use in preparing carrier illustration requests.
+      Loan balance projections are estimates based on CME Term SOFR 3-Month (${sofr.toFixed(2)}%) + ${spreadBps}bps lender spread = ${allInRate.toFixed(2)}% nominal all-in rate, subject to a ${FLOOR_RATE}% floor. Interest accrues on an actual/360 day-count basis using a ${rateEnv} rate environment assumption.
+      Actual loan balances, interest rates, and payoff amounts will vary. Gap collateral figures are estimated loan exposure and do not reflect 0% CSV stress test — exact figures require carrier CSV upload.
+      The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC.
+    </div>
+
+    ${incomeOK ? `<div class="proceed-wrap">
+      <button class="proceed-btn" onclick="proceedToLedger()">Proceed to Income Ledger → Upload Carrier Files</button>
+    </div>` : ''}
+  </div>`;
+
+  document.getElementById('output-placeholder').style.display = 'none';
+  document.getElementById('output-content').innerHTML = html;
+  document.getElementById('output-content').style.display = 'block';
+
+  // Pre-populate ledger carrier selector
+}
+
+// ── PROCEED TO LEDGER ──
+function proceedToLedger() {
+  if (!_tefData) { alert('Please run the Modeler first.'); return; }
+
+  // Populate summary bar
+  const items = [
+    ['Client', _tefData.name1 + (caseType === 'survivorship' ? ' & ' + _tefData.insured2Name : '')],
+    ['Age', _tefData.age1],
+    ['Carrier', CARRIER[_tefData.carrier]?.name || _tefData.carrier],
+    ['Annual Premium', $f(_tefData.totalPremPerYr)],
+    ['Client Outlay', $f(_tefData.clientContrib) + '/yr · ' + _tefData.contribDuration + ' yrs'],
+    ['Loan Payoff', 'Yr ' + _tefData.payoffYear + ' · ' + $f(_tefData.payoffAmount)],
+    ['Income Ages', _tefData.incomeStartAge + ' – ' + _tefData.incomeEndAge],
+  ];
+  document.getElementById('summaryBarContent').innerHTML = items.map(([l,v]) =>
+    `<div class="sb-item"><div class="sb-label">${l}</div><div class="sb-value">${v}</div></div>`
+  ).join('');
+
+  updateUploadLabels();
+
+  document.getElementById('intake-panel').style.display = 'none';
+  document.getElementById('ledger-panel').style.display = 'block';
+  document.getElementById('ledger-upload-step').style.display = 'block';
+  document.getElementById('ledger-output').style.display = 'none';
+  window.scrollTo(0, 0);
+}
+
+function backToModeler() {
+  document.getElementById('ledger-panel').style.display = 'none';
+  document.getElementById('intake-panel').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function backToUpload() {
+  document.getElementById('ledger-output').style.display = 'none';
+  document.getElementById('ledger-upload-step').style.display = 'block';
+}
+
+// ── FILE UPLOAD HANDLING (income ledger: primary rate, alternative rate, optional self-funded LIRP) ──
+function setUpFile(key, f, zoneId, nameId) {
+  uploadedFiles[key] = f;
+  document.getElementById(zoneId).classList.add('has-file');
+  document.getElementById(nameId).textContent = f.name;
+}
+function fileChosen(inputId, key, zoneId, nameId) {
+  const f = document.getElementById(inputId).files[0];
+  if (f) setUpFile(key, f, zoneId, nameId);
+}
+function dzOver(e, z) { e.preventDefault(); document.getElementById(z).classList.add('has-file'); }
+function dzLeave(z, key) { if (!uploadedFiles[key]) document.getElementById(z).classList.remove('has-file'); }
+function dzDrop(e, key, zoneId, nameId) {
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if (f) setUpFile(key, f, zoneId, nameId);
+}
+function updateUploadLabels() {
+  const el = document.getElementById('upload-carrier-label');
+  if (el && _tefData) el.textContent = (CARRIER[_tefData.carrier]?.name || _tefData.carrier) + ' · CSV export';
+}
+
+// ── CSV PARSER — NLG ──
+// Handles two NLG QuickView export formats:
+// Format A (TEF/simple): "Policy Year","Age","Planned Premium","Accumulated Value","Surrender Value","Net Death Benefit"
+// Format B (SF/detailed): "Year","Age","Premium Outlay",...,"Total Credits","Accumulated Value","Surrender Charge","Cash Surrender Value","Net Death Benefit"
+
+function parseNLGCSV(text) {
+  const allLines = text.replace(/\r/g, '').split('\n');
+
+  // Extract target premium from param header block (row 0/1)
+  let targetPremium = null;
+  const paramHeaders = allLines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
+  const paramValues  = (allLines[1] || '').split(',').map(v => v.replace(/"/g,'').trim());
+  const tpIdx = paramHeaders.findIndex(h => h === 'target premium');
+  if (tpIdx >= 0) targetPremium = parseFloat(paramValues[tpIdx]) || null;
+
+  // Find the data header row — contains "year" or "policy year" AND "age"
+  const hIdx = allLines.findIndex(l => {
+    const lower = l.toLowerCase();
+    return (lower.includes('policy year') || lower.includes('"year"') || lower.match(/^"?year"?,/)) 
+           && lower.includes('age');
+  });
+  if (hIdx < 0) return null;
+
+  const headers = allLines[hIdx].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase());
+
+  // Flexible column finder — checks multiple possible names
+  const col = (...names) => {
+    for (const name of names) {
+      const idx = headers.findIndex(h => h === name || h.includes(name));
+      if (idx >= 0) return idx;
+    }
+    return -1;
+  };
+
+  const yearIdx     = col('policy year', 'year');
+  const ageIdx      = col('age');
+  const premIdx     = col('planned premium', 'premium outlay');
+  const loanIdx     = col('loan');
+  const incIdx      = col('annual income');
+  const avIdx       = col('accumulated value');
+  const csvIdx      = col('cash surrender value', 'surrender value');
+  const dbIdx       = col('net death benefit');
+  const creditsIdx  = col('total credits');
+
+  if (yearIdx < 0) return null;
+
+  // Detect file type: detailed SF export has "Cash Surrender Value" or "Total Credits"
+  const isSelfFunded = headers.some(h => h.includes('cash surrender') || h.includes('total credits') || h.includes('premium outlay'));
+
+  const rows = [];
+  for (let i = hIdx + 1; i < allLines.length; i++) {
+    const line = allLines[i].trim();
+    if (!line) continue;
+    const parts = line.split(',').map(v => v.replace(/"/g,'').trim());
+    const yr = parseInt(parts[yearIdx]);
+    if (isNaN(yr) || yr < 1) continue;
+    rows.push({
+      year:         yr,
+      age:          parseInt(parts[ageIdx])      || 0,
+      plannedPrem:  premIdx  >= 0 ? parseFloat(parts[premIdx])  || 0 : 0,
+      loan:         loanIdx  >= 0 ? parseFloat(parts[loanIdx])  || 0 : 0,
+      annualIncome: incIdx   >= 0 ? parseFloat(parts[incIdx])   || 0 : 0,
+      accValue:     avIdx    >= 0 ? parseFloat(parts[avIdx])    || 0 : 0,
+      csv:          csvIdx   >= 0 ? parseFloat(parts[csvIdx])   || 0 : 0,
+      db:           dbIdx    >= 0 ? parseFloat(parts[dbIdx])    || 0 : 0,
+      totalCredits: creditsIdx >= 0 ? parseFloat(parts[creditsIdx]) || 0 : 0,
+    });
+  }
+
+  if (rows.length === 0) return null;
+  return { rows, isSelfFunded, targetPremium };
+}
+
+// Convenience wrappers that validate file type
+function parseNLG_SelfFunded(text) {
+  const result = parseNLGCSV(text);
+  if (!result) return null;
+  if (!result.isSelfFunded) {
+    // Try to parse anyway — may be missing loan column but still valid
+  }
+  return { rows: result.rows, targetPremium: result.targetPremium };
+}
+
+function parseNLG_TEF(text) {
+  const result = parseNLGCSV(text);
+  if (!result) return null;
+  return { rows: result.rows, targetPremium: result.targetPremium };
+}
+
+// ── XLSX PARSER — PACIFIC LIFE ──
+// Reads the Pacific Life illustration workbook (.xlsx export). Pulls year-by-year
+// values from the "Non-Guaranteed Ledger" sheet (Year, Age, Premium Outlay,
+// [Policy Loan, Net Outlay — financed policies only], Accumulated Value,
+// Cash Surrender Value, Death Benefit — all already net of loan when a loan
+// column is present) and merges in the "Total Credit" column from the
+// "Policy Credits" sheet (needed for the 0% gap-collateral stress test).
+// Column positions vary between the non-financed export (7 cols) and the
+// financed/loan export (8 cols with an extra Policy Loan / Net Outlay pair),
+// so columns are located by header text rather than fixed index.
+
+function sheetToGrid(ws) {
+  if (!ws || !ws['!ref']) return [];
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const grid = [];
+  for (let r = range.s.r; r <= range.e.r; r++) {
+    const row = [];
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const cell = ws[XLSX.utils.encode_cell({ r, c })];
+      row.push(cell ? cell.v : null);
+    }
+    grid.push(row);
+  }
+  return grid;
+}
+
+function findSheetByName(wb, ...candidates) {
+  for (const name of candidates) {
+    const lower = name.toLowerCase();
+    let match = wb.SheetNames.find(sn => sn.trim().toLowerCase() === lower);
+    if (!match) match = wb.SheetNames.find(sn => sn.trim().toLowerCase().includes(lower));
+    if (match) return wb.Sheets[match];
+  }
+  return null;
+}
+
+// Locates the data header row — the row where column A is "Year" and column B is "Age"
+function findYearAgeHeaderRow(grid) {
+  for (let i = 0; i < grid.length; i++) {
+    const a = (grid[i][0] ?? '').toString().trim().toLowerCase();
+    const b = (grid[i][1] ?? '').toString().trim().toLowerCase();
+    if (a === 'year' && b === 'age') return i;
+  }
+  return -1;
+}
+
+// Some sheets (e.g. "Policy Credits") key rows by Year only, with no Age column —
+// match on column A alone.
+function findYearOnlyHeaderRow(grid) {
+  for (let i = 0; i < grid.length; i++) {
+    const a = (grid[i][0] ?? '').toString().trim().toLowerCase();
+    if (a === 'year') return i;
+  }
+  return -1;
+}
+
+// Pacific Life headers are split across several rows above the "Year"/"Age" row
+// (e.g. row8:"Cash" row9:"Surrender" row10:"Value" => "Cash Surrender Value").
+// Concatenate every non-empty cell in each column across the lookback window.
+function buildColumnHeaders(grid, headerRowIdx, lookback = 6) {
+  const start = Math.max(0, headerRowIdx - lookback);
+  const numCols = grid[headerRowIdx].length;
+  const headers = [];
+  for (let c = 0; c < numCols; c++) {
+    const parts = [];
+    for (let r = start; r <= headerRowIdx; r++) {
+      const v = grid[r] ? grid[r][c] : null;
+      if (v !== null && v !== undefined) {
+        const s = String(v).replace(/\u00a0/g, ' ').trim();
+        if (s) parts.push(s);
+      }
+    }
+    headers.push(parts.join(' ').toLowerCase());
+  }
+  return headers;
+}
+
+// Pulls the illustrated non-guaranteed rate from a header cell like
+// "Non-Guaranteed Values (End Of Year) @ 6.35%"
+function extractIllusRateFromGrid(grid, headerRowIdx) {
+  for (let r = 0; r < headerRowIdx; r++) {
+    for (const cell of (grid[r] || [])) {
+      if (typeof cell === 'string') {
+        const m = cell.match(/@\s*([\d.]+)\s*%/);
+        if (m) return parseFloat(m[1]);
+      }
+    }
+  }
+  return null;
+}
+
+function parsePacificLifeXLSX(arrayBuffer) {
+  let wb;
+  try {
+    wb = XLSX.read(arrayBuffer, { type: 'array' });
+  } catch (e) {
+    return null;
+  }
+
+  const ledgerSheet = findSheetByName(wb, 'Non-Guaranteed Ledger', 'Non-Guaranteed', 'Tabular Detail');
+  if (!ledgerSheet) return null;
+
+  const grid = sheetToGrid(ledgerSheet);
+  const hIdx = findYearAgeHeaderRow(grid);
+  if (hIdx < 0) return null;
+
+  const headers = buildColumnHeaders(grid, hIdx);
+  const findCol = (test) => headers.findIndex(h => test(h));
+
+  const premIdx = findCol(h => h.includes('outlay'));
+  const loanIdx = findCol(h => h.includes('loan'));
+  const avIdx   = findCol(h => h.includes('accumulated'));
+  const csvIdx  = findCol(h => h.includes('surrender') && h.includes('value'));
+  const dbIdx   = findCol(h => h.includes('death') && h.includes('benefit'));
+
+  if (avIdx < 0 || csvIdx < 0 || dbIdx < 0) return null;
+
+  const illustrationRate = extractIllusRateFromGrid(grid, hIdx);
+
+  // Merge in Total Credit per year from the Policy Credits sheet (used for the
+  // 0% gap-collateral stress test — Pacific Life has no single "Total Credits"
+  // column on the ledger sheet the way NLG QuickView does).
+  const creditsMap = {};
+  const creditSheet = findSheetByName(wb, 'Policy Credits');
+  if (creditSheet) {
+    const cgrid = sheetToGrid(creditSheet);
+    const cHIdx = findYearOnlyHeaderRow(cgrid);
+    if (cHIdx >= 0) {
+      const cHeaders = buildColumnHeaders(cgrid, cHIdx);
+      const tcIdx = cHeaders.findIndex(h => h.includes('total') && h.includes('credit'));
+      if (tcIdx >= 0) {
+        for (let r = cHIdx + 1; r < cgrid.length; r++) {
+          const yr = parseInt(cgrid[r][0]);
+          if (isNaN(yr) || yr < 1) continue;
+          creditsMap[yr] = parseFloat(cgrid[r][tcIdx]) || 0;
+        }
+      }
+    }
+  }
+
+  const rows = [];
+  for (let r = hIdx + 1; r < grid.length; r++) {
+    const yr = parseInt(grid[r][0]);
+    if (isNaN(yr) || yr < 1) continue;
+    rows.push({
+      year:         yr,
+      age:          parseInt(grid[r][1]) || 0,
+      plannedPrem:  premIdx >= 0 ? (parseFloat(grid[r][premIdx]) || 0) : 0,
+      loan:         loanIdx >= 0 ? (parseFloat(grid[r][loanIdx]) || 0) : 0,
+      annualIncome: 0,
+      accValue:     parseFloat(grid[r][avIdx]) || 0,
+      csv:          parseFloat(grid[r][csvIdx]) || 0,
+      db:           parseFloat(grid[r][dbIdx])  || 0,
+      totalCredits: creditsMap[yr] || 0,
+    });
+  }
+
+  if (rows.length === 0) return null;
+  return { rows, targetPremium: null, illustrationRate };
+}
+
+function parsePacific_SelfFunded(arrayBuffer) {
+  const result = parsePacificLifeXLSX(arrayBuffer);
+  if (!result) return null;
+  return { rows: result.rows, targetPremium: result.targetPremium, illustrationRate: result.illustrationRate };
+}
+
+function parsePacific_TEF(arrayBuffer) {
+  const result = parsePacificLifeXLSX(arrayBuffer);
+  if (!result) return null;
+  return { rows: result.rows, targetPremium: result.targetPremium, illustrationRate: result.illustrationRate };
+}
+
+// ── FILE READER ──
+function readFile(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = () => rej(new Error('File read failed'));
+    r.readAsText(f);
+  });
+}
+
+function readFileAsArrayBuffer(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = e => res(e.target.result);
+    r.onerror = () => rej(new Error('File read failed'));
+    r.readAsArrayBuffer(f);
+  });
+}
+
+function showUploadError(msg) {
+  const el = document.getElementById('upload-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ── GENERATE LEDGER ──
+// ── INCOME CSV PARSER ──
+// Primary path: the existing NLG QuickView parser (reads Loan / Annual Income by header name).
+// Fallback: the 8-col positional financed export used by the DEF tool
+//   Year, Age, Premium, Loan, Annual Income, Accum Value, Gross CSV, Gross DB
+// and its 6-col self-funded layout (no income column).
+function parseIncomeCSV(text) {
+  const primary = parseNLGCSV(text);
+  if (primary && primary.rows.some(r => r.csv > 0 && r.db > 0)) {
+    return { rows: primary.rows, targetPremium: primary.targetPremium, hasCredits: primary.rows.some(r => r.totalCredits > 0) };
+  }
+  const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(l => l);
+  const headerIdx = lines.findIndex(l => l.toLowerCase().includes('policy year') || (l.toLowerCase().includes('year') && l.toLowerCase().includes('age')));
+  if (headerIdx < 0) return null;
+  const hdr = lines[headerIdx].split(',').map(v => v.replace(/["\s]/g, '').toLowerCase());
+  const idxOf = name => hdr.findIndex(h => h.includes(name));
+  const sixCol = idxOf('surrendervalue') >= 0 && idxOf('netdeathbenefit') >= 0 && !hdr.some(h => h.includes('loan') || h.includes('income'));
+  const map = sixCol
+    ? { premium: idxOf('premium') >= 0 ? idxOf('premium') : 2, loan: -1, income: -1, accum: idxOf('accumulatedvalue'), csv: idxOf('surrendervalue'), db: idxOf('netdeathbenefit') }
+    : { premium: 2, loan: 3, income: 4, accum: 5, csv: 6, db: 7 };
+  const val = (parts, i) => (i >= 0 ? parseFloat(parts[i]) : 0) || 0;
+  const rows = [];
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const parts = lines[i].split(',').map(v => v.replace(/["\s]/g, ''));
+    if (parts.length < 6) continue;
+    const yr = parseInt(parts[0]);
+    if (isNaN(yr) || yr < 1) continue;
+    rows.push({
+      year: yr, age: parseInt(parts[1]) || 0,
+      plannedPrem: val(parts, map.premium), loan: val(parts, map.loan), annualIncome: val(parts, map.income),
+      accValue: val(parts, map.accum), csv: val(parts, map.csv), db: val(parts, map.db), totalCredits: 0
+    });
+  }
+  if (!rows.length) return null;
+  let targetPremium = null;
+  const th = (lines[0] || '').split(',').map(v => v.replace(/"/g, '').trim().toLowerCase());
+  const tv = (lines[1] || '').split(',').map(v => v.replace(/"/g, '').trim());
+  const ti = th.findIndex(h => h.includes('target') && h.includes('prem'));
+  if (ti >= 0) { const n = parseFloat((tv[ti] || '').replace(/[^0-9.]/g, '')); if (!isNaN(n)) targetPremium = n; }
+  return { rows, targetPremium, hasCredits: false };
+}
+
+// ── TAXABLE INVESTMENT ACCOUNT (solved to zero at income end age; capital-gains tax on withdrawals) ──
+// contribByYear: { policyYear: dollars } — identical to the client outlay in the financed policy.
+function calcInvAccount(contribByYear, netRate, incomeStartAge, incomeEndAge, rows, capGainsRate) {
+  const issueYear = new Date().getFullYear();
+  const growth = yr => {
+    const cal = issueYear + yr - 1;
+    const leap = (cal % 4 === 0 && cal % 100 !== 0) || cal % 400 === 0;
+    return netRate * (leap ? 366 / 365 : 1);
+  };
+  const n = incomeEndAge - incomeStartAge + 1;
+  let bal = 0;
+  for (const row of rows) {
+    if (row.age >= incomeStartAge) break;
+    bal = (bal + (contribByYear[row.year] || 0)) * (1 + growth(row.year));
+  }
+  const gross = netRate === 0 ? bal / n : bal * netRate / (1 - Math.pow(1 + netRate, -n));
+  const invRows = [];
+  let run = 0;
+  for (const row of rows) {
+    if (row.age > 100) break;
+    const contrib = row.age < incomeStartAge ? (contribByYear[row.year] || 0) : 0;
+    const g = growth(row.year);
+    if (row.age < incomeStartAge) {
+      run = (run + contrib) * (1 + g);
+      invRows.push({ year: row.year, age: row.age, contrib, grossWithdrawal: 0, netWithdrawal: 0, balance: run });
+    } else if (row.age <= incomeEndAge) {
+      const grown = run * (1 + g);
+      const w = Math.min(gross, grown);
+      run = Math.max(0, grown - w);
+      invRows.push({ year: row.year, age: row.age, contrib: 0, grossWithdrawal: w, netWithdrawal: w * (1 - capGainsRate), balance: run });
+    } else {
+      invRows.push({ year: row.year, age: row.age, contrib: 0, grossWithdrawal: 0, netWithdrawal: 0, balance: 0 });
+    }
+  }
+  return { invRows, annualGross: gross, annualNet: gross * (1 - capGainsRate) };
+}
+
+// ── GENERATE LEDGER ──
+async function generateLedger() {
+  document.getElementById('upload-error').style.display = 'none';
+  const d = _tefData;
+  if (!d) return showUploadError('Please run the Modeler first before generating the ledger.');
+  if (!d.incomeStartAge || !d.incomeEndAge) return showUploadError('Income start and end ages are required. Set them in the Modeler.');
+  if (d.carrier !== 'nlg') return showUploadError('The income ledger currently reads National Life Group CSV exports only. Pacific Life income export mapping has not been built yet.');
+  if (!uploadedFiles.i1) return showUploadError('Primary-rate TEF income file is required.');
+  if (!uploadedFiles.i2) return showUploadError('Alternative-rate TEF income file is required.');
+
+  const rate1 = parseFloat(document.getElementById('l-rate1').value);
+  const rate2 = parseFloat(document.getElementById('l-rate2').value);
+  if (isNaN(rate1) || rate1 <= 0) return showUploadError('Primary illustrated rate is required (ex. 6.84).');
+  if (isNaN(rate2) || rate2 <= 0) return showUploadError('Alternative illustrated rate is required (ex. 6.50).');
+  const rate1Label = rate1.toFixed(2) + '%', rate2Label = rate2.toFixed(2) + '%';
+  const advisorName = document.getElementById('l-advisor').value.trim();
+  const dateVal = document.getElementById('l-date').value;
+  const dateStr = (dateVal ? new Date(dateVal + 'T12:00:00') : new Date())
+    .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  try {
+    const t1 = await readFile(uploadedFiles.i1);
+    const t2 = await readFile(uploadedFiles.i2);
+    const p1 = parseIncomeCSV(t1), p2 = parseIncomeCSV(t2);
+    if (!p1) return showUploadError('Could not parse the primary-rate file. Confirm it is a National Life Group CSV export.');
+    if (!p2) return showUploadError('Could not parse the alternative-rate file. Confirm it is a National Life Group CSV export.');
+    let pL = null;
+    if (uploadedFiles.lirp) {
+      pL = parseIncomeCSV(await readFile(uploadedFiles.lirp));
+      if (!pL) return showUploadError('Could not parse the self-funded LIRP file. Confirm it is a National Life Group CSV export.');
+    }
+
+    const rows1 = p1.rows;
+    const payoffYear = d.payoffYear;
+    const recurring1 = rows1.filter(r => r.year !== payoffYear && r.annualIncome > 0 && r.age <= 100);
+    if (!recurring1.length) return showUploadError('No annual income was found in the primary-rate file after the payoff year. Confirm it is the income illustration (financed policy with policy-loan income).');
+    if (pL && !pL.rows.some(r => r.annualIncome > 0)) return showUploadError('No annual income was found in the self-funded LIRP file. Confirm it includes the income schedule, or remove it to show the taxable comparison only.');
+
+    // Advisor-only check: does the income window in the carrier file match the modeler?
+    const warns = [];
+    const firstAge = Math.min(...recurring1.map(r => r.age)), lastAge = Math.max(...recurring1.map(r => r.age));
+    if (firstAge !== d.incomeStartAge || lastAge !== d.incomeEndAge) {
+      warns.push(`Carrier file income runs ages ${firstAge}–${lastAge}; the modeler specified ${d.incomeStartAge}–${d.incomeEndAge}. The taxable comparison uses the modeler ages. Re-run the illustration or update the Modeler so they match.`);
+    }
+    if (!p1.hasCredits) {
+      warns.push('Total Credits were not found in the primary file, so the 0% gap-collateral stress test could not be computed exactly. Gap figures below reflect actual CSV versus required collateral.');
+    }
+
+    const loanMap = {};
+    d.rows.forEach(r => { loanMap[r.yr] = r; });
+    const r1Map = {}, r2Map = {}, lirpMap = {};
+    rows1.forEach(r => { r1Map[r.year] = r; });
+    p2.rows.forEach(r => { r2Map[r.year] = r; });
+    if (pL) pL.rows.forEach(r => { lirpMap[r.year] = r; });
+
+    // Gap collateral: same method as the TEF ledger (0% stress yr 1; actual CSV vs LTV after)
+    const gapColMap = {};
+    let cum = 0;
+    for (const t of rows1) {
+      const lb = (loanMap[t.year] || {}).cumBalance || 0;
+      if (lb <= 0) break;
+      cum += t.totalCredits || 0;
+      const csvTest = t.year === 1 ? t.csv - cum : t.csv;
+      gapColMap[t.year] = Math.max(0, lb / LTV - csvTest);
+    }
+    const gapResults = [];
+    let cumCr = 0;
+    for (let yr = 1; yr <= 3; yr++) {
+      const t = r1Map[yr], l = loanMap[yr];
+      if (!t || !l) continue;
+      cumCr += t.totalCredits || 0;
+      const csv0 = t.csv - cumCr;
+      const req = l.cumBalance / LTV;
+      gapResults.push({ yr, csv0pct: csv0, loanRequired: req, gap: Math.max(0, req - csv0) });
+    }
+
+    // Taxable account: same contributions, same dates, primary rate treated as net return
+    const contribByYear = {};
+    d.rows.forEach(r => { contribByYear[r.yr] = r.clientOutlay || 0; });
+    const CAP_GAINS = 0.15;
+    const inv = calcInvAccount(contribByYear, rate1 / 100, d.incomeStartAge, d.incomeEndAge, rows1, CAP_GAINS);
+    const invMap = {};
+    inv.invRows.forEach(r => { invMap[r.year] = r; });
+
+    renderLedger({
+      d, rows1, r2Map, lirpMap, loanMap, invMap, inv, gapColMap, gapResults,
+      hasLIRP: !!pL, rate1, rate2, rate1Label, rate2Label, advisorName, dateStr,
+      targetPremium: p1.targetPremium || p2.targetPremium || null, warns, CAP_GAINS
+    });
+  } catch (e) {
+    showUploadError('Error processing files: ' + e.message);
+  }
+}
+
+// ── RENDER INCOME LEDGER ──
+function renderLedger(c) {
+  const { d, rows1, r2Map, lirpMap, loanMap, invMap, inv, gapColMap, gapResults, hasLIRP,
+          rate1Label, rate2Label, advisorName, dateStr, targetPremium, warns, CAP_GAINS } = c;
+  const payoffYear = d.payoffYear;
+  const iStart = d.incomeStartAge, iEnd = d.incomeEndAge;
+  const pf = n => n.toFixed(2) + '%';
+  const fmtNet = v => v < 0 ? `<span style="color:var(--red)">(${$f(Math.abs(v))})</span>` : $f(v);
+
+  const disp = rows1.filter(r => r.age <= 100);
+  const maxYr = disp.length ? Math.max(...disp.map(r => r.year)) : 0;
+  // Every year through policy year 50, then every 5th year, plus payoff year and the final year
+  const shouldShow = yr => yr <= 50 || yr === payoffYear || yr === maxYr || (yr - 50) % 5 === 0;
+
+  let tbody1 = '', tbody2 = '';
+  let totIncome1 = 0, totIncome2 = 0, totLirp = 0, totInvGross = 0, totInvNet = 0;
+  let firstInc1 = 0, firstInc2 = 0, firstLirp = 0;
+  let last1 = null, last2 = null;
+
+  for (const row of disp) {
+    const ln = loanMap[row.year] || {};
+    const r2 = r2Map[row.year] || {};
+    const lr = lirpMap[row.year] || {};
+    const iv = invMap[row.year] || {};
+    const isPayoff = row.year === payoffYear;
+    const inc1 = !isPayoff && row.annualIncome > 0 ? row.annualIncome : 0;
+    const inc2 = !isPayoff && (r2.annualIncome || 0) > 0 ? r2.annualIncome : 0;
+    const incL = (lr.annualIncome || 0) > 0 ? lr.annualIncome : 0;
+    const invG = iv.grossWithdrawal || 0, invN = iv.netWithdrawal || 0;
+    totIncome1 += inc1; totIncome2 += inc2; totLirp += incL; totInvGross += invG; totInvNet += invN;
+    if (inc1 && !firstInc1) firstInc1 = inc1;
+    if (inc2 && !firstInc2) firstInc2 = inc2;
+    if (incL && !firstLirp) firstLirp = incL;
+
+    // The carrier CSV/DB are already net of the payoff from the payoff year forward
+    const loanBal = ln.cumBalance || 0;
+    const lb = row.year >= payoffYear ? 0 : loanBal;
+    const netCSV1 = row.csv - lb, netDB1 = Math.max(0, row.db - lb);
+    const netCSV2 = (r2.csv || 0) - lb, netDB2 = Math.max(0, (r2.db || 0) - lb);
+    const gapAmt = gapColMap[row.year] || 0;
+
+    if (!shouldShow(row.year)) continue;
+    const jump1 = last1 !== null && row.year - last1 > 1; last1 = row.year;
+    const yc = jump1 ? ' class="yr-jump"' : '';
+    const trc = isPayoff ? 'payoff-yr' : (inc1 || inc2) ? 'income-yr' : '';
+    tbody1 += `<tr class="${trc}">
+      <td${yc}>${row.year}</td><td${yc}>${row.age}</td>
+      <td>${ln.totalPrem > 0 ? $f(ln.totalPrem) : '—'}</td>
+      <td>${ln.bankThisYr > 0 ? $f(ln.bankThisYr) : '—'}</td>
+      <td class="contrib-col">${ln.clientOutlay > 0 ? $f(ln.clientOutlay) : '—'}</td>
+      <td>${ln.cumBalance > 0 ? $f(ln.cumBalance) : '—'}</td>
+      <td>${ln.nominalRate && !isPayoff ? pf(ln.nominalRate) : '—'}</td>
+      <td>${ln.interestAccrued > 0 ? $f(ln.interestAccrued) : '—'}</td>
+      <td>${isPayoff ? `<strong style="color:var(--green)">${$f(ln.loanPayoff)}</strong>` : '—'}</td>
+      <td class="sec-div ${inc1 ? 'income-val' : ''}">${inc1 ? $f(inc1) : '—'}</td>
+      <td>${$f(row.accValue)}</td><td>${$f(row.csv)}</td>
+      <td style="color:${gapAmt > 0 ? 'var(--red)' : 'inherit'}">${row.year < payoffYear && loanBal > 0 ? (gapAmt > 0 ? $f(gapAmt) : '—') : '—'}</td>
+      <td>${fmtNet(netCSV1)}</td><td>${$f(netDB1)}</td>
+      <td class="sec-div ${inc2 ? 'income-val' : ''}">${inc2 ? $f(inc2) : '—'}</td>
+      <td>${$f(r2.accValue || 0)}</td><td>${$f(r2.csv || 0)}</td>
+      <td>${fmtNet(netCSV2)}</td><td>${$f(netDB2)}</td>
+    </tr>`;
+
+    const jump2 = last2 !== null && row.year - last2 > 1; last2 = row.year;
+    const yc2 = jump2 ? ' class="yr-jump"' : '';
+    const sharedContrib = ln.clientOutlay || 0;
+    tbody2 += `<tr class="${incL || invG ? 'income-yr' : ''}">
+      <td${yc2}>${row.year}</td><td${yc2}>${row.age}</td>
+      <td>${sharedContrib > 0 ? $f(sharedContrib) : '—'}</td>
+      ${hasLIRP ? `<td class="sec-div ${incL ? 'income-val' : ''}">${incL ? $f(incL) : '—'}</td>
+      <td>${$f(lr.accValue || 0)}</td><td>${$f(lr.csv || 0)}</td><td>${$f(lr.db || 0)}</td>` : ''}
+      <td class="sec-div ${invG ? 'income-val' : ''}">${invG ? $f(invG) : '—'}</td>
+      <td class="${invG ? 'income-val' : ''}">${invG ? $f(invN) : '—'}</td>
+      <td>${iv.balance > 100 ? $f(iv.balance) : (iv.age >= iStart ? '<strong style="color:var(--muted)">$0</strong>' : '—')}</td>
+    </tr>`;
+  }
+
+  const advVsInv = totIncome1 - totInvNet;
+  const advVsLirp = totIncome1 - totLirp;
+  const totalOutlay = d.totalClientOutlay;
+  const versionTxt = targetPremium ? ' · Version ' + Math.round(targetPremium).toLocaleString('en-US') : '';
+
+  const html = `
+    ${warns.length ? `<div class="no-print" style="background:var(--red-lt);border:1px solid rgba(139,32,32,.3);color:var(--red);font-size:12px;line-height:1.6;padding:12px 40px">
+      <strong style="letter-spacing:1px;text-transform:uppercase;font-size:10px">Advisor check — not printed</strong><br>${warns.map(w => '• ' + w).join('<br>')}</div>` : ''}
+    <div class="ledger-banner" style="print-color-adjust:exact;-webkit-print-color-adjust:exact">
+      <div>
+        <div class="banner-name">${d.name1}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);font-weight:600;letter-spacing:1px;margin-top:3px">Traditional Enhanced Funding</div>
+        <div style="font-family:'Playfair Display',serif;font-size:13px;color:rgba(255,255,255,.5);margin-top:2px;letter-spacing:1px">Income Focus</div>
+        <div class="banner-sub" style="margin-top:3px">Age ${d.age1} · ${d.contribDuration}-Pay Client · Loan Retired Yr ${payoffYear} · Income Ages ${iStart}–${iEnd} · ${dateStr}${advisorName ? ' · ' + advisorName : ''}${versionTxt}</div>
+      </div>
+      <div class="banner-stats">
+        <div class="bstat"><div class="bl">Total Client Outlay</div><div class="bv">${$f(totalOutlay)}</div></div>
+        <div class="bstat"><div class="bl">Total Income @ ${rate1Label}</div><div class="bv">${$f(totIncome1)}</div></div>
+        <div class="bstat"><div class="bl">Total Income @ ${rate2Label}</div><div class="bv">${$f(totIncome2)}</div></div>
+        <div class="bstat"><div class="bl">Annual Income @ ${rate1Label}</div><div class="bv">${$f(firstInc1)}</div></div>
+        <div class="bstat"><div class="bl">Income Ages</div><div class="bv">${iStart}–${iEnd}</div></div>
+      </div>
+    </div>
+
+    <div class="ldg-wrap">
+      <table class="ldg">
+        <thead>
+          <tr>
+            <th rowspan="2" style="vertical-align:bottom">Yr</th>
+            <th rowspan="2" style="vertical-align:bottom">Age</th>
+            <th colspan="7" class="tbl-sec-hdr">INVESTED CAPITAL</th>
+            <th colspan="6" class="tbl-sec-hdr sec-div">TRADITIONAL ENHANCED FUNDING · ${rate1Label} GROSS RETURN</th>
+            <th colspan="5" class="tbl-sec-hdr sec-div">TRADITIONAL ENHANCED FUNDING · ${rate2Label} GROSS RETURN</th>
+          </tr>
+          <tr>
+            <th>Total Premium</th><th>From Lender</th><th class="contrib-col">Client Contribution</th>
+            <th>Cum PF Loan Bal</th><th>Loan Rate</th><th>Int. Accrued</th><th>PF Loan Payoff</th>
+            <th class="sec-div">Annual Income</th><th>Accum Value</th><th>Gross CSV</th><th>Gap Collateral</th><th>Net CSV</th><th>Net DB</th>
+            <th class="sec-div">Annual Income</th><th>Accum Value</th><th>Gross CSV</th><th>Net CSV</th><th>Net DB</th>
+          </tr>
+        </thead>
+        <tbody>${tbody1}</tbody>
+      </table>
+    </div>
+
+    <div class="ledger-gap-box">
+      <div style="flex:1">
+        <div class="lgb-title">⚠ Gap Collateral Low Point — 0% Return Stress Test (${(LTV * 100).toFixed(0)}% LTV)</div>
+        ${gapResults.map(g => `
+          <div class="lgb-row">
+            <span class="lgb-label">Year ${g.yr} — 0% CSV: ${$f(g.csv0pct)} · Required: ${$f(g.loanRequired)}</span>
+            <span class="lgb-val">${g.gap > 0 ? $f(g.gap) : '$0 — No Gap'}</span>
+          </div>`).join('')}
+        <div class="lgb-note">Gap collateral assumes a 0% credited return in years 1–3 (the most stress-prone period), based on a ${(LTV * 100).toFixed(0)}% LTV lender requirement. Negative gaps display as $0. Client must review and sign at right.</div>
+      </div>
+      <div class="sig-block" style="min-width:300px">
+        <div class="lgb-title">Client Acknowledgment</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:20px">I understand that in a 0% return scenario, external collateral may be required to secure the premium finance loan during the initial policy years as shown above.</div>
+        <div class="sig-line">Client Signature &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date</div>
+      </div>
+    </div>
+
+    <div class="comp-strip" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="comp-crd hl">
+        <div class="ct">TRADITIONAL ENHANCED FUNDING · ${rate1Label} GROSS RETURN</div>
+        <div class="cv">Primary Rate Scenario</div>
+        <div class="cstat"><span class="ck">Income Ages</span><span class="cv2">${iStart}–${iEnd}</span></div>
+        <div class="cstat"><span class="ck">Annual Income (first year)</span><span class="cv2 g">${$f(firstInc1)}</span></div>
+        <div class="cstat"><span class="ck">Total Lifetime Income</span><span class="cv2 g">${$f(totIncome1)}</span></div>
+        <div class="cstat"><span class="ck">Total Client Outlay</span><span class="cv2">${$f(totalOutlay)}</span></div>
+      </div>
+      <div class="comp-crd">
+        <div class="ct">TRADITIONAL ENHANCED FUNDING · ${rate2Label} GROSS RETURN</div>
+        <div class="cv">Alternative Rate Scenario</div>
+        <div class="cstat"><span class="ck">Income Ages</span><span class="cv2">${iStart}–${iEnd}</span></div>
+        <div class="cstat"><span class="ck">Annual Income (first year)</span><span class="cv2">${$f(firstInc2)}</span></div>
+        <div class="cstat"><span class="ck">Total Lifetime Income</span><span class="cv2">${$f(totIncome2)}</span></div>
+        <div class="cstat"><span class="ck">vs Primary Rate</span><span class="cv2">${$f(totIncome1 - totIncome2)} less lifetime</span></div>
+      </div>
+      <div class="comp-crd">
+        <div class="ct">TAXABLE INVESTMENT ACCOUNT · ${rate1Label} NET RETURN</div>
+        <div class="cv">Taxable Comparison</div>
+        <div class="cstat"><span class="ck">Total Lifetime Net Income</span><span class="cv2">${$f(totInvNet)}</span></div>
+        <div class="cstat"><span class="ck">TEF Total Lifetime Income</span><span class="cv2 g">${$f(totIncome1)}</span></div>
+        <div class="cstat"><span class="ck">TEF Advantage</span><span class="cv2 g">${$f(advVsInv)} more lifetime</span></div>
+      </div>
+    </div>
+
+    <div class="ldg-disc">
+      <strong>Years shown annually through policy year 50, then in 5-year increments through year ${maxYr}${payoffYear > 50 ? ', plus the loan payoff year' : ''}.</strong> All totals reflect every policy year, not just the rows displayed. Income is taken as policy loans only, beginning after the premium finance loan is retired.<br>
+      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model. Refer to the insurance carrier full illustration for life insurance policy details, charges, guarantees and guidelines. Loan balance projections are based on 90-Day Avg SOFR plus spread, subject to a ${FLOOR_RATE.toFixed(2)}% effective rate floor. All life insurance rates shown are gross illustrated rates before policy charges. Policy loans accrue interest and reduce cash value and death benefit; if the policy lapses or is surrendered with loans outstanding, the loan amount may be taxable, and a policy that becomes a modified endowment contract is taxed differently. The taxable-account comparison assumes a ${rate1Label} net return and a ${(CAP_GAINS * 100).toFixed(0)}% capital gains tax rate on all distributions, a simplified assumption; actual tax treatment varies. Values are not guaranteed and are not investment advice. The premium finance arrangement is offered by Enhanced Funding Solutions LLC. Confidential — EFS Life LLC${advisorName ? ' · ' + advisorName : ''}${versionTxt} · ${dateStr}
+    </div>
+
+    <div class="pg2-header" style="page-break-before:always">
+      <h3>${hasLIRP ? 'Self-Funded LIRP &amp; Taxable Investment Comparison' : 'Taxable Investment Comparison'} · Same Contribution · Different Outcomes</h3>
+    </div>
+    <div class="ldg-wrap">
+      <table class="ldg" style="min-width:${hasLIRP ? 1100 : 700}px">
+        <thead>
+          <tr>
+            <th rowspan="2" style="vertical-align:bottom">Yr</th>
+            <th rowspan="2" style="vertical-align:bottom">Age</th>
+            <th rowspan="2" style="vertical-align:bottom">Client<br>Contribution</th>
+            ${hasLIRP ? `<th colspan="4" class="tbl-sec-hdr sec-div">SELF-FUNDED LIRP · ${rate1Label} GROSS RETURN</th>` : ''}
+            <th colspan="3" class="tbl-sec-hdr sec-div">TAXABLE INVESTMENT ACCOUNT · ${rate1Label} Net Return · ${(CAP_GAINS * 100).toFixed(0)}% CG</th>
+          </tr>
+          <tr>
+            ${hasLIRP ? '<th class="sec-div">Annual Income</th><th>Accum Value</th><th>Gross CSV</th><th>Gross DB</th>' : ''}
+            <th class="sec-div">Gross Withdrawal</th><th>Net After ${(CAP_GAINS * 100).toFixed(0)}% CG</th><th>EOY Balance</th>
+          </tr>
+        </thead>
+        <tbody>${tbody2}</tbody>
+      </table>
+    </div>
+    <div class="comp-strip" style="grid-template-columns:${hasLIRP ? '1fr 1fr 1fr' : '1fr 1fr'}">
+      ${hasLIRP ? `<div class="comp-crd">
+        <div class="ct">SELF-FUNDED LIRP · ${rate1Label} GROSS RETURN</div>
+        <div class="cv">Same Contribution. No Bank. No Leverage.</div>
+        <div class="cstat"><span class="ck">Annual Income (first year)</span><span class="cv2">${$f(firstLirp)}</span></div>
+        <div class="cstat"><span class="ck">Total Lifetime Income</span><span class="cv2">${$f(totLirp)}</span></div>
+        <div class="cstat"><span class="ck">Total Client Outlay</span><span class="cv2">${$f(totalOutlay)}</span></div>
+      </div>` : ''}
+      <div class="comp-crd">
+        <div class="ct">TAXABLE INVESTMENT ACCOUNT · ${rate1Label} NET RETURN</div>
+        <div class="cv">Same Contribution. Taxable.</div>
+        <div class="cstat"><span class="ck">Annual Net Income</span><span class="cv2">${$f(inv.annualNet)}</span></div>
+        <div class="cstat"><span class="ck">Total Lifetime Net Income</span><span class="cv2">${$f(totInvNet)}</span></div>
+        <div class="cstat"><span class="ck">Total Client Outlay</span><span class="cv2">${$f(totalOutlay)}</span></div>
+      </div>
+      <div class="comp-crd hl">
+        <div class="ct">SAME CONTRIBUTION · DIFFERENT OUTCOMES</div>
+        <div class="cv">The Difference Leverage Makes</div>
+        <div class="cstat"><span class="ck">TEF Total Lifetime Income</span><span class="cv2 g">${$f(totIncome1)}</span></div>
+        ${hasLIRP ? `<div class="cstat"><span class="ck">Advantage vs Self-Funded LIRP</span><span class="cv2 g">+${$f(advVsLirp)}</span></div>` : ''}
+        <div class="cstat"><span class="ck">Advantage vs Taxable Account</span><span class="cv2 g">+${$f(advVsInv)}</span></div>
+      </div>
+    </div>
+    <div class="ldg-disc">
+      <strong>EFS LIFE LLC — CONFIDENTIAL.</strong> Hypothetical illustration for discussion purposes. The self-funded and taxable comparisons use the same client contributions, in the same years, as the financed policy. Values are not guaranteed. Refer to the carrier illustration for complete policy details. Enhanced Funding Solutions LLC programs are not investment advice.${advisorName ? ' · ' + advisorName : ''} · ${dateStr}
+    </div>`;
+
+  document.getElementById('ledger-rendered').innerHTML = html;
+  document.getElementById('ledger-id-label').textContent = `${d.name1} · TEF Income · Yr ${payoffYear} Payoff · ${rate1Label} / ${rate2Label}`;
+  document.getElementById('ledger-upload-step').style.display = 'none';
+  document.getElementById('ledger-output').style.display = 'block';
+  window.scrollTo(0, 0);
+
+  _ledgerResults = window._ledgerResults = {
+    outputMode: 'income', lev: d.lev, caseFormat: d.caseFormat, clientName: d.name1, issueAge: d.age1, carrier: d.carrier,
+    clientContrib: d.clientContrib, contribDuration: d.contribDuration, payoffYear, payoffAmount: d.payoffAmount,
+    incomeStartAge: iStart, incomeEndAge: iEnd, totalClientOutlay: totalOutlay,
+    rate1Label, rate2Label, advisorName, dateStr,
+    tefAnnualIncome: firstInc1, tefTotalIncome: totIncome1, tefAnnualIncomeAlt: firstInc2, tefTotalIncomeAlt: totIncome2,
+    lirpTotalIncome: hasLIRP ? totLirp : null, invAnnualNet: inv.annualNet, invTotalNet: totInvNet, hasLIRP, gapResults
+  };
+}
+
+// ── DISCUSSION DOC ──
+function openDiscussionDoc() {
+  const r = window._ledgerResults;
+  if (!r) return alert('Generate the ledger first before opening the Discussion Doc.');
+  try { localStorage.setItem('tef_income_ledger_data', JSON.stringify(r)); } catch (e) {}
+  window.open('tef-income-discussion.html', '_blank');
+}
+
+// ── ONE-PAGER ──
+function openOnePager() {
+  const r = window._ledgerResults;
+  if (!r) return alert('Generate the ledger first before opening the One-Pager.');
+  const $d = n => '$' + Math.round(n).toLocaleString('en-US');
+  const $m = n => Math.abs(n) >= 1000000 ? '$' + (n / 1000000).toFixed(1) + 'M' : '$' + Math.round(n / 1000).toLocaleString() + 'K';
+
+  const maxVal = r.tefTotalIncome || 1;
+  const hOf = v => Math.max(4, Math.round((v / maxVal) * 140));
+  const advTaxable = r.tefTotalIncome - r.invTotalNet;
+  const advLirp = r.hasLIRP ? r.tefTotalIncome - r.lirpTotalIncome : 0;
+  const maxGap = (r.gapResults || []).reduce((m, g) => Math.max(m, g.gap || 0), 0);
+  const levTxt = r.lev ? r.lev + '×' : '';
+
+  const lirpBar = r.hasLIRP ? `
+    <div class="op-bar-group">
+      <div class="op-bar-value">${$m(r.lirpTotalIncome)}</div>
+      <div class="op-bar-fill" style="height:${hOf(r.lirpTotalIncome)}px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)"></div>
+      <div class="op-bar-label">Self-Funded<br>LIRP</div>
+    </div>` : '';
+  const lirpFact = r.hasLIRP ? `
+    <div class="op-fact">
+      <div class="op-fact-label">Advantage vs. Self-Funded LIRP</div>
+      <div class="op-fact-value sm" style="color:var(--gold)">+${$m(advLirp)}</div>
+    </div>` : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EFS Life — ${r.clientName} — TEF Income One-Pager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0D1B2E;--navy-2:#142236;--gold:#C8A84B;--gold-lt:#D4B96A;--white:#FFFFFF;--off:#F8F7F4;--text:#1C2B3A;--muted:#6B7C8D;--border:#E2DDD6;--red:#8b2020}
+body{font-family:'IBM Plex Sans',sans-serif;background:#E8E4DC;color:var(--text);font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.op-page{width:11in;height:8.5in;margin:24px auto;background:white;box-shadow:0 8px 40px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden}
+@media print{body{background:white}.op-page{margin:0;box-shadow:none}@page{size:11in 8.5in landscape;margin:0}.no-print{display:none!important}}
+.op-topbar{height:5px;background:linear-gradient(90deg,var(--gold),var(--gold-lt),var(--gold))}
+.op-header{background:var(--navy);padding:.28in .5in;display:flex;align-items:center;justify-content:space-between}
+.op-eyebrow{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.op-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--white)}
+.op-subtitle{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:rgba(255,255,255,.55);margin-top:2px}
+.op-header-right{text-align:right}
+.op-client{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold)}
+.op-meta{font-size:10px;letter-spacing:1px;color:rgba(255,255,255,.4);margin-top:3px;text-transform:uppercase}
+.op-body{flex:1;display:grid;grid-template-columns:1.15fr .85fr;overflow:hidden}
+.op-left{padding:.3in .5in;display:flex;flex-direction:column;background:var(--off)}
+.op-section-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:10px}
+.op-headline{font-family:'Playfair Display',serif;font-size:21px;font-weight:600;color:var(--navy);line-height:1.25;margin-bottom:16px;max-width:5.3in}
+.op-headline em{color:var(--gold);font-style:italic}
+.op-steps{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.op-step{display:flex;gap:12px;align-items:flex-start}
+.op-step-num{width:24px;height:24px;background:var(--navy);color:var(--gold);font-family:'Playfair Display',serif;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:50%;margin-top:1px}
+.op-step-title{font-weight:600;font-size:12.5px;color:var(--navy);margin-bottom:2px}
+.op-step-text{font-size:11.5px;color:var(--muted);line-height:1.5;max-width:4.9in}
+.op-chart-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:auto 0 10px}
+.op-bar-chart{display:flex;align-items:flex-end;gap:22px;padding-bottom:8px;border-bottom:2px solid var(--border);min-height:150px}
+.op-bar-group{display:flex;flex-direction:column;align-items:center;gap:6px;width:74px}
+.op-bar-value{font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:var(--navy)}
+.op-bar-fill{width:100%;border-radius:3px 3px 0 0}
+.op-bar-label{font-size:9px;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.3;margin-top:4px}
+.op-right{background:var(--navy);padding:.3in .4in;display:flex;flex-direction:column;gap:12px}
+.op-fact{border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:12px}
+.op-fact:last-child{border-bottom:none;padding-bottom:0}
+.op-fact-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px}
+.op-fact-value{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--gold)}
+.op-fact-value.sm{font-size:17px;color:var(--white)}
+.op-fact-sub{font-size:10.5px;color:rgba(255,255,255,.4);margin-top:3px;line-height:1.4}
+.op-footer{padding:.16in .5in;background:var(--off);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:20px}
+.op-footer-disc{font-size:8px;color:var(--muted);line-height:1.5;max-width:8.5in}
+.op-print-btn{position:fixed;top:16px;right:16px;background:var(--navy);color:var(--gold);border:1px solid var(--gold);font-family:'IBM Plex Sans',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:9px 18px;border-radius:3px;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="op-print-btn no-print" onclick="window.print()">Print / Save PDF</button>
+<div class="op-page">
+  <div class="op-topbar"></div>
+  <div class="op-header">
+    <div>
+      <div class="op-eyebrow">Traditional Enhanced Funding</div>
+      <div class="op-title">Income Focus</div>
+      <div class="op-subtitle">One-Pager Summary</div>
+    </div>
+    <div class="op-header-right">
+      <div class="op-client">${r.clientName}</div>
+      <div class="op-meta">${r.contribDuration}-Pay · Age ${r.issueAge} · Income ${r.incomeStartAge}–${r.incomeEndAge}${r.advisorName ? ' · ' + r.advisorName : ''} · ${r.dateStr}</div>
+    </div>
+  </div>
+  <div class="op-body">
+    <div class="op-left">
+      <div class="op-section-label">How It Works</div>
+      <div class="op-headline">A premium-financed permanent life policy that turns <em>${$d(r.clientContrib)}/year</em> into <em>${$m(r.tefTotalIncome)}</em> of lifetime policy-loan income.</div>
+      <div class="op-steps">
+        <div class="op-step">
+          <div class="op-step-num">1</div>
+          <div><div class="op-step-title">Fund</div><div class="op-step-text">Contribute ${$d(r.clientContrib)}/year for ${r.contribDuration} years while a lender funds the balance of the premium${levTxt ? ' (' + levTxt + ' leverage)' : ''}, building cash value from the first year.</div></div>
+        </div>
+        <div class="op-step">
+          <div class="op-step-num">2</div>
+          <div><div class="op-step-title">Grow &amp; Repay</div><div class="op-step-text">Cash value accumulates inside the policy. In policy year ${r.payoffYear}, the lender balance of about ${$d(r.payoffAmount)} is repaid in a single payment from policy value.</div></div>
+        </div>
+        <div class="op-step">
+          <div class="op-step-num">3</div>
+          <div><div class="op-step-title">Distribute</div><div class="op-step-text">Policy loans provide ${$d(r.tefAnnualIncome)}/year in income from age ${r.incomeStartAge} through age ${r.incomeEndAge}.</div></div>
+        </div>
+      </div>
+      <div class="op-chart-title">Total Lifetime Income Comparison — Same Contribution</div>
+      <div class="op-bar-chart">
+        <div class="op-bar-group">
+          <div class="op-bar-value">${$m(r.totalClientOutlay)}</div>
+          <div class="op-bar-fill" style="height:${hOf(r.totalClientOutlay)}px;background:#4a5568;opacity:.5"></div>
+          <div class="op-bar-label">Client<br>Contribution</div>
+        </div>
+        <div class="op-bar-group">
+          <div class="op-bar-value">${$m(r.invTotalNet)}</div>
+          <div class="op-bar-fill" style="height:${hOf(r.invTotalNet)}px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)"></div>
+          <div class="op-bar-label">Taxable<br>Investment</div>
+        </div>
+        ${lirpBar}
+        <div class="op-bar-group">
+          <div class="op-bar-value" style="color:var(--gold)">${$m(r.tefTotalIncome)}</div>
+          <div class="op-bar-fill" style="height:140px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)"></div>
+          <div class="op-bar-label" style="color:var(--navy);font-weight:700">Traditional<br>Enhanced<br>Funding</div>
+        </div>
+      </div>
+    </div>
+    <div class="op-right">
+      <div class="op-fact">
+        <div class="op-fact-label">Total Client Investment</div>
+        <div class="op-fact-value sm">${$d(r.totalClientOutlay)}</div>
+        <div class="op-fact-sub">${$d(r.clientContrib)}/yr · ${r.contribDuration} years</div>
+      </div>
+      <div class="op-fact">
+        <div class="op-fact-label">TEF Total Lifetime Income</div>
+        <div class="op-fact-value">${$d(r.tefTotalIncome)}</div>
+        <div class="op-fact-sub">Ages ${r.incomeStartAge}–${r.incomeEndAge} · ${r.rate1Label} gross · ${$d(r.tefTotalIncomeAlt)} at ${r.rate2Label}</div>
+      </div>
+      <div class="op-fact">
+        <div class="op-fact-label">Advantage vs. Taxable Account</div>
+        <div class="op-fact-value sm" style="color:var(--gold)">+${$m(advTaxable)}</div>
+        <div class="op-fact-sub">vs. ${$d(r.invTotalNet)} taxable net income at ${r.rate1Label}</div>
+      </div>
+      ${lirpFact}
+      <div class="op-fact">
+        <div class="op-fact-label">Early-Year Gap Collateral</div>
+        <div class="op-fact-value sm">${maxGap > 0 ? $d(maxGap) : '$0'}</div>
+        <div class="op-fact-sub">Peak requirement in a 0% return stress test, policy years 1–3 (${(LTV * 100).toFixed(0)}% LTV). See ledger.</div>
+      </div>
+    </div>
+  </div>
+  <div class="op-footer">
+    <div class="op-footer-disc"><strong>EFS LIFE LLC — CONFIDENTIAL.</strong> This is a hypothetical model, not a policy illustration. Refer to the insurance carrier full illustration for policy details, charges, guarantees and guidelines. Loan balance projections are based on 90-Day Avg SOFR plus spread, subject to a ${FLOOR_RATE.toFixed(2)}% effective rate floor. Income is taken as policy loans, which accrue interest and reduce cash value and death benefit; a lapse or surrender with loans outstanding may be taxable. The taxable comparison assumes a ${r.rate1Label} net return and a 15% capital gains rate, a simplified assumption. Values are not guaranteed and are not investment advice. The premium finance arrangement is offered by Enhanced Funding Solutions LLC.</div>
+    <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--navy);font-weight:700;letter-spacing:1px;white-space:nowrap">EFS LIFE LLC</div>
+  </div>
+</div>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+}
+
+// ── CURRENCY HELPERS ──
+function fmtCurrency(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  if (!raw) { el.value = ''; return; }
+  let n = parseInt(raw, 10);
+  let s = n.toString(), result = '', count = 0;
+  for (let i = s.length - 1; i >= 0; i--) {
+    if (count > 0 && count % 3 === 0) result = ',' + result;
+    result = s[i] + result;
+    count++;
+  }
+  el.value = '$' + result;
+}
+
+function parseCurrency(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  return parseFloat(el.value.replace(/[$,]/g, '')) || 0;
+}
+
+// Apply currency formatting to dollar inputs
+['totalDB','baseDB','targetDB','clientContrib','noColBaseContrib','totalPremInput'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', function() { fmtCurrency(this); });
+});
+
+const $f = n => (!n && n !== 0) ? '—' : '$' + Math.round(n).toLocaleString();
+
+// ── ADMIN CHECK / PORTAL LINK ──
+(async function() {
+  try {
+    const sb = getSb();
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    document.getElementById('portal-link').style.display = 'inline-flex';
+  } catch(e) {}
+})();
+
+// ── INCOME HINT ──
+function updateIncomeHint() {
+  const age = parseInt(document.getElementById('insured1Age').value);
+  const yr  = parseInt((caseFormat === 'no_collateral' ? document.getElementById('payoffYearNoCol') : document.getElementById('payoffYear')).value);
+  const start = parseInt(document.getElementById('incomeStartAge').value);
+  const el = document.getElementById('incomeHint');
+  if (!age || !yr) return;
+  const payoffAge = age + yr - 1;
+  if (start && start <= payoffAge) {
+    el.style.color = 'var(--red)';
+    el.textContent = 'Income start age must be after the loan payoff age (' + payoffAge + '). Earliest start: ' + (payoffAge + 1);
+  } else {
+    el.style.color = '';
+    el.textContent = 'Loan is retired at age ' + payoffAge + ' (Year ' + yr + '). Earliest income start age: ' + (payoffAge + 1);
+  }
+}
+['insured1Age','payoffYear','payoffYearNoCol'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) { el.addEventListener('input', updateIncomeHint); el.addEventListener('change', updateIncomeHint); }
+});
+
+// ── INIT ──
+document.getElementById('l-date').valueAsDate = new Date();
+initSOFR();
+</script>
+<script>
+(async function initSaveToLibrary() {
+  const SB_URL = 'https://oqpoivcpvlzplcfrpkzb.supabase.co';
+  const SB_KEY = 'sb_publishable_vUabSR3DjTNYYvg3p39LiQ_IsRcvj5v';
+  async function getSb() {
+    if (window.__eyi_sb) return window.__eyi_sb;
+    if (!window.supabase) {
+      await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    }
+    window.__eyi_sb = window.supabase.createClient(SB_URL, SB_KEY);
+    return window.__eyi_sb;
+  }
+  async function checkAdmin() {
+    try {
+      const sb = await getSb();
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) return false;
+      const { data: prof } = await sb.from('advisor_profiles').select('role').eq('id', session.user.id).single();
+      return prof && prof.role === 'admin';
+    } catch(e) { return false; }
+  }
+  const isAdmin = await checkAdmin();
+  if (!isAdmin) return;
+
+  // Show Case Library link for admin
+  const clLink = document.getElementById('case-lib-link');
+  if (clLink) clLink.style.display = 'inline-flex';
+
+  // Add Sign Out button
+  const signOutBtn = document.createElement('button');
+  signOutBtn.textContent = 'Sign Out';
+  signOutBtn.style.cssText = 'background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.2);border-radius:3px;padding:5px 14px;font-family:Barlow Condensed,sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-left:auto;flex-shrink:0;';
+  signOutBtn.onclick = async function() {
+    const sb = await getSb();
+    await sb.auth.signOut();
+    window.location.href = '/advisor-login.html';
+  };
+  var hdr = document.querySelector('.hdr');
+  if (hdr) hdr.appendChild(signOutBtn);
+  else document.body.appendChild(signOutBtn);
+
+  // Save button — reveal the inline button in the ledger action bar
+  var btn = document.getElementById('stl-btn');
+  if (btn) {
+    btn.style.display = 'inline-block';
+    btn.onclick = function() { window.stlOpen(); };
+  }
+
+  // Modal overlay
+  var overlay = document.createElement('div');
+  overlay.id = 'stl-overlay';
+  overlay.className = 'no-print';
+  overlay.style.display = 'none';
+  overlay.style.cssText = 'display:none;position:fixed;inset:0;z-index:10000;background:rgba(11,18,32,0.88);backdrop-filter:blur(6px);align-items:center;justify-content:center;';
+  overlay.innerHTML = '<div id="stl-modal" style="background:#152640;border:1px solid rgba(200,169,110,0.25);border-radius:6px;padding:40px;width:480px;max-width:95vw;"><h3 style="font-family:Playfair Display,serif;font-size:22px;color:#fff;margin-bottom:8px;">Save to Case Library</h3><p style="font-size:13px;color:rgba(255,255,255,0.45);margin-bottom:28px;">Captures the current ledger and discussion document.</p><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Folder</label><input type="text" id="stl-folder" placeholder="e.g. M45" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"></div><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Case Name</label><input type="text" id="stl-name" placeholder="e.g. D5 40k Inc A65" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"></div><div style="margin-bottom:18px;"><label style="display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:7px;">Status</label><select id="stl-status" style="width:100%;background:#152640;border:1px solid rgba(255,255,255,0.1);border-radius:3px;padding:11px 14px;color:#fff;font-family:Barlow,sans-serif;font-size:14px;outline:none;"><option value="sample">Sample</option><option value="prospect">Prospect</option><option value="client">Client</option><option value="review">Under Review</option></select></div><div style="display:flex;gap:12px;margin-top:28px;"><button id="stl-save" onclick="window.stlSave()" style="flex:1;background:#C8A96E;color:#0B1220;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:3px;padding:13px;cursor:pointer;">Save Case</button><button onclick="window.stlClose()" style="background:transparent;color:rgba(255,255,255,0.4);font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:13px 20px;cursor:pointer;">Cancel</button></div><div id="stl-status-msg" style="margin-top:14px;font-size:12px;min-height:16px;color:rgba(200,169,110,0.8);text-align:center;"></div></div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target===overlay) window.stlClose(); });
+  document.addEventListener('keydown', function(e) { if (e.key==='Escape') window.stlClose(); });
+
+  window.stlOpen = function() {
+    overlay.style.display = 'flex';
+    document.getElementById('stl-status-msg').textContent = '';
+  };
+  window.stlClose = function() {
+    overlay.style.display = 'none';
+  };
+
+  window.stlSave = async function() {
+    var name   = document.getElementById('stl-name').value.trim();
+    var folder = document.getElementById('stl-folder').value.trim();
+    var status = document.getElementById('stl-status').value;
+    if (!name || !folder) { alert('Please fill in both fields.'); return; }
+    var saveBtn = document.getElementById('stl-save');
+    var statusMsg = document.getElementById('stl-status-msg');
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+    try {
+      var el = document.getElementById('ledger-rendered');
+      if (!el || !el.querySelector('table')) {
+        alert('Please generate the income ledger before saving.');
+        if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='Save Case'; }
+        return;
+      }
+      if (!window._ledgerResults) {
+        alert('Please click "Generate Income Ledger" before saving.');
+        if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='Save Case'; }
+        return;
+      }
+      if (statusMsg) statusMsg.textContent = 'Capturing ledger…';
+      var styleArr = document.querySelectorAll('style');
+      var pageStyles = Array.from(styleArr).map(function(s){return s.textContent;}).join('\n');
+      var ledgerHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+      '<style>\n' + pageStyles + '\nbody{background:#fff!important;margin:0;padding:0!important;}.topbar,.hdr{display:none!important;}.page{padding:24px!important;max-width:none!important;}@media print{.page{padding:8px!important;}@page{size:11in 17in landscape;margin:0.5cm;}}' +
+      '</style></head><body>' + el.innerHTML + '</body></html>';
+      var discHtml = '';
+      try {
+        if (statusMsg) statusMsg.textContent = 'Capturing discussion document…';
+        var discResp = await fetch('/tef-income-discussion.html');
+        if (discResp.ok) {
+          var dh = await discResp.text();
+          var lrJson = JSON.stringify(window._ledgerResults);
+          var injectScript = '<scr'+'ipt>try{var d='+JSON.stringify(lrJson)+';localStorage.setItem("tef_income_ledger_data",d);}catch(e){}</'+'script>';
+          discHtml = dh.replace('</head>', injectScript + '</head>');
+        }
+      } catch (discErr) { console.warn('Discussion doc not captured:', discErr); }
+      if (statusMsg) statusMsg.textContent = 'Saving…';
+      var sbClient = await getSb();
+      var dup = await sbClient.from('sample_cases').select('id').eq('folder',folder).eq('name',name);
+      if (dup.data && dup.data.length > 0) {
+        if (!confirm('Case "'+name+'" in "'+folder+'" already exists. Overwrite?')) {
+          if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='Save Case'; } return;
+        }
+        await sbClient.from('sample_cases').delete().eq('folder',folder).eq('name',name);
+      }
+      var result = await sbClient.from('sample_cases').insert([{
+        folder:folder, name:name, status:status,
+        ledger_html:ledgerHtml, discussion_html:discHtml,
+        sort_order:0, created_at:new Date().toISOString()
+      }]);
+      if (result.error) throw result.error;
+      window.stlClose();
+      if (saveBtn) { saveBtn.textContent='✓ Saved!'; setTimeout(function(){ saveBtn.disabled=false; saveBtn.textContent='Save Case'; },1800); }
+    } catch(err) {
+      console.error('STL error:',err);
+      alert('Error: '+(err.message||'Save failed'));
+      if (saveBtn) { saveBtn.disabled=false; saveBtn.textContent='Save Case'; }
+    }
+  };
+})();
+// ─── END SAVE TO LIBRARY
+</script>
+</body>
+</html>

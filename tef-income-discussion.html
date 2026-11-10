@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EFS Life — Traditional Enhanced Funding — Income Discussion</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ── RESET & PAGE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #0D1B2E;
+    --navy-2:  #142236;
+    --navy-3:  #1a2d48;
+    --gold:    #C8A84B;
+    --gold-lt: #D4B96A;
+    --white:   #FFFFFF;
+    --off:     #F8F7F4;
+    --text:    #1C2B3A;
+    --muted:   #6B7C8D;
+    --border:  #E2DDD6;
+    --green:   #2A6E45;
+    --green-lt:#EBF4EE;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #E8E4DC;
+    color: var(--text);
+    font-size: 14px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── PAGE SHELLS ── */
+  .page {
+    width: 11in;
+    height: 8.5in;
+    margin: 0 auto 32px;
+    overflow: hidden;
+    position: relative;
+    background: white;
+    box-shadow: 0 8px 40px rgba(0,0,0,.18);
+    display: flex;
+  }
+
+  @media print {
+    body { background: white; }
+    .page {
+      margin: 0;
+      box-shadow: none;
+      page-break-after: always;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+    .page:last-child { page-break-after: avoid !important; }
+    @page { size: 11in 8.5in landscape; margin: 0; }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .serif  { font-family: 'Playfair Display', serif; }
+  .serif2 { font-family: 'Cormorant Garamond', serif; }
+  .mono   { font-family: 'IBM Plex Mono', monospace; }
+
+  /* ══════════════════════════════════════
+     PAGE 1 — COVER
+  ══════════════════════════════════════ */
+  .cover {
+    flex-direction: column;
+    background: var(--navy);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 70% 60% at 70% 40%, rgba(200,168,75,.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 80% at 90% 80%, rgba(20,34,54,.9) 0%, transparent 60%),
+      linear-gradient(145deg, #0D1B2E 0%, #1a3050 40%, #0f2540 70%, #0D1B2E 100%);
+  }
+
+  /* Mountain silhouette SVG overlay */
+  .cover-mountain {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 55%;
+    opacity: .07;
+  }
+
+  .cover-top-bar {
+    position: relative; z-index: 2;
+    height: 6px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold-lt) 50%, var(--gold) 100%);
+  }
+
+  .cover-content {
+    position: relative; z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.55in 0.7in;
+  }
+
+  .cover-eyebrow {
+    font-size: 10px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.18in;
+    font-weight: 500;
+  }
+
+  .cover-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 58px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.08;
+    max-width: 7in;
+    margin-bottom: 0.2in;
+  }
+
+  .cover-title em {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .cover-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    color: rgba(255,255,255,.6);
+    letter-spacing: 1px;
+    margin-bottom: auto;
+  }
+
+  .cover-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    margin: 0.25in 0;
+  }
+
+  .cover-meta {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .cover-prepared {
+    font-size: 12px;
+    color: rgba(255,255,255,.4);
+    letter-spacing: 1px;
+  }
+
+  .cover-prepared strong {
+    display: block;
+    font-size: 15px;
+    color: rgba(255,255,255,.8);
+    font-weight: 400;
+    margin-top: 4px;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .cover-logo-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .efs-logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 4px;
+  }
+
+  .efs-logo-sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .cover-corner-decoration {
+    position: absolute;
+    top: 0.4in; right: 0.5in;
+    width: 120px; height: 120px;
+    border: 1px solid rgba(200,168,75,.2);
+    border-radius: 50%;
+    z-index: 1;
+  }
+
+  .cover-corner-decoration::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border: 1px solid rgba(200,168,75,.12);
+    border-radius: 50%;
+  }
+
+  /* ══════════════════════════════════════
+     SHARED LAYOUT — LEFT SIDEBAR PAGES
+  ══════════════════════════════════════ */
+  .sidebar-page {
+    flex-direction: row;
+  }
+
+  .sidebar {
+    width: 2.4in;
+    background: var(--navy);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5in 0.35in;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-lt));
+  }
+
+  .sidebar::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -60px;
+    width: 220px; height: 220px;
+    border: 1px solid rgba(200,168,75,.08);
+    border-radius: 50%;
+  }
+
+  .sidebar-section {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .sidebar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-subtitle {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.3);
+    line-height: 1.6;
+  }
+
+  .sidebar-divider {
+    width: 30px;
+    height: 1px;
+    background: var(--gold);
+    margin: 20px 0;
+  }
+
+  .sidebar-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-style: italic;
+    color: rgba(255,255,255,.4);
+    line-height: 1.6;
+    margin-top: auto;
+  }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── PAGE 2 GOALS ── */
+  .goals-main {
+    padding: 0.55in 0.55in;
+    background: var(--off);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+
+  .goals-main::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(200,168,75,.04) 0%, transparent 60%);
+  }
+
+  .goals-question {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+
+  .goals-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.2;
+    margin-bottom: 24px;
+    max-width: 6in;
+  }
+
+  .goals-headline em {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .goals-body {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--text);
+    max-width: 6.5in;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+  }
+
+  .goals-pillars {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 0.35in;
+  }
+
+  .pillar {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--gold);
+    padding: 18px 16px;
+  }
+
+  .pillar-icon {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .pillar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .pillar-text {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── PAGE 3 CHALLENGE ── */
+  .challenge-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .challenge-header {
+    grid-column: 1 / -1;
+    background: white;
+    padding: 0.35in 0.5in 0.25in;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .challenge-header .eyebrow {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .challenge-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .challenge-left {
+    background: var(--off);
+    padding: 0.3in 0.4in;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border-right: 1px solid var(--border);
+  }
+
+  .challenge-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .challenge-num {
+    width: 28px; height: 28px;
+    background: var(--navy);
+    color: var(--gold);
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .challenge-item-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--navy);
+    margin-bottom: 3px;
+  }
+
+  .challenge-item-text {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .challenge-right {
+    background: var(--navy);
+    padding: 0.3in 0.4in;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .challenge-stat {
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+
+  .challenge-stat:last-child { border-bottom: none; }
+
+  .challenge-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .challenge-stat-label {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.4);
+    line-height: 1.5;
+  }
+
+  /* ── PAGE 4 KAI & BRECK ── */
+  .story-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+  }
+
+  .story-header {
+    padding: 0.3in 0.5in 0.2in;
+    background: var(--off);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .story-header .eyebrow {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .story-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .story-header p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .story-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .story-col {
+    padding: 0.25in 0.35in;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .story-col.kai { background: #FFF5F5; border-right: 1px solid var(--border); }
+  .story-col.breck { background: var(--green-lt); }
+
+  .story-col-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .story-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
+    flex-shrink: 0;
+  }
+
+  .story-col.kai .story-avatar { background: var(--navy); color: #FF6B6B; }
+  .story-col.breck .story-avatar { background: var(--green); color: var(--white); }
+
+  .story-col-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .story-col-subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .story-narrative {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .story-outcome {
+    margin-top: auto;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .story-col.kai .story-outcome { background: rgba(220,50,50,.08); color: #C0392B; border-left: 3px solid #C0392B; }
+  .story-col.breck .story-outcome { background: rgba(42,110,69,.1); color: var(--green); border-left: 3px solid var(--green); }
+
+  .story-outcome-icon { font-size: 18px; }
+
+  /* Mini sequence chart */
+  .seq-chart {
+    display: flex;
+    gap: 3px;
+    margin: 12px 0;
+    align-items: flex-end;
+    height: 50px;
+  }
+
+  .seq-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    min-height: 4px;
+    position: relative;
+  }
+
+  /* ── PAGE 5 SOLUTION CHART ── */
+  .solution-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+  }
+
+  .solution-header {
+    padding: 0.3in 0.5in 0.2in;
+    background: var(--navy);
+  }
+
+  .solution-header .eyebrow {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .solution-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .solution-header p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    color: rgba(255,255,255,.5);
+    margin-top: 4px;
+  }
+
+  .solution-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 0;
+  }
+
+  .chart-area {
+    padding: 0.3in 0.4in 0.2in;
+    display: flex;
+    flex-direction: column;
+    background: var(--off);
+  }
+
+  .chart-title {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .bar-chart {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 28px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+
+  .bar-chart::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 32px;
+    border-top: 1px dashed var(--border);
+    top: 30%;
+  }
+
+  .bar-chart::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 32px;
+    border-top: 1px dashed var(--border);
+    top: 60%;
+  }
+
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .bar-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .bar-fill {
+    width: 100%;
+    border-radius: 3px 3px 0 0;
+    position: relative;
+    transition: height .3s;
+  }
+
+  .bar-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.4;
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 20px;
+    margin-top: 14px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .solution-facts {
+    background: var(--navy);
+    padding: 0.3in 0.35in;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .fact-block {
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    padding-bottom: 14px;
+  }
+
+  .fact-block:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .fact-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.35);
+    margin-bottom: 4px;
+  }
+
+  .fact-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .fact-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,.4);
+    margin-top: 3px;
+  }
+
+  .fact-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(42,110,69,.2);
+    color: #5BB880;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 2px;
+    margin-top: 5px;
+  }
+
+  /* ── PAGE 6 WHY EFS ── */
+  .why-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+  }
+
+  .why-header {
+    padding: 0.32in 0.5in 0.22in;
+    background: var(--off);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .why-header .eyebrow {
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .why-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .why-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .why-points {
+    padding: 0.3in 0.4in;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    border-right: 1px solid var(--border);
+  }
+
+  .why-point {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .why-icon {
+    width: 34px; height: 34px;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .why-point-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+
+  .why-point-text {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .why-cta {
+    padding: 0.3in 0.4in;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .why-cta-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.3;
+  }
+
+  .why-cta-headline em {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .why-cta-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    color: rgba(255,255,255,.5);
+    line-height: 1.7;
+  }
+
+  .why-contact {
+    border-top: 1px solid rgba(255,255,255,.1);
+    padding-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .why-contact-item {
+    font-size: 12px;
+    color: rgba(255,255,255,.5);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .why-contact-item strong {
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .footnote-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 28px;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    padding: 0 0.4in;
+    justify-content: space-between;
+  }
+
+  .footnote-text {
+    font-size: 9px;
+    color: rgba(255,255,255,.3);
+    letter-spacing: .5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     PAGE 1 — COVER
+══════════════════════════════════════ -->
+<div class="page cover">
+  <div class="cover-bg"></div>
+  <svg class="cover-mountain" viewBox="0 0 1100 480" preserveAspectRatio="none" fill="white">
+    <polygon points="0,480 180,180 320,300 480,80 640,280 760,140 900,320 1100,120 1100,480" opacity=".6"/>
+    <polygon points="0,480 80,320 200,380 380,200 520,340 680,180 820,360 960,220 1100,300 1100,480" opacity=".4"/>
+  </svg>
+  <div class="cover-corner-decoration"></div>
+  <div class="cover-top-bar"></div>
+
+  <div class="cover-content">
+    <div class="cover-eyebrow">Confidential &nbsp;·&nbsp; Personal Financial Review</div>
+    <div class="cover-title">Creating <em>Better</em><br>Financial Outcomes</div>
+    <div class="cover-subtitle">How to Maximize a Retirement Income Plan</div>
+    <div class="cover-divider"></div>
+    <div class="cover-meta">
+      <div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:10px">Prepared for</div>
+        <div style="font-family:'Playfair Display',serif;font-size:38px;font-weight:700;color:var(--white);line-height:1.1" id="cover-client">M45 D5 100k Sample</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     THE SITUATION
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">Context</div>
+    <div class="sidebar-title">The Situation</div>
+    <div class="sidebar-subtitle">WHERE MOST<br>PEOPLE ARE<br>TODAY</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-tagline">"The conventional path was designed for a different era — one without 30-year retirements and shrinking tax-advantaged options."</div>
+  </div>
+  <div class="main-content">
+    <div style="flex:1;display:flex;flex-direction:column;background:var(--off);">
+
+      <div style="padding:.28in .45in .18in;background:white;border-bottom:1px solid var(--border)">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:7px">The Starting Point</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--navy);line-height:1.3">You've done everything right. So why does retirement feel uncertain?</div>
+      </div>
+
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;background:var(--border);">
+
+        <div style="background:white;padding:.22in .28in;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <div style="width:32px;height:32px;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🏦</div>
+            <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--navy)">Qualified Retirement Plans</div>
+          </div>
+          <div style="font-size:12px;color:var(--text);line-height:1.7">401(k)s, 403(b)s, and IRAs are the default savings vehicle for most Americans — and for good reason. Tax-deferred growth is powerful, and employer matching is free money. But contribution limits cap how much you can put away, and every dollar you pull out in retirement is taxed as ordinary income.</div>
+          <div style="margin-top:auto;padding:8px 10px;background:rgba(13,27,46,.05);border-left:2px solid var(--navy);font-size:11px;color:var(--navy)">
+            <strong>2025 limits:</strong> $23,500 employee contribution · $70,000 total · Distributions taxed as ordinary income
+          </div>
+        </div>
+
+        <div style="background:white;padding:.22in .28in;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <div style="width:32px;height:32px;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🚪</div>
+            <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--navy)">Roth — The Tax-Free Alternative</div>
+          </div>
+          <div style="font-size:12px;color:var(--text);line-height:1.7">Roth accounts offer tax-free distributions in retirement — an elegant solution for those who qualify. The challenge: income limits phase out Roth IRA eligibility for individuals earning above $165,000 and joint filers above $246,000. For high earners, the most attractive tax-free option is simply out of reach.</div>
+          <div style="margin-top:auto;padding:8px 10px;background:rgba(192,57,43,.06);border-left:2px solid #C0392B;font-size:11px;color:#C0392B">
+            <strong>Phase-out begins:</strong> $150,000 single · $236,000 married filing jointly · Most candidates for this strategy are above these thresholds
+          </div>
+        </div>
+
+        <div style="background:white;padding:.22in .28in;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <div style="width:32px;height:32px;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📊</div>
+            <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--navy)">The Market Volatility Factor</div>
+          </div>
+          <div style="font-size:12px;color:var(--text);line-height:1.7">Market-linked accounts grow well over long time horizons — accumulation rewards patience. But the transition into retirement introduces a new and unforgiving dynamic: you are no longer depositing, you are withdrawing. A poorly timed market decline in the early years of retirement can permanently alter the trajectory of a portfolio.</div>
+          <div style="margin-top:auto;padding:8px 10px;background:rgba(192,57,43,.06);border-left:2px solid #C0392B;font-size:11px;color:#C0392B">
+            <strong>The hidden risk:</strong> Volatility during accumulation is manageable. Volatility during distribution is a different problem entirely.
+          </div>
+        </div>
+
+        <div style="background:var(--navy);padding:.22in .28in;display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <div style="width:32px;height:32px;background:rgba(200,168,75,.2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💡</div>
+            <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--gold)">The Gap No One Talks About</div>
+          </div>
+          <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:1.7">Most high-earning Americans have maximized their qualified plan contributions, can't access Roth accounts, and are entirely dependent on market performance for retirement income. They've saved diligently — but they've been saving in the only buckets available to them. The question isn't whether you've saved enough. The question is whether you've saved in the <em style="color:var(--gold)">right places.</em></div>
+          <div style="margin-top:auto;padding:8px 10px;background:rgba(200,168,75,.1);border-left:2px solid var(--gold);font-size:11px;color:var(--gold);font-weight:600">
+            There is a tax-free, downside protected alternative available — and most people have never been shown it.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 2 — GOALS
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">Our Understanding</div>
+    <div class="sidebar-title">Goals</div>
+    <div class="sidebar-subtitle">WHAT ARE WE<br>LOOKING TO<br>ACHIEVE?</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-tagline">"The goal isn't more money. The goal is living life on your own terms."</div>
+  </div>
+  <div class="main-content">
+    <div class="goals-main">
+      <div class="goals-question">The Opportunity</div>
+      <div class="goals-headline">Smartly utilize a portion of discretionary income to <em>protect the growth</em> and future value of your family's wealth.</div>
+      <div class="goals-body">A well-structured plan gives you control over outcomes that feel unpredictable — aligning your assets so that each one plays to its strength, across accumulation and distribution.</div>
+
+      <div class="goals-pillars">
+        <div class="pillar">
+          <div class="pillar-icon">🛡️</div>
+          <div class="pillar-title">Tax Efficiency</div>
+          <div class="pillar-text">Position assets to minimize the tax drag on lifetime income, keeping more of what you earn.</div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon">📈</div>
+          <div class="pillar-title">Sequence Protection</div>
+          <div class="pillar-text">Create income streams that aren't dependent on market timing or the luck of when you retire.</div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-icon">⚖️</div>
+          <div class="pillar-title">Diversification</div>
+          <div class="pillar-text">Balance investment assets with life science assets — each asset class shines in a different phase.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 4 — KAI & BRECK
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">The Story</div>
+    <div class="sidebar-title">Kai &amp;<br>Breck</div>
+    <div class="sidebar-subtitle">SEQUENCE OF<br>RETURNS RISK<br>ILLUSTRATED</div>
+    <div class="sidebar-divider"></div>
+    <div style="font-size:12px;color:rgba(255,255,255,.35);line-height:1.7;margin-top:auto">
+      Both brothers started with <strong style="color:var(--gold)">$1,000,000</strong> and withdrew <strong style="color:var(--gold)">$100,000/yr.</strong><br><br>
+      The average return for both was <strong style="color:var(--gold)">13.68%</strong> over 30 years.<br><br>
+      The only difference: <strong style="color:var(--gold)">when</strong> they retired.
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="story-main">
+      <div class="story-header">
+        <div class="eyebrow">Real Market Data — S&P 500 Returns 1972–2001</div>
+        <h2>Is there a way to enjoy retirement stress-free, regardless of timing?</h2>
+        <p>Kai and Breck are brothers — four years apart. Same market. Same average return. Different outcomes.</p>
+      </div>
+      <div class="story-body">
+        <div class="story-col kai">
+          <div class="story-col-header">
+            <div class="story-avatar">K</div>
+            <div>
+              <div class="story-col-name">Kai — The Older Brother</div>
+              <div class="story-col-subtitle">Retired in 1972 · Age 65</div>
+            </div>
+          </div>
+          <div class="story-narrative">Kai retires in 1972 with <strong>$1,000,000</strong> and withdraws $100,000 per year. Year 1 is actually good — the market returns +19%. He feels great. Then Year 2 hits: −15%. Then Year 3: −27%. He's already been withdrawing throughout. His portfolio never recovers. By 1984, just 13 years into retirement, Kai is completely out of money.</div>
+          <!-- Bars scaled to EOY balance — shows portfolio declining over time -->
+          <div class="seq-chart">
+            <div class="seq-bar" style="height:96%;background:#27AE60;opacity:.8"></div>
+            <div class="seq-bar" style="height:76%;background:#C0392B;opacity:.9"></div>
+            <div class="seq-bar" style="height:52%;background:#C0392B;opacity:.9"></div>
+            <div class="seq-bar" style="height:57%;background:#27AE60;opacity:.8"></div>
+            <div class="seq-bar" style="height:59%;background:#27AE60;opacity:.8"></div>
+            <div class="seq-bar" style="height:47%;background:#C0392B;opacity:.9"></div>
+            <div class="seq-bar" style="height:41%;background:#27AE60;opacity:.8"></div>
+            <div class="seq-bar" style="height:37%;background:#27AE60;opacity:.8"></div>
+            <div class="seq-bar" style="height:36%;background:#27AE60;opacity:.8"></div>
+            <div class="seq-bar" style="height:27%;background:#C0392B;opacity:.9"></div>
+            <div class="seq-bar" style="height:21%;background:#27AE60;opacity:.8"></div>
+            <div class="seq-bar" style="height:13%;background:#27AE60;opacity:.8"></div>
+          </div>
+          <div style="height:10px"></div>
+          <div class="story-narrative">The average return during this 30-year period was 13.68%. The good Year 1 gave false confidence. Then the sequence turned — and every withdrawal locked in permanent losses. Averages don't pay bills.</div>
+          <div class="story-outcome">
+            <div class="story-outcome-icon">⚠️</div>
+            <div>Out of money in Year 13 · $0 remaining · Same average return as his brother</div>
+          </div>
+        </div>
+        <div class="story-col breck">
+          <div class="story-col-header">
+            <div class="story-avatar">B</div>
+            <div>
+              <div class="story-col-name">Breck — The Younger Brother</div>
+              <div class="story-col-subtitle">Retired in 1976 · Age 65 · 4 Years Later</div>
+            </div>
+          </div>
+          <div class="story-narrative">Breck retires just four years later with the same <strong>$1,000,000</strong> and the same $100,000 annual withdrawal. He enters retirement at the start of an extraordinary bull run. His portfolio doesn't just survive — it flourishes.</div>
+          <!-- Sequence bars for Breck — good years early -->
+          <div class="seq-chart">
+            <div class="seq-bar" style="height:90%;background:#27AE60;opacity:.8"></div>
+            <div class="seq-bar" style="height:75%;background:#27AE60;opacity:.75"></div>
+            <div class="seq-bar" style="height:15%;background:#C0392B;opacity:.7"></div>
+            <div class="seq-bar" style="height:40%;background:#27AE60;opacity:.65"></div>
+            <div class="seq-bar" style="height:88%;background:#27AE60;opacity:.7"></div>
+            <div class="seq-bar" style="height:85%;background:#27AE60;opacity:.75"></div>
+            <div class="seq-bar" style="height:20%;background:#27AE60;opacity:.6"></div>
+            <div class="seq-bar" style="height:88%;background:#27AE60;opacity:.7"></div>
+            <div class="seq-bar" style="height:88%;background:#27AE60;opacity:.65"></div>
+            <div class="seq-bar" style="height:12%;background:#C0392B;opacity:.7"></div>
+            <div class="seq-bar" style="height:88%;background:#27AE60;opacity:.7"></div>
+            <div class="seq-bar" style="height:40%;background:#27AE60;opacity:.6"></div>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:10px">Early retirement years — returns 1976–1987</div>
+          <div class="story-narrative">By the end of the same 30-year period, Breck has over <strong>$13,000,000</strong> in his account — all because he happened to retire four years later, catching the best sequence of returns in the past 50 years.</div>
+          <div class="story-outcome">
+            <div class="story-outcome-icon">✅</div>
+            <div>$13,000,000+ at end of period · Same average return · Just 4 years later</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 3 — CHALLENGES
+══════════════════════════════════════ -->
+
+<!-- ══════════════════════════════════════
+     CHANGE OF PERSPECTIVE
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">A New Lens</div>
+    <div class="sidebar-title">Change of Per&shy;spective</div>
+    <div class="sidebar-subtitle">ACCUMULATION<br>VS<br>DISTRIBUTION</div>
+    <div class="sidebar-divider"></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:rgba(255,255,255,.4);line-height:1.7;margin-top:auto">"The strategy that builds the mountain is not the same strategy that gets you safely down it."</div>
+  </div>
+  <div class="main-content">
+    <div style="flex:1;display:flex;flex-direction:column;background:white;">
+
+      <div style="padding:.25in .45in .18in;background:var(--off);border-bottom:1px solid var(--border);">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:7px">The Core Shift</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--navy);line-height:1.3">A retirement <em>plan</em> and a retirement <em>income</em> plan are two entirely different objectives.</div>
+      </div>
+
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;">
+
+        <!-- Accumulation -->
+        <div style="padding:.25in .32in;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:38px;height:38px;background:#3A7FB5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <!-- Up arrow SVG -->
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 15V3M9 3L4 8M9 3L14 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--navy)">Accumulation Phase</div>
+              <div style="font-size:11px;color:var(--muted)">Going up the mountain</div>
+            </div>
+          </div>
+
+          <!-- Mountain up visual -->
+          <div style="background:var(--off);padding:14px;position:relative;overflow:hidden;">
+            <svg viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+              <!-- Mountain shape -->
+              <polygon points="0,100 160,10 320,100" fill="#E8EDF5" stroke="#3A7FB5" stroke-width="1.5"/>
+              <!-- Upward path -->
+              <path d="M 20,95 L 155,15" stroke="#3A7FB5" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="none"/>
+              <!-- Dollar cost averaging wavy line -->
+              <path d="M 20,95 Q 50,80 70,72 Q 90,64 110,55 Q 130,46 150,18" stroke="#5BA4CF" stroke-width="1.5" stroke-dasharray="4,3" fill="none" opacity=".7"/>
+              <!-- Up arrow at peak -->
+              <polygon points="160,5 155,16 165,16" fill="#3A7FB5"/>
+              <!-- Labels -->
+            </svg>
+          </div>
+
+          <div style="font-size:12px;color:var(--text);line-height:1.7;flex:1">Volatility during accumulation is <strong>manageable</strong>. You are depositing regularly — dollar cost averaging works in your favor. A down market means you're buying more shares at lower prices. Time is your ally. The goal is a large nest egg at the peak.</div>
+
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Primary objective</span><span style="font-weight:600;color:var(--navy)">Maximize account balance</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Volatility impact</span><span style="font-weight:600;color:#27AE60">Buffered by contributions</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;"><span style="color:var(--muted)">Right tool</span><span style="font-weight:600;color:var(--navy)">Market-linked growth assets</span></div>
+          </div>
+        </div>
+
+        <!-- Distribution -->
+        <div style="padding:.25in .32in;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:38px;height:38px;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <!-- Down arrow SVG -->
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3V15M9 15L4 10M9 15L14 10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--navy)">Distribution Phase</div>
+              <div style="font-size:11px;color:var(--muted)">Going down the mountain</div>
+            </div>
+          </div>
+
+          <!-- Mountain down visual -->
+          <div style="background:var(--off);padding:14px;position:relative;overflow:hidden;">
+            <svg viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+              <!-- Mountain shape -->
+              <polygon points="0,100 160,10 320,100" fill="#E8EDF5" stroke="var(--navy)" stroke-width="1.5"/>
+              <!-- Smooth downward path (no volatility protection) -->
+              <path d="M 165,15 Q 200,35 220,50 Q 250,68 290,90" stroke="#C0392B" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- Volatile actual path -->
+              <path d="M 165,15 Q 180,30 185,42 Q 190,55 175,60 Q 160,65 170,75 Q 180,85 290,90" stroke="#C0392B" stroke-width="1.5" stroke-dasharray="4,3" fill="none" opacity=".6"/>
+              <!-- Danger zone shading -->
+              <path d="M 165,15 Q 180,30 185,42 Q 190,55 175,60 Q 160,65 170,75 Q 180,85 290,90 Q 250,68 220,50 Q 200,35 165,15" fill="rgba(192,57,43,.06)"/>
+              <!-- Down arrow -->
+              <polygon points="291,95 285,84 297,84" fill="#C0392B"/>
+              <!-- Labels -->
+            </svg>
+          </div>
+
+          <div style="font-size:12px;color:var(--text);line-height:1.7;flex:1">Volatility during distribution is <strong>dangerous</strong>. You are withdrawing — the opposite of dollar cost averaging. A down market forces you to sell more shares at lower prices to meet the same income need. Time is no longer your ally. Every down year permanently impairs future recovery.</div>
+
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Primary objective</span><span style="font-weight:600;color:var(--navy)">Unimpeded cash flow</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Volatility impact</span><span style="font-weight:600;color:#C0392B">Amplified by withdrawals</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;"><span style="color:var(--muted)">Right tool</span><span style="font-weight:600;color:var(--navy)">Non-correlated income assets</span></div>
+          </div>
+        </div>
+
+        <!-- Bottom insight strip -->
+        <div style="grid-column:1/-1;background:var(--navy);padding:.18in .4in;display:grid;grid-template-columns:1fr 1px 1fr;gap:0;align-items:center;">
+          <div style="padding-right:24px;">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Retirement Plan</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.5">Focused on building the <strong style="color:white">largest possible nest egg.</strong> Success is measured by account balance at retirement.</div>
+          </div>
+          <div style="background:rgba(255,255,255,.1);height:100%;width:1px;margin:0 4px;"></div>
+          <div style="padding-left:24px;">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Retirement Income Plan</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.5">Focused on generating <strong style="color:white">unimpeded, tax-efficient cash flow</strong> that cannot be derailed by market timing.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     BRIDGE SLIDE A — WHAT COULD HAVE SAVED KAI
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">The Solution</div>
+    <div class="sidebar-title">What Could Have Saved Kai?</div>
+    <div class="sidebar-subtitle">A SECOND<br>BUCKET</div>
+    <div class="sidebar-divider"></div>
+    <div style="font-size:12px;color:rgba(255,255,255,.35);line-height:1.8;margin-top:auto">
+      <div style="margin-bottom:12px">Kai had a good Year 1 — <strong style="color:#27AE60">+19%</strong> in 1972. Then the sequence turned.</div>
+      <div style="margin-bottom:12px"><strong style="color:#FF6B6B">−15%</strong> in 1973, then <strong style="color:#FF6B6B">−27%</strong> in 1974. Each withdrawal locked in permanent losses.</div>
+      <div>With a second bucket, those down years become <strong style="color:var(--gold)">irrelevant</strong> to his investment portfolio.</div>
+    </div>
+  </div>
+  <div class="main-content">
+    <div style="flex:1;display:flex;flex-direction:column;background:white;">
+
+      <div style="padding:.28in .45in .18in;background:var(--off);border-bottom:1px solid var(--border)">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:7px">Kai's Story — Revisited</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--navy)">The same bad sequence. Two very different outcomes.</div>
+      </div>
+
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0;">
+
+        <!-- LEFT: Visual SVG diagram showing the two paths -->
+        <div style="padding:.22in .3in;border-right:1px solid var(--border);background:#F4F2EE;display:flex;flex-direction:column;gap:10px;">
+
+          <!-- Kai investments only — declining balance visualization -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--navy);color:#FF6B6B;font-family:'Playfair Display',serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">K</div>
+            <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--navy)">Investments Only — One Bucket</div>
+          </div>
+
+          <!-- Balance decline chart -->
+          <div style="background:white;border:1px solid var(--border);padding:14px 16px;border-top:3px solid #C0392B;">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Portfolio Balance — Forced Withdrawal Each Year</div>
+            <div style="display:flex;align-items:flex-end;gap:4px;height:70px;margin-bottom:6px">
+              <!-- EOY balances scaled: max $1,072,350 -->
+              <div style="flex:1;background:#C0392B;opacity:.15;height:100%;position:relative;border-radius:2px 2px 0 0">
+                <div style="position:absolute;bottom:0;left:0;right:0;background:#27AE60;opacity:1;height:100%;border-radius:2px 2px 0 0"></div>
+              </div>
+              <div style="flex:1;background:#C0392B;height:77%;border-radius:2px 2px 0 0;opacity:.85"></div>
+              <div style="flex:1;background:#C0392B;height:49%;border-radius:2px 2px 0 0;opacity:.95"></div>
+              <div style="flex:1;background:#C0392B;height:56%;border-radius:2px 2px 0 0;opacity:.65"></div>
+              <div style="flex:1;background:#C0392B;height:57%;border-radius:2px 2px 0 0;opacity:.6"></div>
+              <div style="flex:1;background:#C0392B;height:44%;border-radius:2px 2px 0 0;opacity:.75"></div>
+              <div style="flex:1;background:#C0392B;height:37%;border-radius:2px 2px 0 0;opacity:.7"></div>
+              <div style="flex:1;background:#C0392B;height:33%;border-radius:2px 2px 0 0;opacity:.65"></div>
+              <div style="flex:1;background:#C0392B;height:32%;border-radius:2px 2px 0 0;opacity:.6"></div>
+              <div style="flex:1;background:#C0392B;height:21%;border-radius:2px 2px 0 0;opacity:.7"></div>
+              <div style="flex:1;background:#C0392B;height:14%;border-radius:2px 2px 0 0;opacity:.65"></div>
+              <div style="flex:1;background:#C0392B;height:6%;border-radius:2px 2px 0 0;opacity:.6"></div>
+              <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#C0392B">$0</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
+              <span>1972</span><span>1975</span><span>1978</span><span>1981</span><span style="color:#C0392B;font-weight:600">1984</span>
+            </div>
+            <div style="margin-top:8px;padding:6px 8px;background:rgba(192,57,43,.06);border-left:2px solid #C0392B;font-size:11px;color:#C0392B;font-weight:600">
+              $1,072,350 → $0 in 13 years &nbsp;·&nbsp; Average return: 13.68%
+            </div>
+          </div>
+
+          <!-- Spacer -->
+          <div style="flex:1;display:flex;align-items:center;justify-content:center">
+            <div style="text-align:center">
+              <div style="font-size:32px;margin-bottom:6px">📉</div>
+              <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--navy);font-weight:600;line-height:1.4">Every down year forces a sale.<br>Each sale makes recovery harder.</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">The problem isn't the average return.<br>It's the <em>order</em> of the returns.</div>
+            </div>
+          </div>
+
+          <!-- Kai with policy — stable diagram -->
+          <div style="background:white;border:1px solid var(--border);padding:14px 16px;border-top:3px solid var(--green);">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Policy Absorbs Down Years — Investments Stay Intact</div>
+            <div style="display:flex;align-items:flex-end;gap:4px;height:70px;margin-bottom:6px">
+              <!-- Investment stays relatively stable, policy takes the hits -->
+              <div style="flex:1;background:var(--green);height:96%;border-radius:2px 2px 0 0;opacity:.7"></div>
+              <div style="flex:1;background:var(--green);height:90%;border-radius:2px 2px 0 0;opacity:.72"></div>
+              <div style="flex:1;background:var(--green);height:85%;border-radius:2px 2px 0 0;opacity:.74"></div>
+              <div style="flex:1;background:var(--green);height:88%;border-radius:2px 2px 0 0;opacity:.7"></div>
+              <div style="flex:1;background:var(--green);height:91%;border-radius:2px 2px 0 0;opacity:.72"></div>
+              <div style="flex:1;background:var(--green);height:87%;border-radius:2px 2px 0 0;opacity:.68"></div>
+              <div style="flex:1;background:var(--green);height:89%;border-radius:2px 2px 0 0;opacity:.7"></div>
+              <div style="flex:1;background:var(--green);height:92%;border-radius:2px 2px 0 0;opacity:.72"></div>
+              <div style="flex:1;background:var(--green);height:94%;border-radius:2px 2px 0 0;opacity:.74"></div>
+              <div style="flex:1;background:var(--green);height:90%;border-radius:2px 2px 0 0;opacity:.7"></div>
+              <div style="flex:1;background:var(--green);height:93%;border-radius:2px 2px 0 0;opacity:.72"></div>
+              <div style="flex:1;background:var(--green);height:95%;border-radius:2px 2px 0 0;opacity:.74"></div>
+              <div style="flex:1;background:var(--green);height:97%;border-radius:2px 2px 0 0;opacity:.76"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
+              <span>1972</span><span>1975</span><span>1978</span><span>1981</span><span>1984+</span>
+            </div>
+            <div style="margin-top:8px;padding:6px 8px;background:rgba(42,110,69,.07);border-left:2px solid var(--green);font-size:11px;color:var(--green);font-weight:600">
+              Portfolio protected · Policy absorbs down years · Income never interrupted
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Narrative text — concise, not four blocks -->
+        <div style="padding:.25in .35in;background:white;display:flex;flex-direction:column;justify-content:space-between;">
+
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+              <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--white);font-family:'Playfair Display',serif;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">K</div>
+              <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--navy)">With a Life Insurance Policy — Two Buckets</div>
+            </div>
+            <div style="font-size:13px;color:var(--text);line-height:1.75;margin-bottom:16px">
+              The market sequence is identical. What changes is where Kai draws income from during the bad years.
+            </div>
+          </div>
+
+          <!-- Three key moments -->
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;justify-content:center">
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 14px;background:rgba(42,110,69,.06);border-left:3px solid var(--green)">
+              <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green);min-width:32px;line-height:1">'72</div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:2px">Market +19% · Draw from investments</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.5">Good year — right bucket. Portfolio grows to $1,090,000. Policy also accumulating quietly.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 14px;background:rgba(42,110,69,.06);border-left:3px solid var(--green)">
+              <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green);min-width:32px;line-height:1">'73</div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:2px">Market −15% · Draw from policy instead</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.5">Investments stay intact at $927,000. No forced selling. The policy loan rate doesn't move with markets.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 14px;background:rgba(42,110,69,.06);border-left:3px solid var(--green)">
+              <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green);min-width:32px;line-height:1">'74</div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:2px">Market −27% · Draw from policy again</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.5">Portfolio at $677,000 — down but not permanently impaired. Ready to recover when markets turn.</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 14px;background:rgba(42,110,69,.1);border-left:3px solid var(--green)">
+              <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--green);min-width:32px;line-height:1">→</div>
+              <div>
+                <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:2px">1985 and Beyond</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.5">Portfolio recovers through the bull market. Policy provides tax-free income for life. Kai never runs out of money.</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:14px;padding:12px 14px;background:var(--navy);border-radius:0">
+            <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:600;color:var(--white);line-height:1.5">The life insurance policy doesn't need to outperform the market. It just needs to be there when the market fails you.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     BRIDGE SLIDE B — THE TWO-BUCKET STRATEGY
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">The Strategy</div>
+    <div class="sidebar-title">Two Buckets.<br>One Plan.</div>
+    <div class="sidebar-subtitle">DIVERSIFY<br>SOURCES.<br>DIVERSIFY<br>TAX.</div>
+    <div class="sidebar-divider"></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:rgba(255,255,255,.4);line-height:1.7;margin-top:auto">"We are not here to replace your investments. We are here to give you a shock absorber — so your investments never have to be sold at the wrong time."</div>
+  </div>
+  <div class="main-content">
+    <div style="flex:1;display:flex;flex-direction:column;background:white;">
+
+      <div style="padding:.25in .45in .18in;background:var(--off);border-bottom:1px solid var(--border)">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:7px">The Core Insight</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--navy)">Use the right bucket at the right time. Let the other one grow.</div>
+      </div>
+
+      <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;gap:0;">
+
+        <!-- Bucket 1 -->
+        <div style="padding:.25in .35in;border-right:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between;gap:0;">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:42px;height:42px;background:#3A7FB5;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📈</div>
+            <div>
+              <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--navy)">Bucket 1 — Investment Account</div>
+              <div style="font-size:11px;color:var(--muted);letter-spacing:.5px">Market-correlated · Taxable distributions</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text);line-height:1.7">Strong growth potential during accumulation. <strong>Draw from this bucket when markets are up.</strong> Let compounding work without the drag of forced withdrawals during downturns. Taxable distributions are more palatable when the account is growing — you're paying taxes on gains, not on losses.</div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding-top:16px;border-top:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Accumulation phase target</span><span style="font-weight:600;color:var(--navy)">6–12% return</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Distribution phase target</span><span style="font-weight:600;color:#C0392B">3–5% safe withdrawal</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:6px 0"><span style="color:var(--muted)">Tax treatment</span><span style="font-weight:600;color:#C0392B">Taxable income</span></div>
+          </div>
+        </div>
+
+        <!-- Bucket 2 -->
+        <div style="padding:.25in .35in;border-bottom:1px solid var(--border);display:flex;flex-direction:column;justify-content:space-between;gap:0;">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:42px;height:42px;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🛡️</div>
+            <div>
+              <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--navy)">Bucket 2 — Life Insurance Policy</div>
+              <div style="font-size:11px;color:var(--muted);letter-spacing:.5px">Non-correlated · Tax-free distributions</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text);line-height:1.7">Policy values are not exposed to a negative market because of a guaranteed 0% floor. The policy loan provides access to income while the policy value continues to compound. This is the shock absorber that keeps your investment portfolio from being permanently impaired by forced selling at exactly the wrong time. <strong>The death benefit is a bonus — income protection is the focus.</strong></div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding-top:16px;border-top:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Accumulation phase target</span><span style="font-weight:600;color:var(--navy)">3–5% (conservative)</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Distribution phase target</span><span style="font-weight:600;color:var(--green)">6–12% gross return</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;padding:6px 0"><span style="color:var(--muted)">Tax treatment</span><span style="font-weight:600;color:var(--green)">Tax-free policy loans</span></div>
+          </div>
+        </div>
+
+        <!-- Bottom insight strip spanning both columns -->
+        <div style="grid-column:1/-1;background:var(--navy);padding:.2in .4in;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:center;">
+          <div>
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Market Is Up</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.5">Draw from <strong style="color:#5BA4CF">investments.</strong> Let policy compound. Enjoy taxable gains — you can afford to.</div>
+          </div>
+          <div style="border-left:1px solid rgba(255,255,255,.1);border-right:1px solid rgba(255,255,255,.1);padding:0 20px;">
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Market Is Down</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.5">Draw from <strong style="color:#5DBB8C">life insurance.</strong> Let investments recover. Zero forced selling at the bottom.</div>
+          </div>
+          <div>
+            <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px">The Result</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.5">Sequence of returns risk is <strong style="color:var(--gold)">neutralized.</strong> Retirement income is no longer a game of timing.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">Our Understanding</div>
+    <div class="sidebar-title">Chal&shy;lenges</div>
+    <div class="sidebar-subtitle">WHAT IS<br>THE MAIN<br>PROBLEM?</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-tagline">"Without a plan, you are leaving your family's wealth to chance."</div>
+  </div>
+  <div class="main-content">
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;">
+      <div style="grid-column:1/-1;background:white;padding:.28in .45in .18in;border-bottom:1px solid var(--border)">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:7px">What Is the Main Problem?</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--navy)">The risks that can derail even the best-laid retirement plan</div>
+      </div>
+      <div class="challenge-left">
+        <div class="challenge-item">
+          <div class="challenge-num">1</div>
+          <div>
+            <div class="challenge-item-title">Limited Tax-Efficient Options</div>
+            <div class="challenge-item-text">Traditional accounts are subject to ordinary income tax in retirement, compressing the net income available for lifestyle spending.</div>
+          </div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-num">2</div>
+          <div>
+            <div class="challenge-item-title">Market Volatility</div>
+            <div class="challenge-item-text">What feels manageable during accumulation becomes dangerous in distribution — market losses in early retirement years can permanently impair a portfolio.</div>
+          </div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-num">3</div>
+          <div>
+            <div class="challenge-item-title">Sequence of Returns Risk</div>
+            <div class="challenge-item-text">Two investors with identical average returns can have radically different outcomes based solely on when they retire. Timing is everything — and it's out of your control.</div>
+          </div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-num">4</div>
+          <div>
+            <div class="challenge-item-title">Absence of Diversification</div>
+            <div class="challenge-item-text">Concentrating wealth in market-correlated assets leaves no buffer when volatility strikes in the distribution phase.</div>
+          </div>
+        </div>
+      </div>
+      <div class="challenge-right">
+        <div class="challenge-stat">
+          <div class="challenge-stat-num">$0</div>
+          <div class="challenge-stat-label">What's left after 13 years<br>of retirement with poor<br>sequence of returns</div>
+        </div>
+        <div class="challenge-stat">
+          <div class="challenge-stat-num">13.68%</div>
+          <div class="challenge-stat-label">Average annual return<br>during that same period —<br>average doesn't protect you</div>
+        </div>
+        <div class="challenge-stat">
+          <div class="challenge-stat-num">4 Yrs</div>
+          <div class="challenge-stat-label">The difference between<br>$0 and $13M — same<br>starting balance</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 5 — SOLUTION / OUTCOMES
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">The Solution</div>
+    <div class="sidebar-title">Options at a Glance</div>
+    <div class="sidebar-subtitle">SAME<br>CONTRIBUTION<br>DIFFERENT<br>OUTCOMES</div>
+    <div class="sidebar-divider"></div>
+    <div style="font-size:11px;color:rgba(255,255,255,.3);line-height:1.7;margin-top:auto">
+      <div style="margin-bottom:10px"><span style="color:var(--gold)" id="doc-sidebar-contrib">$100,000/yr</span><br><span id="doc-sidebar-pay-years">for 5 years</span></div>
+      <div style="margin-bottom:10px"><span style="color:var(--gold)">Income Ages</span><br><span id="doc-sidebar-income-ages">65 – 100</span></div>
+      <div style="margin-bottom:10px"><span style="color:var(--gold)" id="doc-life-ins-return">6.75% Gross</span><br>Life Insurance Return</div>
+      <div><span style="color:var(--gold)" id="doc-inv-return">6.75% Net</span><br>Investment Return</div>
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="solution-main">
+      <div class="solution-header">
+        <div class="eyebrow">Comparative Analysis · <span id="doc-client-eyebrow">M45 D5 100k Sample</span></div>
+        <h2>What is the best way to maximize a retirement income plan?</h2>
+        <p id="doc-strategies-p">Three strategies. Same annual contribution. Dramatically different lifetime outcomes.</p>
+      </div>
+      <div class="solution-body">
+        <div class="chart-area">
+          <div class="chart-title">Total Lifetime Income <span id="doc-income-ages">Ages 65–95</span></div>
+          <div class="bar-chart">
+            <!-- Client Total Contribution reference bar -->
+            <div class="bar-group" style="max-width:90px">
+              <div class="bar-value" style="color:var(--muted);font-size:13px" id="doc-bar-contrib">$500K</div>
+              <div class="bar-fill" id="doc-barfill-contrib" style="height:55px;background:#4a5568;opacity:.5">
+                <div class="bar-label">Client<br>Contribution</div>
+              </div>
+            </div>
+            <!-- Investment Account -->
+            <div class="bar-group">
+              <div class="bar-value" id="doc-bar-inv">$4.4M</div>
+              <div class="bar-fill" id="doc-barfill-inv" style="height:180px;background:linear-gradient(180deg,#5BA4CF,#3A7FB5)">
+                <div class="bar-label">Taxable<br>Investment</div>
+              </div>
+            </div>
+            <!-- Self-Funded LIRP -->
+            <div class="bar-group">
+              <div class="bar-value" id="doc-bar-lirp">$5.5M</div>
+              <div class="bar-fill" id="doc-barfill-lirp" style="height:216px;background:linear-gradient(180deg,#5DBB8C,#2A8A56)">
+                <div class="bar-label">Self-Funded LIRP<br>LIRP</div>
+              </div>
+            </div>
+            <!-- DEF -->
+            <div class="bar-group">
+              <div class="bar-value" style="color:var(--gold)" id="doc-bar-def">$9.2M</div>
+              <div class="bar-fill" id="doc-barfill-def" style="height:340px;background:linear-gradient(180deg,#1a3a5c,var(--navy));border:2px solid var(--gold)">
+                <div class="bar-label" style="color:var(--navy);font-weight:700">Traditional<br>Enhanced<br>Funding</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#4a5568;opacity:.5"></div>Client Contribution (Benchmark)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#3A7FB5"></div>Taxable Investment Account</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#2A8A56"></div>Self-Funded LIRP</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--navy);border:1px solid var(--gold)"></div>Traditional Enhanced Funding</div>
+          </div>
+        </div>
+        <div class="solution-facts">
+          <div class="fact-block">
+            <div class="fact-label">Total Client Investment</div>
+            <div class="fact-value" id="doc-total-outlay">$500,000</div>
+            <div class="fact-sub" id="doc-contrib-desc">$100k/yr · 5 years · Ages 45–49</div>
+          </div>
+          <div class="fact-block">
+            <div class="fact-label">TEF Total Lifetime Income</div>
+            <div class="fact-value" id="doc-total-income">$9,155,502</div>
+            <div class="fact-sub"><span id="doc-income-ages-facts">Ages 65–95</span> · Policy loans</div>
+            <div class="fact-delta" id="doc-vs-taxable">▲ +$4.8M vs Taxable Account</div>
+          </div>
+          <div class="fact-block">
+            <div class="fact-label">Annual Income</div>
+            <div class="fact-value" id="doc-annual-income">$254,320</div>
+            <div class="fact-sub" id="doc-rate-sub">Per year · Policy loans · 6.75% Gross Return</div>
+          </div>
+          <div class="fact-block">
+            <div class="fact-label">The Core Insight</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;margin-top:6px">
+              Life science assets distribute at higher rates in retirement — <em style="color:var(--gold)">not in spite of leverage, but because of it.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 5B — HOW TEF WORKS (INCOME)
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">The Structure</div>
+    <div class="sidebar-title">How It Works</div>
+    <div class="sidebar-subtitle">FUND.<br>REPAY.<br>DISTRIBUTE.</div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-tagline">"A lender funds most of the premium. Policy value repays the lender. Then the policy pays you."</div>
+  </div>
+  <div class="main-content">
+    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr;">
+      <div style="grid-column:1/-1;background:white;padding:.28in .45in .18in;border-bottom:1px solid var(--border)">
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:7px">Traditional Enhanced Funding · Income Focus</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--navy)">Four things to understand about this structure</div>
+      </div>
+      <div class="challenge-left">
+        <div class="challenge-item">
+          <div class="challenge-num">1</div>
+          <div>
+            <div class="challenge-item-title">Fund</div>
+            <div class="challenge-item-text" id="doc-how-fund">You contribute each year for a set number of years while a lender funds the balance of the premium.</div>
+          </div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-num">2</div>
+          <div>
+            <div class="challenge-item-title">Repay the Lender First</div>
+            <div class="challenge-item-text" id="doc-how-repay">The lender balance is repaid in a single payment from policy value. Income does not begin until the loan is retired.</div>
+          </div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-num">3</div>
+          <div>
+            <div class="challenge-item-title">Distribute</div>
+            <div class="challenge-item-text" id="doc-how-distribute">Policy loans provide income. Loans accrue interest and reduce cash value and death benefit, so the policy is monitored over time.</div>
+          </div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-num">4</div>
+          <div>
+            <div class="challenge-item-title">Early-Year Collateral</div>
+            <div class="challenge-item-text" id="doc-how-collateral">In the early years the lender may require collateral beyond the policy's cash value. You review and acknowledge any requirement before proceeding.</div>
+          </div>
+        </div>
+      </div>
+      <div class="challenge-right">
+        <div class="challenge-stat">
+          <div class="challenge-stat-num" id="doc-stat-payoff">—</div>
+          <div class="challenge-stat-label" id="doc-stat-payoff-label">Policy year the<br>lender is repaid</div>
+        </div>
+        <div class="challenge-stat">
+          <div class="challenge-stat-num" id="doc-stat-income">—</div>
+          <div class="challenge-stat-label">Ages policy-loan<br>income is taken</div>
+        </div>
+        <div class="challenge-stat">
+          <div class="challenge-stat-num" id="doc-stat-gap">—</div>
+          <div class="challenge-stat-label">Peak early-year gap collateral<br>in a 0% return stress test</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 6 — WHY EFS
+══════════════════════════════════════ -->
+<div class="page sidebar-page">
+  <div class="sidebar">
+    <div class="sidebar-section">Our Firm</div>
+    <div class="sidebar-title">Why Us?</div>
+    <div class="sidebar-subtitle">EFS LIFE LLC</div>
+    <div class="sidebar-divider"></div>
+    <div style="margin-top:auto">
+      
+      <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:4px;letter-spacing:.5px">EnhanceYourIncome.com</div>
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="why-main">
+      <div class="why-header">
+        <div class="eyebrow">Why EFS Life LLC</div>
+        <h2>Expertise, Relationships &amp; a Philosophy Born from Experience</h2>
+      </div>
+      <div class="why-body">
+        <div class="why-points">
+          <div class="why-point">
+            <div class="why-icon">🔗</div>
+            <div>
+              <div class="why-point-title">Experts in Leveraged Life Insurance</div>
+              <div class="why-point-text">We specialize in the intersection of premium finance and life insurance — a sophisticated strategy that requires deep carrier knowledge, lender relationships, and precise illustration design.</div>
+            </div>
+          </div>
+          <div class="why-point">
+            <div class="why-icon">🤝</div>
+            <div>
+              <div class="why-point-title">Carrier &amp; Lender Relationships</div>
+              <div class="why-point-text">Strong relationships with leading insurance carriers and lending institutions mean our clients receive competitive terms and access to institutional-quality programs.</div>
+            </div>
+          </div>
+          <div class="why-point">
+            <div class="why-icon">🏈</div>
+            <div>
+              <div class="why-point-title">Built on Team Chemistry</div>
+              <div class="why-point-text">Our founder's 10-year NFL career as an offensive lineman instilled a deep understanding of team continuity. We collaborate closely with your advisory team — CPA, attorney, financial advisor — to deliver integrated planning.</div>
+            </div>
+          </div>
+          <div class="why-point">
+            <div class="why-icon">🎯</div>
+            <div>
+              <div class="why-point-title">We Were Clients First</div>
+              <div class="why-point-text">Our firm's philosophy was shaped by our own experience as clients. We advise the way we would want to be advised — with transparency, precision, and a long-term perspective.</div>
+            </div>
+          </div>
+        </div>
+        <div class="why-cta">
+          <div class="why-cta-headline">Ready to see what <em>leverage</em> can do for your retirement income plan?</div>
+          <div class="why-cta-text">The next step is a detailed look at your specific numbers — to do that we will need to get you underwritten by the insurance carrier. It is a simple process that our team can walk you through step by step.</div>
+          <div class="why-contact">
+            <div style="margin-bottom:8px"></div>
+            <div class="why-contact-item">🌐 <strong>EnhanceYourIncome.com</strong></div>
+            <div class="why-contact-item">✉️ <strong>support@enhanceyourincome.com</strong></div>
+            <div class="why-contact-item" style="font-size:10px;color:rgba(255,255,255,.25);margin-top:4px">Confidential — EFS Life LLC. This document is for discussion purposes only and does not constitute a contract, offer, or guarantee of any specific product or rate. All illustrations are hypothetical. Not valid without a complete carrier illustration.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function() {
+  try {
+    var raw = localStorage.getItem('tef_income_ledger_data');
+    if (!raw) return;
+    var r = JSON.parse(raw);
+    var fa = function(n) { return '$' + Math.round(n || 0).toLocaleString(); };
+    var fm = function(n) { return n >= 1000000 ? '$' + (n / 1000000).toFixed(1) + 'M' : '$' + Math.round(n / 1000) + 'K'; };
+    var set = function(id, txt) { var e = document.getElementById(id); if (e) e.textContent = txt; return e; };
+    var rate1 = r.rate1Label || '';
+    var payoffAge = r.issueAge + r.payoffYear - 1;
+
+    set('cover-client', r.clientName || '');
+    set('doc-client-eyebrow', r.clientName || '');
+    set('doc-total-outlay', fa(r.totalClientOutlay));
+    set('doc-contrib-desc', fa(r.clientContrib) + '/yr · ' + r.contribDuration + ' years · Ages ' + r.issueAge + '–' + (r.issueAge + r.contribDuration - 1));
+    set('doc-total-income', fa(r.tefTotalIncome));
+    set('doc-annual-income', fa(r.tefAnnualIncome));
+    set('doc-rate-sub', 'Per year · Policy loans · ' + rate1 + ' Gross Return');
+    set('doc-sidebar-contrib', fa(r.clientContrib) + '/yr');
+    set('doc-sidebar-pay-years', 'for ' + r.contribDuration + ' years');
+    set('doc-sidebar-income-ages', r.incomeStartAge + ' – ' + r.incomeEndAge);
+    set('doc-income-ages', 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge);
+    set('doc-income-ages-facts', 'Ages ' + r.incomeStartAge + '–' + r.incomeEndAge);
+    set('doc-life-ins-return', rate1 + ' Gross');
+    set('doc-inv-return', rate1 + ' Net');
+
+    set('doc-bar-contrib', fm(r.totalClientOutlay));
+    set('doc-bar-inv', fm(r.invTotalNet));
+    set('doc-bar-def', fm(r.tefTotalIncome));
+    if (r.hasLIRP) set('doc-bar-lirp', fm(r.lirpTotalIncome));
+
+    var diff = r.tefTotalIncome - r.invTotalNet, abs = Math.abs(diff);
+    set('doc-vs-taxable', (diff >= 0 ? '▲ +$' : '▼ -$') + (abs >= 1000000 ? (abs / 1000000).toFixed(1) + 'M' : Math.round(abs / 1000) + 'K') + ' vs Taxable Account');
+
+    // Bars scale to the largest value shown
+    var vals = [r.totalClientOutlay, r.invTotalNet, r.tefTotalIncome].concat(r.hasLIRP ? [r.lirpTotalIncome] : []);
+    var maxVal = Math.max.apply(null, vals) || 1;
+    var h = function(v) { return Math.max(4, Math.round((v / maxVal) * 320)) + 'px'; };
+    var b;
+    if ((b = document.getElementById('doc-barfill-contrib'))) b.style.height = h(r.totalClientOutlay);
+    if ((b = document.getElementById('doc-barfill-inv'))) b.style.height = h(r.invTotalNet);
+    if ((b = document.getElementById('doc-barfill-def'))) b.style.height = h(r.tefTotalIncome);
+    if (r.hasLIRP) {
+      if ((b = document.getElementById('doc-barfill-lirp'))) b.style.height = h(r.lirpTotalIncome);
+    } else {
+      var lb = document.getElementById('doc-bar-lirp');
+      if (lb && lb.parentNode) lb.parentNode.style.display = 'none';
+      Array.prototype.forEach.call(document.querySelectorAll('.legend-item'), function(li) {
+        if (li.textContent.indexOf('Self-Funded LIRP') >= 0) li.style.display = 'none';
+      });
+      set('doc-strategies-p', 'Two strategies. Same annual contribution. Different lifetime outcomes.');
+    }
+
+    // How it works page
+    var gap = (r.gapResults || []).reduce(function(m, g) { return Math.max(m, g.gap || 0); }, 0);
+    var levTxt = r.lev ? ' (' + r.lev + '× leverage)' : '';
+    set('doc-how-fund', 'You contribute ' + fa(r.clientContrib) + ' a year for ' + r.contribDuration + ' years while a lender funds the balance of the premium' + levTxt + ', so more goes into the policy than you pay yourself.');
+    set('doc-how-repay', 'In policy year ' + r.payoffYear + ' (age ' + payoffAge + '), the lender balance of about ' + fa(r.payoffAmount) + ' is repaid in a single payment from policy value. Income does not begin until the loan is retired.');
+    set('doc-how-distribute', 'From age ' + r.incomeStartAge + ' to ' + r.incomeEndAge + ', policy loans provide about ' + fa(r.tefAnnualIncome) + ' a year. Loans accrue interest and reduce cash value and death benefit, so the policy is monitored over time.');
+    set('doc-how-collateral', gap > 0
+      ? 'In the early years the lender may require collateral beyond the policy\'s cash value. In a 0% return stress test the peak requirement is ' + fa(gap) + '. You review and acknowledge it before proceeding.'
+      : 'In a 0% return stress test of the early years, no gap collateral was shown. The lender sets final requirements, and you review them before proceeding.');
+    set('doc-stat-payoff', 'Yr ' + r.payoffYear);
+    set('doc-stat-income', r.incomeStartAge + '–' + r.incomeEndAge);
+    set('doc-stat-gap', gap > 0 ? fm(gap) : '$0');
+  } catch (e) {}
+})();
+
+</script>
+
+</body>
+</html>

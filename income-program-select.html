@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choose an Income Program — EnhanceYourIncome</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0d1b2e;--navy-2:#152640;--navy-3:#1e3558;--gold:#c9a84c;--gold-lt:#dfc278;--off:#f5f3ee;--border:#ddd8ce;--muted:#8a8070;--text:#1a1a2a;--white:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--off);color:var(--text);min-height:100vh}
+.hdr{background:var(--navy);padding:16px 40px;border-bottom:1px solid rgba(201,168,76,.2);display:flex;align-items:center;gap:14px}
+.hdr-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--white);font-weight:500}
+.hdr-sub{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-top:2px}
+.wrap{max-width:1040px;margin:0 auto;padding:56px 32px}
+h1{font-family:'Playfair Display',serif;font-size:34px;color:var(--navy);font-weight:500;margin-bottom:8px}
+.lead{font-size:14px;color:var(--muted);margin-bottom:40px;line-height:1.6;max-width:640px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.hdr{padding:14px 20px}.wrap{padding:36px 20px}}
+a.card{display:flex;flex-direction:column;background:var(--white);border:1px solid var(--border);border-radius:6px;overflow:hidden;text-decoration:none;color:inherit;transition:all .18s}
+a.card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 24px rgba(13,27,46,.10)}
+.card-top{background:var(--navy-2);padding:22px 26px}
+.tag{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);padding:2px 8px;border-radius:2px;display:inline-block;margin-bottom:10px}
+.card-top h2{font-family:'Playfair Display',serif;font-size:24px;color:var(--white);font-weight:500}
+.card-top .sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;letter-spacing:.5px}
+.card-body{padding:24px 26px;flex:1;display:flex;flex-direction:column}
+.card-body p{font-size:13px;line-height:1.65;margin-bottom:16px}
+.pts{list-style:none;margin-bottom:22px}
+.pts li{font-size:12px;color:var(--text);padding:7px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;line-height:1.45}
+.pts li:last-child{border-bottom:none}
+.pts li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:6px;flex:none}
+.go{margin-top:auto;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);background:var(--gold);padding:12px;text-align:center;border-radius:3px}
+a.card:hover .go{background:var(--gold-lt)}
+.note{font-size:11px;color:var(--muted);margin-top:28px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="hdr-title">EnhanceYourIncome</div>
+    <div class="hdr-sub">Enhanced Funding · Income Pre-Illustration Modelers</div>
+  </div>
+</div>
+<div class="wrap">
+  <h1>Choose an income program</h1>
+  <div class="lead">Both programs use a premium finance loan, retire it, then take policy-loan income. Pick the structure that fits the client, then model the case.</div>
+  <div class="grid">
+    <a class="card" href="/efs-def-pre-illus.html">
+      <div class="card-top">
+        <div class="tag">Income</div>
+        <h2>Deferred Enhanced Funding</h2>
+        <div class="sub">DEF · Enhanced Roth Alternative</div>
+      </div>
+      <div class="card-body">
+        <p>Income ledger comparing DEF to a self-funded LIRP and a taxable investment account at the same contribution.</p>
+        <ul class="pts">
+          <li>For clients who want more than self-funding but will not pledge outside assets</li>
+          <li>Income start and end ages, with the loan retired first</li>
+          <li>Optional 1035 exchange of an existing policy</li>
+          <li>Also offers a death-benefit-only output</li>
+        </ul>
+        <div class="go">Model a DEF Case →</div>
+      </div>
+    </a>
+    <a class="card" href="/tef-income-pre-illus.html">
+      <div class="card-top">
+        <div class="tag">Income</div>
+        <h2>Traditional Enhanced Funding</h2>
+        <div class="sub">TEF · Income Focus</div>
+      </div>
+      <div class="card-body">
+        <p>Income ledger for TEF, historically used for death benefit, with gap collateral shown alongside the income.</p>
+        <ul class="pts">
+          <li>Leverage ratio, standard or no-collateral format</li>
+          <li>0% return gap-collateral stress test with client acknowledgment</li>
+          <li>Primary and alternative rate scenarios</li>
+          <li>Compared to a self-funded LIRP and a taxable account</li>
+        </ul>
+        <div class="go">Model a TEF Case →</div>
+      </div>
+    </a>
+  </div>
+  <div class="note">EFS Life LLC — confidential, for advisor use. Hypothetical models only; refer to the carrier illustration for policy details.</div>
+</div>
+</body>
+</html>
